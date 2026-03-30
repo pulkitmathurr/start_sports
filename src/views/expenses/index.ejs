@@ -1,0 +1,565 @@
+<%- include('../partials/header') %>
+
+    <div class="exp-page">
+
+        <!-- Header Section -->
+        <div class="exp-header">
+            <div class="exp-header__left">
+                <div class="exp-header__icon">
+                    <i class="bi bi-wallet2"></i>
+                </div>
+                <div>
+                    <h4 class="exp-header__title">Expense Tracker</h4>
+                    <span class="exp-header__sub">Track and manage all your expenses</span>
+                </div>
+            </div>
+            <button class="exp-add-btn" id="openExpenseDrawer">
+                <i class="bi bi-plus-lg me-2"></i>ADD EXPENSE
+            </button>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="row g-4 mb-4" id="statsContainer">
+            <div class="col-12 col-md-4">
+                <div class="exp-stat-card exp-stat-card--total">
+                    <div class="exp-stat-card__icon"><i class="bi bi-currency-rupee"></i></div>
+                    <div class="exp-stat-card__body">
+                        <div class="exp-stat-card__label">Total Expenses</div>
+                        <div class="exp-stat-card__value" id="totalAmount">₹0</div>
+                        <div class="exp-stat-card__trend" id="totalCount">0 transactions</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-4">
+                <div class="exp-stat-card exp-stat-card--monthly">
+                    <div class="exp-stat-card__icon"><i class="bi bi-calendar-month"></i></div>
+                    <div class="exp-stat-card__body">
+                        <div class="exp-stat-card__label">This Month</div>
+                        <div class="exp-stat-card__value" id="monthlyAmount">₹0</div>
+                        <div class="exp-stat-card__trend">Last 30 days</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-4">
+                <div class="exp-stat-card exp-stat-card--categories">
+                    <div class="exp-stat-card__icon"><i class="bi bi-pie-chart"></i></div>
+                    <div class="exp-stat-card__body">
+                        <div class="exp-stat-card__label">Top Category</div>
+                        <div class="exp-stat-card__value" id="topCategory">—</div>
+                        <div class="exp-stat-card__trend" id="topCategoryAmount">—</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters Bar -->
+        <div class="exp-filters">
+            <div class="exp-filters__left">
+                <div class="exp-search-wrap">
+                    <i class="bi bi-search"></i>
+                    <input type="text" id="searchInput" class="exp-search-input"
+                        placeholder="Search by title, vendor..." autocomplete="off">
+                </div>
+                <select id="categoryFilter" class="exp-filter-select">
+                    <option value="all">All Categories</option>
+                    <option value="Electricity">Electricity</option>
+                    <option value="Maintenance">Maintenance</option>
+                    <option value="Salary">Salary</option>
+                    <option value="Equipment">Equipment</option>
+                    <option value="Other">Other</option>
+                </select>
+                <input type="date" id="dateFromFilter" class="exp-filter-date" placeholder="From">
+                <input type="date" id="dateToFilter" class="exp-filter-date" placeholder="To">
+            </div>
+            <button id="resetFilters" class="exp-reset-btn">
+                <i class="bi bi-arrow-repeat me-1"></i>Reset
+            </button>
+        </div>
+
+        <!-- Expenses Table -->
+        <div class="exp-table-card">
+            <div class="exp-table-header">
+                <span class="exp-table-title">
+                    <i class="bi bi-list-ul me-2"></i>Expense Transactions
+                </span>
+                <span class="exp-table-info" id="tableInfo">Loading...</span>
+            </div>
+            <div class="table-responsive">
+                <table class="exp-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Title</th>
+                            <th>Category</th>
+                            <th>Vendor</th>
+                            <th>Amount</th>
+                            <th>Payment</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="expenseTableBody">
+                        <tr>
+                            <td colspan="7" class="text-center py-5">
+                                <div class="exp-loading">
+                                    <i class="bi bi-hourglass-split"></i> Loading...
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="exp-pagination" id="paginationContainer"></div>
+        </div>
+    </div>
+
+    <!-- Right Side Drawer for Add/Edit Expense -->
+    <div id="expenseDrawerOverlay" class="exp-drawer-overlay"></div>
+    <div id="expenseDrawer" class="exp-drawer">
+        <div class="exp-drawer-header">
+            <div>
+                <div class="exp-drawer-title" id="drawerTitle">Add New Expense</div>
+                <div class="exp-drawer-sub">Fill in the details below</div>
+            </div>
+            <button class="exp-drawer-close" id="closeDrawerBtn">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <div class="exp-drawer-body">
+            <form id="expenseForm">
+                <input type="hidden" id="expenseId" name="id">
+
+                <div class="exp-form-group">
+                    <label class="exp-form-label">Title *</label>
+                    <input type="text" id="expTitle" name="title" class="exp-form-input"
+                        placeholder="e.g., Electricity Bill" required>
+                </div>
+
+                <div class="exp-form-row">
+                    <div class="exp-form-group">
+                        <label class="exp-form-label">Amount *</label>
+                        <div class="exp-amount-input-wrap">
+                            <span class="exp-currency">₹</span>
+                            <input type="number" id="expAmount" name="amount" class="exp-form-input exp-amount-input"
+                                placeholder="0.00" step="0.01" required>
+                        </div>
+                    </div>
+                    <div class="exp-form-group">
+                        <label class="exp-form-label">Date *</label>
+                        <input type="date" id="expDate" name="expense_date" class="exp-form-input" required>
+                    </div>
+                </div>
+
+                <div class="exp-form-row">
+                    <div class="exp-form-group">
+                        <label class="exp-form-label">Category</label>
+                        <select id="expCategory" name="category" class="exp-form-select">
+                            <option value="Labour">Labour</option>
+                            <option value="Production">Production</option>
+                            <option value="Selling">Selling & Distribution</option>
+                            <option value="Warehouse">Warehouse</option>
+                            <option value="Vehicle">Vehicle Expenses</option>
+                            <option value="Turf Maintenance">Turf Maintenance</option>
+                            <option value="Pitch Preparation">Pitch Preparation</option>
+                            <option value="Equipment Repair">Equipment Repair</option>
+                            <option value="Consumables">Consumables</option>
+                            <option value="Salary">Salary & Wages</option>
+                            <option value="Communication">Communication</option>
+                            <option value="Utilities">Utilities</option>
+                            <option value="Electricity">Electricity</option>
+                            <option value="Maintenance">Maintenance</option>
+                            <option value="Rent">Rent</option>
+                            <option value="Insurance">Insurance</option>
+                            <option value="Taxes">Taxes & Licenses</option>
+                            <option value="Equipment">Equipment Purchase</option>
+                            <option value="Interest">Interest Income</option>
+                            <option value="Scrap">Scrap Sales</option>
+                            <option value="Other">Other Expenses</option>
+                        </select>
+                    </div>
+                    <div class="exp-form-group">
+                        <label class="exp-form-label">Payment Mode</label>
+                        <select id="expPaymentMode" name="payment_mode" class="exp-form-select">
+                            <option value="cash"> Cash</option>
+                            <option value="upi"> UPI</option>
+                            <option value="card">Card</option>
+                            <option value="bank"> Bank Transfer</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="exp-form-group">
+                    <label class="exp-form-label">Vendor</label>
+                    <input type="text" id="expVendor" name="vendor" class="exp-form-input"
+                        placeholder="Vendor or supplier name">
+                </div>
+
+                <div class="exp-form-group">
+                    <label class="exp-form-label">Notes</label>
+                    <textarea id="expNotes" name="notes" class="exp-form-textarea" rows="3"
+                        placeholder="Additional details..."></textarea>
+                </div>
+
+                <div class="exp-form-actions">
+                    <button type="button" class="exp-btn-cancel" id="cancelDrawerBtn">Cancel</button>
+                    <button type="submit" class="exp-btn-save">
+                        <i class="bi bi-check-lg me-2"></i>Save Expense
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let currentPage = 1;
+        let currentFilters = {
+            search: '',
+            category: 'all',
+            date_from: '',
+            date_to: ''
+        };
+
+        // Load stats on page load
+        async function loadStats() {
+            try {
+                const res = await fetch('/expenses/stats');
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById('totalAmount').innerHTML = `₹${Number(data.data.total.total_amount).toLocaleString('en-IN')}`;
+                    document.getElementById('totalCount').innerHTML = `${data.data.total.total_count} transactions`;
+                    document.getElementById('monthlyAmount').innerHTML = `₹${Number(data.data.total.monthly_total).toLocaleString('en-IN')}`;
+
+                    if (data.data.categoryStats && data.data.categoryStats.length > 0) {
+                        const top = data.data.categoryStats[0];
+                        document.getElementById('topCategory').innerHTML = top.category;
+                        document.getElementById('topCategoryAmount').innerHTML = `₹${Number(top.total).toLocaleString('en-IN')}`;
+                    } else {
+                        document.getElementById('topCategory').innerHTML = '—';
+                        document.getElementById('topCategoryAmount').innerHTML = '—';
+                    }
+                }
+            } catch (err) {
+                console.error('Error loading stats:', err);
+            }
+        }
+
+        // Load expenses with filters
+        async function loadExpenses(page = 1) {
+            currentPage = page;
+            const params = new URLSearchParams({
+                page: page,
+                limit: 10,
+                ...currentFilters
+            });
+
+            try {
+                const res = await fetch(`/expenses?${params}`);
+                const data = await res.json();
+
+                if (data.success) {
+                    renderExpensesTable(data.data.expenses);
+                    renderPagination(data.data.pagination);
+                    updateTableInfo(data.data.pagination);
+                }
+            } catch (err) {
+                console.error('Error loading expenses:', err);
+            }
+        }
+
+        // Render expenses table
+        function renderExpensesTable(expenses) {
+            const tbody = document.getElementById('expenseTableBody');
+
+            if (!expenses || expenses.length === 0) {
+                tbody.innerHTML = `
+      <tr>
+        <td colspan="7" class="text-center py-5">
+          <div class="exp-empty-state">
+            <i class="bi bi-receipt"></i>
+            <p>No expenses found</p>
+            <small>Click "ADD EXPENSE" to get started</small>
+          </div>
+        </td>
+      </tr>
+    `;
+                return;
+            }
+
+            tbody.innerHTML = expenses.map(exp => `
+    <tr class="exp-row" data-id="${exp.id}">
+      <td><span class="exp-date-badge">${formatDate(exp.expense_date)}</span></td>
+      <td><span class="exp-title">${escapeHtml(exp.title)}</span></td>
+      <td><span class="exp-category-badge exp-category-${exp.category.toLowerCase()}">${exp.category}</span></td>
+      <td>${exp.vendor ? `<span class="exp-vendor">${escapeHtml(exp.vendor)}</span>` : '<span class="exp-vendor-muted">—</span>'}</td>
+      <td><span class="exp-amount">₹${Number(exp.amount).toLocaleString('en-IN')}</span></td>
+      <td><span class="exp-payment-badge exp-payment-${exp.payment_mode}">${getPaymentIcon(exp.payment_mode)} ${exp.payment_mode.toUpperCase()}</span></td>
+      <td>
+        <div class="exp-actions">
+          <button class="exp-action-btn exp-edit-btn" onclick="editExpense(${exp.id})" title="Edit">
+            <i class="bi bi-pencil"></i>
+          </button>
+          <button class="exp-action-btn exp-delete-btn" onclick="deleteExpense(${exp.id}, '${escapeHtml(exp.title)}')" title="Delete">
+            <i class="bi bi-trash"></i>
+          </button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+        }
+
+        // Render pagination
+        function renderPagination(pagination) {
+            const container = document.getElementById('paginationContainer');
+            const { currentPage, totalPages, totalRecords, limit } = pagination;
+
+            if (totalPages <= 1) {
+                container.innerHTML = '';
+                return;
+            }
+
+            let html = `
+    <div class="exp-pagination-info">
+      Showing ${((currentPage - 1) * limit) + 1} to ${Math.min(currentPage * limit, totalRecords)} of ${totalRecords} entries
+    </div>
+    <div class="exp-pagination-controls">
+  `;
+
+            // Previous button
+            if (currentPage > 1) {
+                html += `<button class="exp-page-btn" onclick="loadExpenses(${currentPage - 1})"><i class="bi bi-chevron-left"></i></button>`;
+            } else {
+                html += `<button class="exp-page-btn disabled" disabled><i class="bi bi-chevron-left"></i></button>`;
+            }
+
+            // Page numbers
+            let startPage = Math.max(1, currentPage - 2);
+            let endPage = Math.min(totalPages, currentPage + 2);
+
+            if (startPage > 1) {
+                html += `<button class="exp-page-btn" onclick="loadExpenses(1)">1</button>`;
+                if (startPage > 2) html += `<span class="exp-page-dots">...</span>`;
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                html += `<button class="exp-page-btn ${i === currentPage ? 'active' : ''}" onclick="loadExpenses(${i})">${i}</button>`;
+            }
+
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) html += `<span class="exp-page-dots">...</span>`;
+                html += `<button class="exp-page-btn" onclick="loadExpenses(${totalPages})">${totalPages}</button>`;
+            }
+
+            // Next button
+            if (currentPage < totalPages) {
+                html += `<button class="exp-page-btn" onclick="loadExpenses(${currentPage + 1})"><i class="bi bi-chevron-right"></i></button>`;
+            } else {
+                html += `<button class="exp-page-btn disabled" disabled><i class="bi bi-chevron-right"></i></button>`;
+            }
+
+            html += `</div>`;
+            container.innerHTML = html;
+        }
+
+        // Update table info
+        function updateTableInfo(pagination) {
+            const info = document.getElementById('tableInfo');
+            info.innerHTML = `${pagination.totalRecords} transaction${pagination.totalRecords !== 1 ? 's' : ''}`;
+        }
+
+        // Drawer functions
+        function openDrawer(expense = null) {
+            const overlay = document.getElementById('expenseDrawerOverlay');
+            const drawer = document.getElementById('expenseDrawer');
+            const title = document.getElementById('drawerTitle');
+            const form = document.getElementById('expenseForm');
+
+            if (expense) {
+                title.textContent = 'Edit Expense';
+                document.getElementById('expenseId').value = expense.id;
+                document.getElementById('expTitle').value = expense.title;
+                document.getElementById('expAmount').value = expense.amount;
+                document.getElementById('expDate').value = expense.expense_date;
+                document.getElementById('expCategory').value = expense.category;
+                document.getElementById('expPaymentMode').value = expense.payment_mode;
+                document.getElementById('expVendor').value = expense.vendor || '';
+                document.getElementById('expNotes').value = expense.notes || '';
+            } else {
+                title.textContent = 'Add New Expense';
+                form.reset();
+                document.getElementById('expenseId').value = '';
+                document.getElementById('expDate').value = new Date().toISOString().split('T')[0];
+            }
+
+            overlay.classList.add('active');
+            drawer.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeDrawer() {
+            const overlay = document.getElementById('expenseDrawerOverlay');
+            const drawer = document.getElementById('expenseDrawer');
+            overlay.classList.remove('active');
+            drawer.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // Add/Edit expense
+        async function saveExpense(event) {
+            event.preventDefault();
+
+            const id = document.getElementById('expenseId').value;
+            const data = {
+                title: document.getElementById('expTitle').value,
+                amount: document.getElementById('expAmount').value,
+                expense_date: document.getElementById('expDate').value,
+                category: document.getElementById('expCategory').value,
+                payment_mode: document.getElementById('expPaymentMode').value,
+                vendor: document.getElementById('expVendor').value,
+                notes: document.getElementById('expNotes').value
+            };
+
+            const url = id ? `/expenses/${id}` : '/expenses/add';
+            const method = id ? 'PUT' : 'POST';
+
+            try {
+                const res = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await res.json();
+                if (result.success) {
+                    closeDrawer();
+                    loadStats();
+                    loadExpenses(currentPage);
+                    showToast(result.message, 'success');
+                } else {
+                    showToast(result.message || 'Error saving expense', 'error');
+                }
+            } catch (err) {
+                showToast('Network error. Please try again.', 'error');
+            }
+        }
+
+        // Edit expense
+        async function editExpense(id) {
+            try {
+                const res = await fetch(`/expenses/${id}`);
+                const data = await res.json();
+                if (data.success) {
+                    openDrawer(data.data);
+                }
+            } catch (err) {
+                showToast('Error loading expense', 'error');
+            }
+        }
+
+        // Delete expense
+        async function deleteExpense(id, title) {
+            if (!confirm(`Delete "${title}"? This action cannot be undone.`)) return;
+
+            try {
+                const res = await fetch(`/expenses/${id}`, { method: 'DELETE' });
+                const data = await res.json();
+                if (data.success) {
+                    loadStats();
+                    loadExpenses(currentPage);
+                    showToast('Expense deleted successfully', 'success');
+                } else {
+                    showToast(data.message || 'Error deleting expense', 'error');
+                }
+            } catch (err) {
+                showToast('Network error. Please try again.', 'error');
+            }
+        }
+
+        // Toast notification
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `exp-toast exp-toast--${type}`;
+            toast.innerHTML = `
+    <i class="bi bi-${type === 'success' ? 'check-circle-fill' : 'exclamation-triangle-fill'}"></i>
+    <span>${message}</span>
+  `;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Helper functions
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+        }
+
+        function getPaymentIcon(mode) {
+            const icons = { cash: '💵', upi: '📱', card: '💳', bank: '🏦' };
+            return icons[mode] || '💵';
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, function (m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
+        // Filter handlers
+        document.getElementById('searchInput').addEventListener('input', debounce(() => {
+            currentFilters.search = document.getElementById('searchInput').value;
+            loadExpenses(1);
+        }, 500));
+
+        document.getElementById('categoryFilter').addEventListener('change', () => {
+            currentFilters.category = document.getElementById('categoryFilter').value;
+            loadExpenses(1);
+        });
+
+        document.getElementById('dateFromFilter').addEventListener('change', () => {
+            currentFilters.date_from = document.getElementById('dateFromFilter').value;
+            loadExpenses(1);
+        });
+
+        document.getElementById('dateToFilter').addEventListener('change', () => {
+            currentFilters.date_to = document.getElementById('dateToFilter').value;
+            loadExpenses(1);
+        });
+
+        document.getElementById('resetFilters').addEventListener('click', () => {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('categoryFilter').value = 'all';
+            document.getElementById('dateFromFilter').value = '';
+            document.getElementById('dateToFilter').value = '';
+            currentFilters = { search: '', category: 'all', date_from: '', date_to: '' };
+            loadExpenses(1);
+        });
+
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func(...args), wait);
+            };
+        }
+
+        // Event listeners
+        document.getElementById('openExpenseDrawer').addEventListener('click', () => openDrawer());
+        document.getElementById('closeDrawerBtn').addEventListener('click', closeDrawer);
+        document.getElementById('cancelDrawerBtn').addEventListener('click', closeDrawer);
+        document.getElementById('expenseForm').addEventListener('submit', saveExpense);
+        document.getElementById('expenseDrawerOverlay').addEventListener('click', closeDrawer);
+
+        // Initialize
+        loadStats();
+        loadExpenses(1);
+    </script>
+
+    <%- include('../partials/footer') %>

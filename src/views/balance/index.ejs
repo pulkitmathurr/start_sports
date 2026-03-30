@@ -1,0 +1,687 @@
+<%- include('../partials/header') %>
+
+<div class="bs-page">
+    
+    <!-- Premium Header with Gradient -->
+    <div class="bs-header-premium">
+        <div class="bs-header-premium__content">
+            <div class="bs-header-premium__icon">
+                <i class="bi bi-journal-bookmark-fill"></i>
+            </div>
+            <div class="bs-header-premium__text">
+                <h1>Balance Sheet</h1>
+                <p>Profit & Loss Statement - Complete Financial Overview</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modern Filter Card -->
+    <div class="bs-filter-card">
+        <div class="bs-filter-card__header">
+            <i class="bi bi-funnel-fill"></i>
+            <span>Filter Report</span>
+        </div>
+        <div class="bs-filter-card__body">
+            <div class="bs-filter-group">
+                <div class="bs-filter-item">
+                    <label class="bs-filter-label">
+                        <i class="bi bi-calendar-range"></i> Report Type
+                    </label>
+                    <select id="periodType" class="bs-filter-select">
+                        <option value="yearly">📊 Yearly Statement</option>
+                        <option value="monthly">📅 Monthly Statement</option>
+                    </select>
+                </div>
+                
+                <div class="bs-filter-item">
+                    <label class="bs-filter-label">
+                        <i class="bi bi-calendar3"></i> Year
+                    </label>
+                    <select id="yearSelect" class="bs-filter-select">
+                        <% years.forEach(y => { %>
+                            <option value="<%= y %>" <%= y == currentYear ? 'selected' : '' %>><%= y %> - <%= y+1 %> Fiscal Year</option>
+                        <% }) %>
+                    </select>
+                </div>
+                
+                <div class="bs-filter-item" id="monthFilterWrapper">
+                    <label class="bs-filter-label">
+                        <i class="bi bi-calendar-month"></i> Month
+                    </label>
+                    <select id="monthSelect" class="bs-filter-select">
+                        <option value="1">January</option>
+                        <option value="2">February</option>
+                        <option value="3">March</option>
+                        <option value="4">April</option>
+                        <option value="5">May</option>
+                        <option value="6">June</option>
+                        <option value="7">July</option>
+                        <option value="8">August</option>
+                        <option value="9">September</option>
+                        <option value="10">October</option>
+                        <option value="11">November</option>
+                        <option value="12">December</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="bs-filter-actions">
+                <button id="applyFiltersBtn" class="bs-btn-primary">
+                    <i class="bi bi-check-lg"></i> Apply Filter
+                </button>
+                <button id="resetFiltersBtn" class="bs-btn-secondary">
+                    <i class="bi bi-arrow-repeat"></i> Reset
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Balance Sheet Container - Professional Accounting Format -->
+    <div class="bs-container" id="printArea">
+        
+        <!-- Title -->
+        <div class="bs-title">
+            <h2>PROFIT & LOSS STATEMENT</h2>
+            <p id="periodDisplay"><%= balanceData.period.display %></p>
+        </div>
+
+        <!-- Main Balance Sheet - No Gap Between Columns -->
+        <div class="bs-main-table">
+            
+            <!-- LEFT SIDE - DEBIT (Expenses) -->
+            <div class="bs-debit-col">
+                <div class="bs-section-header">
+                    <h3>DEBIT</h3>
+                    <span class="bs-subtitle">(Expenses & Losses)</span>
+                </div>
+                
+                <!-- Direct Expenses Section -->
+                <div class="bs-section">
+                    <div class="bs-section-title">Direct Expenses</div>
+                    <div class="bs-table-wrapper">
+                        <table class="bs-table" id="directExpensesTable">
+                            <thead>
+                                <tr>
+                                    <th class="bs-code-col">A/c Code</th>
+                                    <th class="bs-name-col">A/c Name</th>
+                                    <th class="bs-amount-col">Amount (₹)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="directExpensesBody">
+                                <tr><td colspan="3" class="text-center text-muted">Loading...</td></tr>
+                            </tbody>
+                            <tfoot id="directExpensesTotal"></tfoot>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Indirect Expenses Section -->
+                <div class="bs-section">
+                    <div class="bs-section-title">Indirect Expenses</div>
+                    <div class="bs-table-wrapper">
+                        <table class="bs-table" id="indirectExpensesTable">
+                            <thead>
+                                <tr>
+                                    <th class="bs-code-col">A/c Code</th>
+                                    <th class="bs-name-col">A/c Name</th>
+                                    <th class="bs-amount-col">Amount (₹)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="indirectExpensesBody">
+                                <tr><td colspan="3" class="text-center text-muted">Loading...</td></tr>
+                            </tbody>
+                            <tfoot id="indirectExpensesTotal"></tfoot>
+                        </table>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <!-- RIGHT SIDE - CREDIT (Income) -->
+            <div class="bs-credit-col">
+                <div class="bs-section-header">
+                    <h3>CREDIT</h3>
+                    <span class="bs-subtitle">(Income & Gains)</span>
+                </div>
+                
+                <!-- Revenue Section -->
+                <div class="bs-section">
+                    <div class="bs-section-title">Revenue</div>
+                    <div class="bs-table-wrapper">
+                        <table class="bs-table" id="revenueTable">
+                            <thead>
+                                <tr>
+                                    <th class="bs-code-col">A/c Code</th>
+                                    <th class="bs-name-col">A/c Name</th>
+                                    <th class="bs-amount-col">Amount (₹)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="revenueBody">
+                                <tr><td colspan="3" class="text-center text-muted">Loading...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Gross Profit Section -->
+                <div class="bs-section">
+                    <div class="bs-section-title">Gross Profit</div>
+                    <div class="bs-table-wrapper">
+                        <table class="bs-table">
+                            <tbody>
+                                <tr class="bs-profit-row">
+                                    <td class="bs-code-col"></td>
+                                    <td class="bs-name-col"><strong>By Gross Profit c/d</strong></td>
+                                    <td class="bs-amount-col"><strong id="grossProfitAmount">0</strong></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Additional Income Section -->
+                <div class="bs-section" id="additionalIncomeSection" style="display: none;">
+                    <div class="bs-section-title">Additional Income</div>
+                    <div class="bs-table-wrapper">
+                        <table class="bs-table" id="additionalIncomeTable">
+                            <thead>
+                                <tr>
+                                    <th class="bs-code-col">A/c Code</th>
+                                    <th class="bs-name-col">A/c Name</th>
+                                    <th class="bs-amount-col">Amount (₹)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="additionalIncomeBody"></tbody>
+                            <tfoot id="additionalIncomeTotal"></tfoot>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Net Profit Section -->
+                <div class="bs-section">
+                    <div class="bs-section-title">Net Profit</div>
+                    <div class="bs-table-wrapper">
+                        <table class="bs-table">
+                            <tbody>
+                                <tr class="bs-profit-row bs-net-profit">
+                                    <td class="bs-code-col"></td>
+                                    <td class="bs-name-col"><strong>Net Profit / (Loss)</strong></td>
+                                    <td class="bs-amount-col"><strong id="netProfitAmount">0</strong></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+
+        <!-- Total Debit & Total Credit — Professional Accounting Format -->
+        <div class="bs-totals-row">
+            <div class="bs-grand-total bs-grand-total-debit" id="totalDebitBox">
+                <div class="bs-grand-total-label">Total Debit</div>
+                <div class="bs-grand-total-amount" id="totalDebitAmount">0</div>
+            </div>
+            <div class="bs-grand-total bs-grand-total-credit" id="totalCreditBox">
+                <div class="bs-grand-total-label">Total Credit</div>
+                <div class="bs-grand-total-amount" id="totalCreditAmount">0</div>
+            </div>
+        </div>
+        
+        <!-- Balance Check Indicator -->
+        <div class="bs-balance-check" id="balanceCheck">
+            <i class="bi bi-check-circle-fill"></i>
+            <span>Balance Sheet is Balanced ✓</span>
+        </div>
+        
+        <!-- Monthly Profit/Loss Chart -->
+        <div class="bs-card mt-4">
+            <div class="bs-card__header">
+                <i class="bi bi-bar-chart-line"></i> Monthly Profit/Loss Trend
+            </div>
+            <div class="bs-card__body">
+                <canvas id="monthlyChart" style="max-height: 350px;"></canvas>
+            </div>
+        </div>
+        
+    </div>
+    
+    <!-- Print Button -->
+    <div class="bs-print-btn-container">
+        <button onclick="printBalanceSheet()" class="bs-print-btn">
+            <i class="bi bi-printer"></i> Print Balance Sheet
+        </button>
+    </div>
+    
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+let monthlyChart;
+
+// Format numbers as Indian currency
+function formatCurrency(amount) {
+    return new Intl.NumberFormat('en-IN', {
+        maximumFractionDigits: 0,
+        minimumFractionDigits: 0
+    }).format(amount);
+}
+
+// Print function - works with print styles
+function printBalanceSheet() {
+    const printContent = document.getElementById('printArea').cloneNode(true);
+    const originalTitle = document.title;
+    
+    // Create print window
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Balance Sheet - ${document.getElementById('periodDisplay').innerText}</title>
+            <meta charset="UTF-8">
+            <style>
+                * {
+                    margin: 0;
+                    padding: 0;
+                    box-sizing: border-box;
+                }
+                body {
+                    font-family: 'Inter', 'Segoe UI', sans-serif;
+                    background: white;
+                    padding: 40px;
+                    color: #111827;
+                }
+                .print-container {
+                    max-width: 1200px;
+                    margin: 0 auto;
+                }
+                .bs-title {
+                    text-align: center;
+                    margin-bottom: 30px;
+                    padding-bottom: 20px;
+                    border-bottom: 2px solid #1B4332;
+                }
+                .bs-title h2 {
+                    font-size: 24px;
+                    font-weight: 700;
+                    color: #1B4332;
+                    margin-bottom: 8px;
+                }
+                .bs-title p {
+                    color: #6b7280;
+                    font-size: 14px;
+                }
+                .bs-main-table {
+                    display: flex;
+                    width: 100%;
+                    border: 1px solid #e5e7eb;
+                }
+                .bs-debit-col, .bs-credit-col {
+                    flex: 1;
+                }
+                .bs-debit-col {
+                    border-right: 1px solid #e5e7eb;
+                }
+                .bs-section-header {
+                    background: #f9fafb;
+                    padding: 12px 16px;
+                    border-bottom: 1px solid #e5e7eb;
+                }
+                .bs-section-header h3 {
+                    font-size: 18px;
+                    font-weight: 700;
+                    color: #1B4332;
+                }
+                .bs-subtitle {
+                    font-size: 11px;
+                    color: #9ca3af;
+                }
+                .bs-section-title {
+                    background: #fff;
+                    padding: 10px 16px;
+                    font-weight: 700;
+                    font-size: 13px;
+                    color: #374151;
+                    border-bottom: 1px solid #e5e7eb;
+                }
+                .bs-table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    font-size: 12px;
+                }
+                .bs-table th {
+                    padding: 8px 12px;
+                    text-align: left;
+                    background: #f9fafb;
+                    border-bottom: 1px solid #e5e7eb;
+                    font-weight: 600;
+                }
+                .bs-table td {
+                    padding: 8px 12px;
+                    border-bottom: 1px solid #f3f4f6;
+                }
+                .bs-code-col { width: 80px; }
+                .bs-amount-col { text-align: right; width: 120px; }
+                .bs-total-row td {
+                    background: #f9fafb;
+                    font-weight: 700;
+                    border-top: 1px solid #e5e7eb;
+                }
+                .bs-profit-row td {
+                    background: #f0fdf4;
+                    font-weight: 700;
+                }
+                .bs-totals-row {
+                    display: flex;
+                    width: 100%;
+                    border: 1px solid #e5e7eb;
+                    border-top: none;
+                }
+                .bs-grand-total {
+                    flex: 1;
+                    background: #1B4332;
+                    color: white;
+                    padding: 12px 20px;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                }
+                .bs-grand-total-debit {
+                    border-right: 1px solid #e5e7eb;
+                }
+                .bs-grand-total-label {
+                    font-weight: 700;
+                    font-size: 14px;
+                }
+                .bs-grand-total-amount {
+                    font-size: 18px;
+                    font-weight: 800;
+                }
+                .bs-balance-check {
+                    text-align: center;
+                    padding: 12px;
+                    margin-top: 20px;
+                    background: #f0fdf4;
+                    color: #1B4332;
+                    border: 1px solid #bbf7d0;
+                    border-radius: 8px;
+                }
+                @media print {
+                    body {
+                        padding: 0;
+                        margin: 0;
+                    }
+                    .print-container {
+                        max-width: 100%;
+                    }
+                }
+            </style>
+        </head>
+        <body>
+            <div class="print-container">
+                ${printContent.innerHTML}
+            </div>
+            <script>
+                window.onload = function() {
+                    window.print();
+                    window.onafterprint = function() {
+                        window.close();
+                    };
+                    setTimeout(function() {
+                        window.close();
+                    }, 1000);
+                };
+            <\/script>
+        </body>
+        </html>
+    `);
+    printWindow.document.close();
+}
+
+// Render Direct Expenses Table
+function renderDirectExpenses(expenses, total) {
+    const tbody = document.getElementById('directExpensesBody');
+    const tfoot = document.getElementById('directExpensesTotal');
+    
+    if (expenses.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3" class="text-center text-muted">No direct expenses recorded</td></tr>';
+        tfoot.innerHTML = '';
+    } else {
+        tbody.innerHTML = expenses.map(exp => `
+            <tr>
+                <td class="bs-code-col">${exp.account_code}</td>
+                <td class="bs-name-col">${exp.account_name}</td>
+                <td class="bs-amount-col">${formatCurrency(exp.total_amount)}</td>
+            </tr>
+        `).join('');
+        tfoot.innerHTML = `
+            <tr class="bs-total-row">
+                <td colspan="2"><strong>Total Direct Expenses</strong></td>
+                <td class="bs-amount-col"><strong>${formatCurrency(total)}</strong></td>
+            </tr>
+        `;
+    }
+}
+
+// Render Indirect Expenses Table
+function renderIndirectExpenses(expenses, total) {
+    const tbody = document.getElementById('indirectExpensesBody');
+    const tfoot = document.getElementById('indirectExpensesTotal');
+    
+    if (expenses.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3" class="text-center text-muted">No indirect expenses recorded</td></tr>';
+        tfoot.innerHTML = '';
+    } else {
+        tbody.innerHTML = expenses.map(exp => `
+            <tr>
+                <td class="bs-code-col">${exp.account_code}</td>
+                <td class="bs-name-col">${exp.account_name}</td>
+                <td class="bs-amount-col">${formatCurrency(exp.total_amount)}</td>
+            </tr>
+        `).join('');
+        tfoot.innerHTML = `
+            <tr class="bs-total-row">
+                <td colspan="2"><strong>Total Indirect Expenses</strong></td>
+                <td class="bs-amount-col"><strong>${formatCurrency(total)}</strong></td>
+            </tr>
+        `;
+    }
+}
+
+// Render Revenue Section
+function renderRevenue(sales, closingStock) {
+    const tbody = document.getElementById('revenueBody');
+    let html = `
+        <tr>
+            <td class="bs-code-col">${sales.account_code}</td>
+            <td class="bs-name-col">${sales.account_name}</td>
+            <td class="bs-amount-col">${formatCurrency(sales.total_amount)}</td>
+        </tr>
+    `;
+    
+    if (closingStock.total_amount > 0) {
+        html += `
+            <tr>
+                <td class="bs-code-col">${closingStock.account_code}</td>
+                <td class="bs-name-col">${closingStock.account_name}</td>
+                <td class="bs-amount-col">${formatCurrency(closingStock.total_amount)}</td>
+            </tr>
+        `;
+    }
+    
+    const subTotal = sales.total_amount + closingStock.total_amount;
+    html += `
+        <tr class="bs-total-row">
+            <td colspan="2"><strong>Sub Total</strong></td>
+            <td class="bs-amount-col"><strong>${formatCurrency(subTotal)}</strong></td>
+        </tr>
+    `;
+    
+    tbody.innerHTML = html;
+}
+
+// Render Additional Income
+function renderAdditionalIncome(income, total) {
+    const section = document.getElementById('additionalIncomeSection');
+    const tbody = document.getElementById('additionalIncomeBody');
+    const tfoot = document.getElementById('additionalIncomeTotal');
+    
+    if (income.length === 0) {
+        section.style.display = 'none';
+    } else {
+        section.style.display = 'block';
+        tbody.innerHTML = income.map(inc => `
+            <tr>
+                <td class="bs-code-col">${inc.account_code}</td>
+                <td class="bs-name-col">${inc.account_name}</td>
+                <td class="bs-amount-col">${formatCurrency(inc.total_amount)}</td>
+            </tr>
+        `).join('');
+        tfoot.innerHTML = `
+            <tr class="bs-total-row">
+                <td colspan="2"><strong>Total Additional Income</strong></td>
+                <td class="bs-amount-col"><strong>${formatCurrency(total)}</strong></td>
+            </tr>
+        `;
+    }
+}
+
+// Update all values on the page
+function updateBalanceSheet(data) {
+    document.getElementById('periodDisplay').textContent = data.period.display;
+    
+    renderDirectExpenses(data.direct_expenses, data.total_direct_expenses);
+    renderIndirectExpenses(data.indirect_expenses, data.total_indirect_expenses);
+    renderRevenue(data.sales, data.closing_stock);
+    
+    document.getElementById('grossProfitAmount').textContent = formatCurrency(data.gross_profit);
+    const grossProfitEl = document.getElementById('grossProfitAmount');
+    grossProfitEl.style.color = data.gross_profit >= 0 ? '#1B4332' : '#dc2626';
+    
+    renderAdditionalIncome(data.additional_income, data.total_additional_income);
+    
+    document.getElementById('netProfitAmount').textContent = formatCurrency(data.net_profit);
+    const netProfitEl = document.getElementById('netProfitAmount');
+    netProfitEl.style.color = data.net_profit >= 0 ? '#1B4332' : '#dc2626';
+    
+    document.getElementById('totalDebitAmount').textContent = formatCurrency(data.total_debit);
+    document.getElementById('totalCreditAmount').textContent = formatCurrency(data.total_credit);
+    
+    const balanceCheck = document.getElementById('balanceCheck');
+    if (data.is_balanced) {
+        balanceCheck.innerHTML = '<i class="bi bi-check-circle-fill"></i><span>Balance Sheet is Balanced ✓</span>';
+        balanceCheck.className = 'bs-balance-check balanced';
+    } else {
+        balanceCheck.innerHTML = '<i class="bi bi-exclamation-triangle-fill"></i><span>Balance Sheet is NOT Balanced! Difference: ₹' + 
+            formatCurrency(Math.abs(data.total_debit - data.total_credit)) + '</span>';
+        balanceCheck.className = 'bs-balance-check unbalanced';
+    }
+}
+
+// Load data for selected period
+async function loadBalanceSheet() {
+    const periodType = document.getElementById('periodType').value;
+    const year = document.getElementById('yearSelect').value;
+    const month = document.getElementById('monthSelect').value;
+    
+    let url = `/balance-sheet/api/data?period_type=${periodType}&year=${year}`;
+    if (periodType === 'monthly') {
+        url += `&month=${month}`;
+    }
+    
+    try {
+        const res = await fetch(url);
+        const result = await res.json();
+        
+        if (result.success) {
+            updateBalanceSheet(result.data);
+            
+            const monthlyRes = await fetch(`/balance-sheet/api/monthly?year=${year}`);
+            const monthlyResult = await monthlyRes.json();
+            
+            if (monthlyResult.success) {
+                updateMonthlyChart(monthlyResult.data);
+            }
+        }
+    } catch (err) {
+        console.error('Error loading balance sheet:', err);
+    }
+}
+
+// Update monthly profit/loss chart
+function updateMonthlyChart(monthlyData) {
+    const ctx = document.getElementById('monthlyChart').getContext('2d');
+    
+    if (monthlyChart) monthlyChart.destroy();
+    
+    const months = monthlyData.map(m => m.month_short);
+    const profits = monthlyData.map(m => m.profit);
+    
+    monthlyChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: months,
+            datasets: [{
+                label: 'Profit/Loss',
+                data: profits,
+                borderColor: '#1B4332',
+                backgroundColor: 'rgba(27, 67, 50, 0.1)',
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: (ctx) => {
+                    const value = ctx.raw;
+                    return value >= 0 ? '#1B4332' : '#dc2626';
+                },
+                pointBorderColor: '#fff',
+                pointRadius: 5,
+                pointHoverRadius: 7
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: (ctx) => `Profit/Loss: ${ctx.raw >= 0 ? '₹' : '-₹'}${Math.abs(ctx.raw).toLocaleString('en-IN')}`
+                    }
+                },
+                legend: { position: 'top' }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { callback: (val) => '₹' + val.toLocaleString('en-IN') }
+                }
+            }
+        }
+    });
+}
+
+// Event Listeners
+document.getElementById('periodType').addEventListener('change', function() {
+    const monthWrapper = document.getElementById('monthFilterWrapper');
+    if (this.value === 'monthly') {
+        monthWrapper.style.display = 'block';
+    } else {
+        monthWrapper.style.display = 'none';
+    }
+    loadBalanceSheet();
+});
+
+document.getElementById('applyFiltersBtn').addEventListener('click', loadBalanceSheet);
+document.getElementById('resetFiltersBtn').addEventListener('click', function() {
+    document.getElementById('periodType').value = 'yearly';
+    document.getElementById('yearSelect').value = '<%= currentYear %>';
+    document.getElementById('monthSelect').value = '1';
+    document.getElementById('monthFilterWrapper').style.display = 'none';
+    loadBalanceSheet();
+});
+
+// Initialize
+document.getElementById('monthFilterWrapper').style.display = 'none';
+loadBalanceSheet();
+</script>
+
+<%- include('../partials/footer') %>

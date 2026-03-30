@@ -1,0 +1,323 @@
+<%- include('../partials/header') %>
+
+<div class="row settings-page-header">
+
+    <!-- ── Hero ───────────────────────────────── -->
+    <div class="col-12">
+        <div class="profile-hero">
+
+            <!-- Avatar — click to upload -->
+            <form method="POST" action="/profile/upload-image"
+                  enctype="multipart/form-data" id="avatar-form">
+                <div class="profile-avatar-wrap" onclick="document.getElementById('avatar-input').click()" title="Click to change photo">
+                    <div class="profile-avatar" id="avatar-display">
+                        <% if (profile.profile_image) { %>
+                            <img src="/uploads/avatars/<%= profile.profile_image %>" alt="Profile" id="avatar-img">
+                        <% } else { %>
+                            <span id="avatar-initial"><%= profile.name.charAt(0).toUpperCase() %></span>
+                        <% } %>
+                    </div>
+                    <div class="profile-avatar-overlay">
+                        <i class="bi bi-camera-fill"></i>
+                        <span>Change</span>
+                    </div>
+                </div>
+                <input type="file" id="avatar-input" name="profile_image"
+                       accept=".jpg,.jpeg,.png,.webp" style="display:none"
+                       onchange="previewAndUpload(this)">
+            </form>
+
+            <div class="profile-hero-info">
+                <h5 class="profile-hero-name"><%= profile.name %></h5>
+                <p class="profile-hero-email"><%= profile.email %></p>
+                <span class="profile-hero-badge">
+                    <i class="bi bi-shield-check"></i> Admin
+                </span>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ── Banners ─────────────────────────────── -->
+    <% if (success === 'profile') { %>
+    <div class="col-12">
+        <div class="settings-success">
+            <i class="bi bi-check-circle-fill"></i>
+            Profile updated successfully.
+        </div>
+    </div>
+    <% } %>
+    <% if (success === 'password') { %>
+    <div class="col-12">
+        <div class="settings-success">
+            <i class="bi bi-check-circle-fill"></i>
+            Password changed successfully.
+        </div>
+    </div>
+    <% } %>
+    <% if (success === 'image') { %>
+    <div class="col-12">
+        <div class="settings-success">
+            <i class="bi bi-check-circle-fill"></i>
+            Profile photo updated successfully.
+        </div>
+    </div>
+    <% } %>
+    <% if (error) { %>
+    <div class="col-12">
+        <div class="profile-error">
+            <i class="bi bi-x-circle-fill"></i>
+            <div><%= error %></div>
+        </div>
+    </div>
+    <% } %>
+
+    <!-- ── Left Column ─────────────────────────── -->
+    <div class="col-12 col-lg-8">
+
+        <!-- Account Info -->
+        <div class="settings-card">
+            <div class="settings-card-header">
+                <i class="bi bi-person-gear"></i>
+                Account Information
+            </div>
+            <div class="settings-card-body">
+                <p class="profile-section-title">
+                    <i class="bi bi-pencil-square"></i>
+                    Personal Details
+                </p>
+                <form method="POST" action="/profile/update">
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label class="s-label">Full Name</label>
+                            <div class="profile-input-wrap">
+                                <i class="bi bi-person profile-input-icon"></i>
+                                <input type="text" name="name"
+                                    value="<%= profile.name %>"
+                                    placeholder="Your full name"
+                                    class="s-input">
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="s-label">Email Address</label>
+                            <div class="profile-input-wrap">
+                                <i class="bi bi-envelope profile-input-icon"></i>
+                                <input type="email" name="email"
+                                    value="<%= profile.email %>"
+                                    placeholder="your@email.com"
+                                    class="s-input">
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="s-label">Phone Number <span style="font-weight:400; text-transform:none; letter-spacing:0; font-size:0.65rem; color:#ADB5BD;">(optional)</span></label>
+                            <div class="profile-input-wrap">
+                                <i class="bi bi-telephone profile-input-icon"></i>
+                                <input type="tel" name="phone"
+                                    value="<%= profile.phone || '' %>"
+                                    placeholder="10-digit number"
+                                    maxlength="10"
+                                    class="s-input">
+                            </div>
+                            <small class="s-hint">Used for contact purposes only</small>
+                        </div>
+                    </div>
+                    <div class="profile-btn-row">
+                        <button type="submit" class="settings-save-btn">
+                            <i class="bi bi-floppy me-2"></i>SAVE CHANGES
+                        </button>
+                        <button type="reset" class="profile-btn-outline">Reset</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Change Password -->
+        <div class="settings-card">
+            <div class="settings-card-header">
+                <i class="bi bi-shield-lock"></i>
+                Security
+            </div>
+            <div class="settings-card-body">
+                <p class="profile-section-title">
+                    <i class="bi bi-key"></i>
+                    Change Password
+                </p>
+                <form method="POST" action="/profile/change-password">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="s-label">Current Password</label>
+                            <div class="profile-input-wrap">
+                                <i class="bi bi-lock profile-input-icon"></i>
+                                <input type="password" name="current_password"
+                                    placeholder="Enter your current password"
+                                    class="s-input" autocomplete="current-password">
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="s-label">New Password</label>
+                            <div class="profile-input-wrap">
+                                <i class="bi bi-lock-fill profile-input-icon"></i>
+                                <input type="password" name="new_password"
+                                    placeholder="Min 6 characters"
+                                    class="s-input" autocomplete="new-password"
+                                    id="new-pwd"
+                                    oninput="checkStrength(this.value); checkMatch()">
+                            </div>
+                            <div class="pwd-strength-bar">
+                                <div class="pwd-strength-fill" id="strength-fill"></div>
+                            </div>
+                            <small id="strength-text" class="s-hint"></small>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="s-label">Confirm New Password</label>
+                            <div class="profile-input-wrap">
+                                <i class="bi bi-lock-fill profile-input-icon"></i>
+                                <input type="password" name="confirm_password"
+                                    placeholder="Repeat new password"
+                                    class="s-input" autocomplete="new-password"
+                                    id="confirm-pwd" oninput="checkMatch()">
+                            </div>
+                            <div id="match-hint" class="pwd-match-hint"></div>
+                        </div>
+                    </div>
+                    <div class="profile-btn-row">
+                        <button type="submit" class="settings-save-btn">
+                            <i class="bi bi-key me-2"></i>CHANGE PASSWORD
+                        </button>
+                        <button type="reset" class="profile-btn-outline"
+                            onclick="resetPasswordForm()">Clear</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ── Right Column ────────────────────────── -->
+    <div class="col-12 col-lg-4">
+
+        <div class="settings-card">
+            <div class="settings-card-header">
+                <i class="bi bi-info-circle"></i>
+                Account Details
+            </div>
+            <div class="settings-card-body">
+                <div class="profile-info-row">
+                    <span class="profile-info-key">Account ID</span>
+                    <span class="profile-info-val profile-id-val">#<%= profile.id %></span>
+                </div>
+                <div class="profile-info-row">
+                    <span class="profile-info-key">Name</span>
+                    <span class="profile-info-val"><%= profile.name %></span>
+                </div>
+                <div class="profile-info-row">
+                    <span class="profile-info-key">Email</span>
+                    <span class="profile-info-val profile-email-val"><%= profile.email %></span>
+                </div>
+                <div class="profile-info-row">
+                    <span class="profile-info-key">Phone</span>
+                    <span class="profile-info-val"><%= profile.phone || '—' %></span>
+                </div>
+                
+                <div class="profile-info-row">
+                    <span class="profile-info-key">Role</span>
+                    <span class="profile-role-badge">
+                        <i class="bi bi-shield-check"></i> Admin
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="settings-card">
+            <div class="settings-card-header">
+                <i class="bi bi-lightbulb"></i>
+                Security Tips
+            </div>
+            <div class="settings-card-body">
+                <ul class="profile-tips-list">
+                    <li>Use a strong password with letters, numbers and symbols</li>
+                    <li>Never share your password with anyone</li>
+                    <li>Change your password every few months</li>
+                    <li>Always log out when using a shared device</li>
+                </ul>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+// ── Avatar preview & auto upload ──────────────────
+function previewAndUpload(input) {
+    if (!input.files || !input.files[0]) return;
+
+    const file = input.files[0];
+
+    // 2MB check
+    if (file.size > 2 * 1024 * 1024) {
+        alert('Image must be under 2MB');
+        input.value = '';
+        return;
+    }
+
+    // Show preview instantly
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const display = document.getElementById('avatar-display');
+        display.innerHTML = `<img src="${e.target.result}" alt="Preview" id="avatar-img">`;
+    };
+    reader.readAsDataURL(file);
+
+    // Auto submit form
+    document.getElementById('avatar-form').submit();
+}
+
+// ── Password strength ─────────────────────────────
+function checkStrength(pwd) {
+    const fill = document.getElementById('strength-fill');
+    const text = document.getElementById('strength-text');
+    if (!pwd) { fill.style.width = '0%'; text.textContent = ''; return; }
+
+    let score = 0;
+    if (pwd.length >= 6)           score++;
+    if (pwd.length >= 10)          score++;
+    if (/[A-Z]/.test(pwd))         score++;
+    if (/[0-9]/.test(pwd))         score++;
+    if (/[^A-Za-z0-9]/.test(pwd))  score++;
+
+    const levels = [
+        { w: '20%',  bg: '#D90429', label: 'Very weak'  },
+        { w: '40%',  bg: '#f59e0b', label: 'Weak'       },
+        { w: '60%',  bg: '#f59e0b', label: 'Fair'       },
+        { w: '80%',  bg: '#2D6A4F', label: 'Strong'     },
+        { w: '100%', bg: '#1B4332', label: 'Very strong'},
+    ];
+    const lvl          = levels[Math.min(score - 1, 4)] || levels[0];
+    fill.style.width      = lvl.w;
+    fill.style.background = lvl.bg;
+    text.textContent      = lvl.label;
+    text.style.color      = lvl.bg;
+}
+
+// ── Password match ────────────────────────────────
+function checkMatch() {
+    const newPwd  = document.getElementById('new-pwd').value;
+    const confirm = document.getElementById('confirm-pwd').value;
+    const hint    = document.getElementById('match-hint');
+    if (!confirm) { hint.innerHTML = ''; return; }
+    if (newPwd === confirm) {
+        hint.innerHTML = '<i class="bi bi-check-circle-fill pwd-match-icon pwd-match-success"></i> <span class="pwd-match-success">Passwords match</span>';
+    } else {
+        hint.innerHTML = '<i class="bi bi-x-circle-fill pwd-match-icon pwd-match-error"></i> <span class="pwd-match-error">Passwords do not match</span>';
+    }
+}
+
+function resetPasswordForm() {
+    document.getElementById('strength-fill').style.width = '0%';
+    document.getElementById('strength-text').textContent = '';
+    document.getElementById('match-hint').innerHTML = '';
+}
+</script>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Tenants - Start Sports</title>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        body { background: #0f1923; color: #fff; }
+        .sa-sidebar {
+            width: 220px; min-height: 100vh; background: #1a2332;
+            border-right: 1px solid rgba(255,255,255,0.07);
+            position: fixed; top: 0; left: 0;
+            display: flex; flex-direction: column; padding: 28px 0;
+        }
+        .sa-logo { font-family: 'Rajdhani', sans-serif; font-size: 20px; font-weight: 700; color: #fff; padding: 0 24px 24px; border-bottom: 1px solid rgba(255,255,255,0.07); }
+        .sa-logo span { color: #f39c12; font-size: 11px; display: block; font-weight: 500; letter-spacing: 1px; }
+        .sa-nav a { display: flex; align-items: center; gap: 10px; padding: 10px 24px; color: rgba(255,255,255,0.55); text-decoration: none; font-size: 14px; transition: all 0.2s; border-left: 3px solid transparent; }
+        .sa-nav a:hover, .sa-nav a.active { color: #fff; background: rgba(255,255,255,0.05); border-left-color: #f39c12; }
+        .sa-main { margin-left: 220px; padding: 32px; }
+
+        .filters-row { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+        .filter-input {
+            background: #1a2332; border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px; color: #fff; padding: 8px 14px; font-size: 13px;
+        }
+        .filter-input:focus { outline: none; border-color: #f39c12; }
+        .filter-input option { background: #1a2332; }
+
+        .tenant-table { width: 100%; border-collapse: collapse; }
+        .tenant-table th { text-align: left; font-size: 11px; color: rgba(255,255,255,0.35); text-transform: uppercase; letter-spacing: 0.5px; padding: 0 14px 12px; border-bottom: 1px solid rgba(255,255,255,0.07); }
+        .tenant-table td { padding: 14px; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 14px; }
+        .tenant-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+        .badge { border-radius: 20px; padding: 3px 10px; font-size: 11px; font-weight: 600; }
+        .badge-active    { background: rgba(46,204,113,0.15); color: #2ecc71; }
+        .badge-trial     { background: rgba(52,152,219,0.15); color: #3498db; }
+        .badge-suspended { background: rgba(231,76,60,0.15);  color: #e74c3c; }
+        .badge-expired   { background: rgba(149,165,166,0.15); color: #95a5a6; }
+
+        .action-btn {
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 6px;
+            padding: 4px 10px; font-size: 12px; cursor: pointer;
+            background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.7);
+            transition: all 0.2s; margin-right: 4px;
+        }
+        .action-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+        .action-btn.green { border-color: rgba(46,204,113,0.3); color: #2ecc71; }
+        .action-btn.red   { border-color: rgba(231,76,60,0.3);  color: #e74c3c; }
+
+        .section-card { background: #1a2332; border: 1px solid rgba(255,255,255,0.07); border-radius: 12px; padding: 24px; }
+
+        /* Toast */
+        .toast-msg {
+            position: fixed; bottom: 24px; right: 24px;
+            background: #1a2332; border: 1px solid rgba(46,204,113,0.4);
+            color: #2ecc71; border-radius: 8px; padding: 12px 20px;
+            font-size: 14px; display: none; z-index: 9999;
+        }
+    </style>
+</head>
+<body>
+
+<div class="sa-sidebar">
+    <div class="sa-logo">START SPORTS<span>SUPER ADMIN</span></div>
+    <nav class="sa-nav">
+        <a href="/super-admin/dashboard">📊 Dashboard</a>
+        <a href="/super-admin/tenants" class="active">🏢 Tenants</a>
+        <a href="/auth/logout" onclick="doLogout(event)">🚪 Logout</a>
+    </nav>
+</div>
+
+<div class="sa-main">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:28px">
+        <h1 style="font-family:'Rajdhani',sans-serif;font-size:26px;margin:0">Manage Tenants</h1>
+        <span style="color:rgba(255,255,255,0.4);font-size:14px"><%= tenants.length %> tenants found</span>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters-row">
+        <input type="text" id="searchInput" class="filter-input" placeholder="Search name / email..."
+               value="<%= filters.search || '' %>" style="width:220px">
+
+        <select id="statusFilter" class="filter-input">
+            <option value="all" <%= !filters.status || filters.status==='all' ? 'selected' : '' %>>All Status</option>
+            <option value="active"    <%= filters.status==='active'    ? 'selected' : '' %>>Active</option>
+            <option value="suspended" <%= filters.status==='suspended' ? 'selected' : '' %>>Suspended</option>
+        </select>
+
+        <select id="planFilter" class="filter-input">
+            <option value="all">All Plans</option>
+            <% plans.forEach(p => { %>
+            <option value="<%= p.id %>" <%= filters.plan_id == p.id ? 'selected' : '' %>><%= p.name %></option>
+            <% }) %>
+        </select>
+
+        <button onclick="applyFilters()" class="action-btn" style="padding:8px 16px">Apply</button>
+    </div>
+
+    <!-- Table -->
+    <div class="section-card">
+        <table class="tenant-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Business</th>
+                    <th>Owner</th>
+                    <th>Plan</th>
+                    <th>Expires</th>
+                    <th>Bookings</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% tenants.forEach((t, i) => { %>
+                <tr id="row-<%= t.id %>">
+                    <td style="color:rgba(255,255,255,0.3)"><%= i + 1 %></td>
+                    <td>
+                        <div style="font-weight:600;color:#fff"><%= t.business_name %></div>
+                        <div style="font-size:12px;color:rgba(255,255,255,0.35)"><%= t.city || '—' %></div>
+                    </td>
+                    <td>
+                        <div style="color:rgba(255,255,255,0.85)"><%= t.owner_name %></div>
+                        <div style="font-size:12px;color:rgba(255,255,255,0.35)"><%= t.email %></div>
+                    </td>
+                    <td style="color:rgba(255,255,255,0.7)"><%= t.plan_name || '—' %></td>
+                    <td style="font-size:12px;color:rgba(255,255,255,0.5)">
+                        <%= t.expires_at ? new Date(t.expires_at).toLocaleDateString('en-IN') : '—' %>
+                    </td>
+                    <td style="color:rgba(255,255,255,0.7)"><%= t.total_bookings %></td>
+                    <td>
+                        <% if (t.status === 'suspended') { %>
+                            <span class="badge badge-suspended">Suspended</span>
+                        <% } else if (t.sub_status === 'active' && t.billing_cycle === 'trial') { %>
+                            <span class="badge badge-trial">Trial</span>
+                        <% } else if (t.sub_status === 'active') { %>
+                            <span class="badge badge-active">Active</span>
+                        <% } else { %>
+                            <span class="badge badge-expired">Expired</span>
+                        <% } %>
+                    </td>
+                    <td>
+                        <a href="/super-admin/tenants/<%= t.id %>" class="action-btn">View</a>
+                        <% if (t.status === 'active') { %>
+                        <button class="action-btn red" onclick="suspendTenant(<%= t.id %>)">Suspend</button>
+                        <% } else if (t.status === 'suspended') { %>
+                        <button class="action-btn green" onclick="activateTenant(<%= t.id %>)">Activate</button>
+                        <% } %>
+                    </td>
+                </tr>
+                <% }) %>
+
+                <% if (tenants.length === 0) { %>
+                <tr><td colspan="8" style="text-align:center;padding:40px;color:rgba(255,255,255,0.3)">No tenants found</td></tr>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="toast-msg" id="toast"></div>
+
+<script>
+function applyFilters() {
+    const search  = document.getElementById('searchInput').value;
+    const status  = document.getElementById('statusFilter').value;
+    const plan_id = document.getElementById('planFilter').value;
+    const params  = new URLSearchParams({ search, status, plan_id });
+    window.location.href = '/super-admin/tenants?' + params.toString();
+}
+
+function showToast(msg, isError = false) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.style.display = 'block';
+    t.style.borderColor = isError ? 'rgba(231,76,60,0.4)' : 'rgba(46,204,113,0.4)';
+    t.style.color = isError ? '#e74c3c' : '#2ecc71';
+    setTimeout(() => t.style.display = 'none', 3000);
+}
+
+async function doAction(url, successMsg) {
+    try {
+        const res  = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+        const data = await res.json();
+        if (data.success) { showToast(successMsg); setTimeout(() => location.reload(), 1200); }
+        else showToast(data.message, true);
+    } catch { showToast('Something went wrong', true); }
+}
+
+function activateTenant(id) { doAction(`/super-admin/tenants/${id}/activate`, 'Tenant activated'); }
+function suspendTenant(id)  { if (confirm('Suspend this tenant?')) doAction(`/super-admin/tenants/${id}/suspend`, 'Tenant suspended'); }
+
+async function doLogout(e) {
+    e.preventDefault();
+    await fetch('/auth/logout', { method: 'POST' });
+    window.location.href = '/auth/login';
+}
+
+document.getElementById('searchInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') applyFilters();
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,464 @@
+<%- include('../partials/header') %>
+
+<div class="row">
+
+    <!-- Page Header -->
+    <div class="col-12 mb-4">
+        <div class="bk-page-header">
+            <div class="bk-page-header__left">
+                <div class="bk-page-header__icon">
+                    <i class="bi bi-calendar2-check"></i>
+                </div>
+                <div>
+                    <h4 class="bk-page-header__title">Today's Bookings</h4>
+                    <span class="bk-page-header__sub">Manage and monitor all ground bookings</span>
+                </div>
+            </div>
+            <div class="bk-page-header__actions">
+                <button class="bk-filter-toggle-btn" id="filterToggleBtn">
+                    <i class="bi bi-funnel-fill"></i>
+                    <span>Filters</span>
+                    <span class="filter-active-dot" id="filterActiveDot" style="display: none;"></span>
+                </button>
+                <button onclick="openQuickBook()" class="bk-quickbook-btn">
+                    <i class="bi bi-lightning-charge-fill me-2"></i>QUICK BOOK
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters Section - Hidden by default -->
+    <div class="col-12 mb-4" id="filterSection" style="display: none;">
+        <div class="bk-filter-card">
+            <div class="bk-filter-card__header">
+                <i class="bi bi-sliders2"></i>
+                <span>Filter Bookings</span>
+                <button class="bk-filter-close" id="closeFilterBtn">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            <div class="bk-filter-card__body">
+                <form method="GET" action="/bookings" id="filter-form">
+                    
+                    <!-- Search Field -->
+                    <div class="bk-filter-group">
+                        <div class="bk-filter-field">
+                            <label class="bk-filter-label">
+                                <i class="bi bi-search"></i> Search
+                            </label>
+                            <input type="text" name="search" id="search-input" 
+                                placeholder="Name or phone number..."
+                                value="<%= filters.search || '' %>" 
+                                class="bk-filter-input"
+                                autocomplete="off">
+                        </div>
+
+                        <!-- Status Filter -->
+                        <div class="bk-filter-field">
+                            <label class="bk-filter-label">
+                                <i class="bi bi-tag"></i> Booking Status
+                            </label>
+                            <select name="status" class="bk-filter-select">
+                                <option value="">All Status</option>
+                                <option value="pending" <%= filters.status === 'pending' ? 'selected' : '' %>>Pending</option>
+                                <option value="approved" <%= filters.status === 'approved' ? 'selected' : '' %>>Approved</option>
+                                <option value="confirmed" <%= filters.status === 'confirmed' ? 'selected' : '' %>>Confirmed</option>
+                                <option value="completed" <%= filters.status === 'completed' ? 'selected' : '' %>>Completed</option>
+                                <option value="cancelled" <%= filters.status === 'cancelled' ? 'selected' : '' %>>Cancelled</option>
+                                <option value="rejected" <%= filters.status === 'rejected' ? 'selected' : '' %>>Rejected</option>
+                                <option value="expired" <%= filters.status === 'expired' ? 'selected' : '' %>>Expired</option>
+                            </select>
+                        </div>
+
+                        <!-- Payment Status Filter -->
+                        <div class="bk-filter-field">
+                            <label class="bk-filter-label">
+                                <i class="bi bi-credit-card"></i> Payment Status
+                            </label>
+                            <select name="payment_status" class="bk-filter-select">
+                                <option value="">All Payments</option>
+                                <option value="pending" <%= filters.payment_status === 'pending' ? 'selected' : '' %>>Unpaid</option>
+                                <option value="partial" <%= filters.payment_status === 'partial' ? 'selected' : '' %>>Partial</option>
+                                <option value="paid" <%= filters.payment_status === 'paid' ? 'selected' : '' %>>Paid</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Hidden fields for pagination -->
+                    <input type="hidden" name="limit" id="limit-input" value="<%= pagination.limit %>">
+                    <input type="hidden" name="page" value="1">
+
+                    <!-- Filter Actions -->
+                    <div class="bk-filter-actions">
+                        <button type="submit" class="bk-filter-apply">
+                            <i class="bi bi-check-lg"></i> Apply Filters
+                        </button>
+                        <a href="/bookings" class="bk-filter-clear">
+                            <i class="bi bi-x-lg"></i> Clear All
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Filter Tags -->
+    <% if (filters.search || filters.status || filters.payment_status) { %>
+        <div class="col-12 mb-3">
+            <div class="bk-active-filters">
+                <span class="bk-active-label">Active Filters:</span>
+                <% if (filters.search) { %>
+                    <span class="bk-filter-tag">
+                        <i class="bi bi-search me-1"></i>"<%= filters.search %>"
+                        <a href="?<%= new URLSearchParams({...filters, search: '', page: 1}).toString() %>" class="bk-filter-remove">
+                            <i class="bi bi-x"></i>
+                        </a>
+                    </span>
+                <% } %>
+                <% if (filters.status) { %>
+                    <span class="bk-filter-tag">
+                        <i class="bi bi-circle-fill me-1" style="font-size:0.45rem;"></i>
+                        <%= filters.status %>
+                        <a href="?<%= new URLSearchParams({...filters, status: '', page: 1}).toString() %>" class="bk-filter-remove">
+                            <i class="bi bi-x"></i>
+                        </a>
+                    </span>
+                <% } %>
+                <% if (filters.payment_status) { %>
+                    <span class="bk-filter-tag">
+                        <i class="bi bi-credit-card me-1"></i>
+                        <%= filters.payment_status === 'pending' ? 'Unpaid' : (filters.payment_status === 'partial' ? 'Partial' : 'Paid') %>
+                        <a href="?<%= new URLSearchParams({...filters, payment_status: '', page: 1}).toString() %>" class="bk-filter-remove">
+                            <i class="bi bi-x"></i>
+                        </a>
+                    </span>
+                <% } %>
+            </div>
+        </div>
+    <% } %>
+
+    <!-- Stats Cards -->
+    <div class="col-6 col-md-3 mb-4">
+        <div class="bk-stat-card bk-stat-card--total">
+            <div class="bk-stat-card__icon"><i class="bi bi-calendar3"></i></div>
+            <div class="bk-stat-card__body">
+                <div class="bk-stat-card__label">Today's Bookings</div>
+                <div class="bk-stat-card__value"><%= stats.total || 0 %></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3 mb-4">
+        <div class="bk-stat-card bk-stat-card--confirmed">
+            <div class="bk-stat-card__icon"><i class="bi bi-check-circle"></i></div>
+            <div class="bk-stat-card__body">
+                <div class="bk-stat-card__label">Confirmed</div>
+                <div class="bk-stat-card__value"><%= stats.confirmed || 0 %></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3 mb-4">
+        <div class="bk-stat-card bk-stat-card--pending">
+            <div class="bk-stat-card__icon"><i class="bi bi-hourglass-split"></i></div>
+            <div class="bk-stat-card__body">
+                <div class="bk-stat-card__label">Pending</div>
+                <div class="bk-stat-card__value"><%= stats.pending || 0 %></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3 mb-4">
+        <div class="bk-stat-card bk-stat-card--revenue">
+            <div class="bk-stat-card__icon"><i class="bi bi-currency-rupee"></i></div>
+            <div class="bk-stat-card__body">
+                <div class="bk-stat-card__label">Today's Revenue</div>
+                <div class="bk-stat-card__value bk-stat-card__value--sm">₹<%= stats.revenue || 0 %></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bookings Table -->
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span style="font-family:'Rajdhani',sans-serif; letter-spacing:1px; font-weight:600; color:#0f1b0f;">BOOKINGS</span>
+                <small style="color:#7a8c7a;">
+                    <%= pagination.totalRecords %> records | Page <%= pagination.currentPage %> of <%= pagination.totalPages %>
+                </small>
+            </div>
+            <div class="card-body p-0">
+                <% if (bookings.length === 0) { %>
+                    <div class="text-center py-5" style="color:#9ca3af;">
+                        <i class="bi bi-calendar-x" style="font-size:2rem; color:#d1d5db;"></i>
+                        <p class="mt-2 mb-0" style="color:#6b7280;">No bookings found</p>
+                    </div>
+                <% } else { %>
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0" style="font-size:0.8rem; white-space:nowrap;">
+                            <thead>
+                                <tr style="border-bottom:1px solid #e5e7eb; background:#f9fafb;">
+                                    <th class="bk-th" style="padding:10px 14px;">Booking No.</th>
+                                    <th class="bk-th">Ground</th>
+                                    <th class="bk-th">Customer</th>
+                                    <th class="bk-th">Date & Slot</th>
+                                    <th class="bk-th">Amount</th>
+                                    <th class="bk-th">Payment</th>
+                                    <th class="bk-th">Status</th>
+                                    <th class="bk-th">Type</th>
+                                    <th class="bk-th">Action</th>
+                                 </tr>
+                            </thead>
+                            <tbody>
+                                <% bookings.forEach(b=> { %>
+                                    <tr style="border-bottom:1px solid #f3f4f6;">
+                                        <td style="padding:10px 14px;">
+                                            <span style="color:#1B4332; font-weight:700; font-size:0.78rem; font-family:'Rajdhani',sans-serif; letter-spacing:0.5px; white-space:nowrap;">
+                                                <%= b.booking_no %>
+                                            </span>
+                                        </td>
+                                        <td style="padding:10px 10px;">
+                                            <% if (b.ground_name) { %>
+                                                <span style="background:#F0FDF4; color:#1B4332; padding:3px 9px; border-radius:20px; font-size:0.68rem; font-weight:600; border:1px solid #BBF7D0; white-space:nowrap; display:inline-block; max-width:110px; overflow:hidden; text-overflow:ellipsis;">
+                                                    <i class="bi bi-geo-alt"></i> <%= b.ground_name %>
+                                                </span>
+                                            <% } else { %>
+                                                <span style="color:#ADB5BD; font-size:0.72rem;">—</span>
+                                            <% } %>
+                                        </td>
+                                        <td style="padding:10px 10px;">
+                                            <div style="color:#111827; font-weight:600; font-size:0.8rem; white-space:nowrap;"><%= b.customer_name %></div>
+                                            <div style="color:#9CA3AF; font-size:0.7rem; margin-top:1px;"><%= b.customer_phone %></div>
+                                        </td>
+                                        <td style="padding:10px 10px; white-space:nowrap;">
+                                            <div style="color:#374151; font-weight:500; font-size:0.78rem;"><%= new Date(b.slot_date).toLocaleDateString('en-IN', {day:'2-digit', month:'short'}) %></div>
+                                            <div style="color:#9CA3AF; font-size:0.7rem; margin-top:1px;"><%= b.start_time.slice(0,5) %> – <%= b.end_time.slice(0,5) %></div>
+                                        </td>
+                                        <td style="padding:10px 10px; white-space:nowrap;">
+                                            <div style="color:#111827; font-weight:700; font-size:0.8rem;">₹<%= b.total_amount %> <span style="font-size:0.65rem; color:#6b7280; font-weight:400;">total</span></div>
+                                            <div style="font-size:0.68rem; margin-top:1px;">
+                                                <span style="color:#1B4332;">↑₹<%= b.advance_amount || 0 %></span>
+                                                <span style="color:<%= (b.balance_amount > 0) ? '#b45309' : '#1B4332' %>; margin-left:4px;">Bal:₹ <%= b.balance_amount || 0 %></span>
+                                            </div>
+                                        </td>
+                                        <td style="padding:10px 10px;">
+                                            <% if (b.payment_status === 'paid') { %>
+                                                <span class="bk-badge bk-badge--green">Paid</span>
+                                            <% } else if (b.payment_status === 'partial') { %>
+                                                <span class="bk-badge bk-badge--amber">Partial</span>
+                                            <% } else { %>
+                                                <span class="bk-badge bk-badge--red">Unpaid</span>
+                                            <% } %>
+                                        </td>
+                                        <td style="padding:10px 10px;">
+                                            <% if (b.booking_status === 'confirmed') { %>
+                                                <span class="bk-badge bk-badge--green">Confirmed</span>
+                                            <% } else if (b.booking_status === 'pending') { %>
+                                                <span class="bk-badge bk-badge--amber">Pending</span>
+                                            <% } else if (b.booking_status === 'approved') { %>
+                                                <span class="bk-badge bk-badge--blue">Approved</span>
+                                            <% } else if (b.booking_status === 'completed') { %>
+                                                <span class="bk-badge bk-badge--grey">Completed</span>
+                                            <% } else if (b.booking_status === 'cancelled') { %>
+                                                <span class="bk-badge bk-badge--red">Cancelled</span>
+                                            <% } else if (b.booking_status === 'rejected') { %>
+                                                <span class="bk-badge bk-badge--red">Rejected</span>
+                                            <% } else { %>
+                                                <span class="bk-badge bk-badge--grey">Expired</span>
+                                            <% } %>
+                                        </td>
+                                        <td style="padding:10px 10px; text-align:center;">
+                                            <% if (b.booking_type === 'phone') { %>
+                                                <i class="bi bi-telephone" style="color:#6b7280; font-size:0.85rem;" title="Phone"></i>
+                                            <% } else if (b.booking_type === 'walkin') { %>
+                                                <i class="bi bi-person-walking" style="color:#6b7280; font-size:0.85rem;" title="Walk-in"></i>
+                                            <% } else { %>
+                                                <i class="bi bi-globe" style="color:#6b7280; font-size:0.85rem;" title="Online"></i>
+                                            <% } %>
+                                        </td>
+                                        <td style="padding:10px 10px;">
+                                            <div class="dropdown">
+                                                <button class="bk-dots-btn" data-bs-toggle="dropdown" aria-expanded="false">
+                                                    <i class="bi bi-three-dots"></i>
+                                                </button>
+                                                <ul class="dropdown-menu dropdown-menu-end bk-action-menu">
+                                                    <li>
+                                                        <a class="dropdown-item bk-action-item" href="/bookings/<%= b.id %>">
+                                                            <i class="bi bi-eye me-2" style="color:#1B4332;"></i>View
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <button class="dropdown-item bk-action-item" onclick="openEditBooking(<%= JSON.stringify(b) %>)">
+                                                            <i class="bi bi-pencil me-2" style="color:#0066ff;"></i>Edit
+                                                        </button>
+                                                    </li>
+                                                    <li>
+                                                        <hr class="dropdown-divider" style="margin:4px 0;">
+                                                    </li>
+                                                    <li>
+                                                        <button class="dropdown-item bk-action-item bk-action-item--danger" onclick="confirmCancel(<%= b.id %>, '<%= b.booking_no %>')">
+                                                            <i class="bi bi-x-circle me-2"></i>Cancel
+                                                        </button>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <% }) %>
+                            </tbody>
+                        </table>
+                    </div>
+                <% } %>
+            </div>
+
+            <!-- Pagination Section -->
+            <% if (pagination.totalPages > 1) { %>
+                <div class="card-footer pagination-footer">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                        <div class="text-muted small">
+                            Showing <%= (pagination.currentPage - 1) * pagination.limit + 1 %>
+                            to <%= Math.min(pagination.currentPage * pagination.limit, pagination.totalRecords) %>
+                            of <%= pagination.totalRecords %> entries
+                        </div>
+                        <nav aria-label="Bookings pagination">
+                            <ul class="pagination pagination-sm mb-0">
+                                <li class="page-item <%= pagination.currentPage === 1 ? 'disabled' : '' %>">
+                                    <a class="page-link" href="<%= buildPaginationUrl(1) %>">
+                                        <i class="bi bi-chevron-double-left"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item <%= pagination.currentPage === 1 ? 'disabled' : '' %>">
+                                    <a class="page-link" href="<%= buildPaginationUrl(pagination.currentPage - 1) %>">
+                                        <i class="bi bi-chevron-left"></i>
+                                    </a>
+                                </li>
+                                <% let startPage = Math.max(1, pagination.currentPage - 2); let endPage = Math.min(pagination.totalPages, pagination.currentPage + 2); if (startPage > 1) { %>
+                                    <li class="page-item"><a class="page-link" href="<%= buildPaginationUrl(1) %>">1</a></li>
+                                    <% if (startPage > 2) { %>
+                                        <li class="page-item disabled"><span class="page-link">...</span></li>
+                                    <% } %>
+                                <% } %>
+                                <% for (let i = startPage; i <= endPage; i++) { %>
+                                    <li class="page-item <%= pagination.currentPage === i ? 'active' : '' %>">
+                                        <a class="page-link" href="<%= buildPaginationUrl(i) %>"><%= i %></a>
+                                    </li>
+                                <% } %>
+                                <% if (endPage < pagination.totalPages) { %>
+                                    <% if (endPage < pagination.totalPages - 1) { %>
+                                        <li class="page-item disabled"><span class="page-link">...</span></li>
+                                    <% } %>
+                                    <li class="page-item"><a class="page-link" href="<%= buildPaginationUrl(pagination.totalPages) %>"><%= pagination.totalPages %></a></li>
+                                <% } %>
+                                <li class="page-item <%= pagination.currentPage === pagination.totalPages ? 'disabled' : '' %>">
+                                    <a class="page-link" href="<%= buildPaginationUrl(pagination.currentPage + 1) %>">
+                                        <i class="bi bi-chevron-right"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item <%= pagination.currentPage === pagination.totalPages ? 'disabled' : '' %>">
+                                    <a class="page-link" href="<%= buildPaginationUrl(pagination.totalPages) %>">
+                                        <i class="bi bi-chevron-double-right"></i>
+                                    </a>
+                                </li>
+                            </ul>
+                        </nav>
+                        <div class="d-flex align-items-center gap-2">
+                            <label class="text-muted small mb-0">Show:</label>
+                            <select id="page-size-selector" class="form-select form-select-sm" style="width: auto;">
+                                <option value="10" <%= pagination.limit === 10 ? 'selected' : '' %>>10</option>
+                                <option value="25" <%= pagination.limit === 25 ? 'selected' : '' %>>25</option>
+                                <option value="50" <%= pagination.limit === 50 ? 'selected' : '' %>>50</option>
+                                <option value="100" <%= pagination.limit === 100 ? 'selected' : '' %>>100</option>
+                            </select>
+                            <span class="text-muted small">entries per page</span>
+                        </div>
+                    </div>
+                </div>
+            <% } %>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Filter Toggle Functionality
+    const filterToggleBtn = document.getElementById('filterToggleBtn');
+    const filterSection = document.getElementById('filterSection');
+    const closeFilterBtn = document.getElementById('closeFilterBtn');
+    const filterActiveDot = document.getElementById('filterActiveDot');
+    
+    // Check if any filters are active
+    function updateFilterDot() {
+        const hasActiveFilters = <%= (filters.search || filters.status || filters.payment_status) ? 'true' : 'false' %>;
+        if (hasActiveFilters) {
+            filterActiveDot.style.display = 'block';
+        } else {
+            filterActiveDot.style.display = 'none';
+        }
+    }
+    
+    // Toggle filter section
+    filterToggleBtn.addEventListener('click', () => {
+        if (filterSection.style.display === 'none') {
+            filterSection.style.display = 'block';
+            filterToggleBtn.classList.add('active');
+        } else {
+            filterSection.style.display = 'none';
+            filterToggleBtn.classList.remove('active');
+        }
+    });
+    
+    closeFilterBtn.addEventListener('click', () => {
+        filterSection.style.display = 'none';
+        filterToggleBtn.classList.remove('active');
+    });
+    
+    // Page size selector handler
+    document.getElementById('page-size-selector')?.addEventListener('change', function () {
+        const limitInput = document.getElementById('limit-input');
+        if (limitInput) {
+            limitInput.value = this.value;
+            document.getElementById('filter-form').submit();
+        }
+    });
+    
+    // Live search with debounce
+    (function () {
+        const searchInput = document.getElementById('search-input');
+        if (!searchInput) return;
+        
+        let debounceTimer = null;
+        
+        searchInput.addEventListener('input', function () {
+            clearTimeout(debounceTimer);
+            searchInput.style.opacity = '0.6';
+            
+            debounceTimer = setTimeout(() => {
+                const pageInput = document.querySelector('input[name="page"]');
+                if (pageInput) pageInput.value = 1;
+                document.getElementById('filter-form').submit();
+            }, 400);
+        });
+    })();
+    
+    async function confirmCancel(id, bookingNo) {
+        if (!confirm(`Cancel booking ${bookingNo}? This cannot be undone.`)) return;
+        try {
+            const res = await fetch('/bookings/cancel', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ booking_id: id })
+            });
+            const data = await res.json();
+            if (data.success) window.location.reload();
+            else alert(data.message || 'Failed to cancel booking');
+        } catch (e) {
+            alert('Connection error. Please try again.');
+        }
+    }
+    
+    updateFilterDot();
+    
+</script>
+
+<%- include('../partials/quickbook-drawer') %>
+
+<!-- Edit Booking Overlay (Same as before) -->
+<!-- ... rest of your edit booking code ... -->
+
+<%- include('../partials/footer') %>

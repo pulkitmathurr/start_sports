@@ -1,0 +1,546 @@
+<%- include('./partials/header') %>
+
+<%
+const now = new Date();
+const hour = now.getHours();
+const greeting = hour < 12 ? 'Good Morning' : hour < 17 ? 'Good Afternoon' : 'Good Evening';
+const greetIcon = hour < 12 ? '🌅' : hour < 17 ? '☀️' : '🌙';
+const todayFmt = now.toLocaleDateString('en-IN', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+%>
+
+<div class="db-root">
+    
+    <!-- ══ PREMIUM WELCOME BANNER ══════════════════════════ -->
+    <div class="db-welcome-premium">
+        <div class="db-welcome-premium__content">
+            <div class="db-welcome-premium__greeting">
+                <span class="greeting-icon"><%= greetIcon %></span>
+                <%= greeting %>, <span class="user-name"><%= data.user.name.split(' ')[0] %></span>
+            </div>
+            <div class="db-welcome-premium__date">
+                <i class="bi bi-calendar-heart"></i> <%= todayFmt %>
+            </div>
+            <div class="db-welcome-premium__sub">
+                <i class="bi bi-graph-up"></i> Here's your business performance overview
+            </div>
+        </div>
+        <!-- <div class="db-welcome-premium__stats">
+            <div class="premium-stat">
+                <div class="premium-stat__label">Net Profit (MTD)</div>
+                <div class="premium-stat__value <%= data.financial.net_profit >= 0 ? 'positive' : 'negative' %>">
+                    <%= data.financial.net_profit >= 0 ? '₹' : '-₹' %><%= Math.abs(data.financial.net_profit).toLocaleString('en-IN') %>
+                </div>
+                <div class="premium-stat__trend">
+                    <i class="bi bi-arrow-<%= data.financial.profit_margin >= 0 ? 'up' : 'down' %>-short"></i>
+                    <%= Math.abs(data.financial.profit_margin) %>% margin
+                </div>
+            </div>
+        </div> -->
+    </div>
+
+    <!-- ══ STAT CARDS ROW 1 - Bookings & Revenue ══ -->
+    <div class="row g-4 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="db-stat-card db-stat-card--1" data-animate="fade-up">
+                <div class="db-stat-card__icon">
+                    <i class="bi bi-calendar-check"></i>
+                </div>
+                <div class="db-stat-card__content">
+                    <div class="db-stat-card__label">Today's Bookings</div>
+                    <div class="db-stat-card__value"><%= data.stats.total_bookings || 0 %></div>
+                    <div class="db-stat-card__trend"><%= data.stats.confirmed || 0 %> confirmed</div>
+                </div>
+                <div class="db-stat-card__bg"></div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="db-stat-card db-stat-card--2" data-animate="fade-up" data-delay="0.1">
+                <div class="db-stat-card__icon">
+                    <i class="bi bi-pie-chart"></i>
+                </div>
+                <div class="db-stat-card__content">
+                    <div class="db-stat-card__label">Occupancy Rate</div>
+                    <div class="db-stat-card__value"><%= data.stats.occupancy %>%</div>
+                    <div class="db-stat-card__trend"><%= data.stats.booked_slots %>/<%= data.stats.total_slots %> slots</div>
+                </div>
+                <div class="db-stat-card__bg"></div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="db-stat-card db-stat-card--3" data-animate="fade-up" data-delay="0.2">
+                <div class="db-stat-card__icon">
+                    <i class="bi bi-currency-rupee"></i>
+                </div>
+                <div class="db-stat-card__content">
+                    <div class="db-stat-card__label">Today's Revenue</div>
+                    <div class="db-stat-card__value">₹<%= Number(data.stats.revenue || 0).toLocaleString('en-IN') %></div>
+                    <div class="db-stat-card__trend">₹<%= Number(data.stats.balance_due || 0).toLocaleString('en-IN') %> due</div>
+                </div>
+                <div class="db-stat-card__bg"></div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="db-stat-card db-stat-card--4 <%= data.stats.pending > 0 ? 'alert' : '' %>" data-animate="fade-up" data-delay="0.3">
+                <div class="db-stat-card__icon">
+                    <i class="bi bi-hourglass-split"></i>
+                </div>
+                <div class="db-stat-card__content">
+                    <div class="db-stat-card__label">Pending Approvals</div>
+                    <div class="db-stat-card__value"><%= data.stats.pending || 0 %></div>
+                    <div class="db-stat-card__trend"><%= data.stats.pending > 0 ? 'Needs attention' : 'All clear' %></div>
+                </div>
+                <div class="db-stat-card__bg"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══ FINANCIAL CARDS ROW 2 - Expenses & Profit ══ -->
+    <div class="row g-4 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="db-financial-card db-financial-card--expenses" data-animate="fade-up" data-delay="0.4">
+                <div class="db-financial-card__icon">
+                    <i class="bi bi-receipt"></i>
+                </div>
+                <div class="db-financial-card__content">
+                    <div class="db-financial-card__label">Monthly Expenses</div>
+                    <div class="db-financial-card__value">₹<%= Number(data.financial.monthly_expenses || 0).toLocaleString('en-IN') %></div>
+                    <div class="db-financial-card__trend">
+                        <i class="bi bi-arrow-down-short"></i> <%= data.financial.expense_count || 0 %> transactions
+                    </div>
+                </div>
+                <div class="db-financial-card__glow"></div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="db-financial-card db-financial-card--revenue" data-animate="fade-up" data-delay="0.5">
+                <div class="db-financial-card__icon">
+                    <i class="bi bi-cash-stack"></i>
+                </div>
+                <div class="db-financial-card__content">
+                    <div class="db-financial-card__label">Monthly Revenue</div>
+                    <div class="db-financial-card__value">₹<%= Number(data.financial.monthly_revenue || 0).toLocaleString('en-IN') %></div>
+                    <div class="db-financial-card__trend">
+                       confirmed bookings
+                    </div>
+                </div>
+                <div class="db-financial-card__glow"></div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="db-financial-card db-financial-card--profit" data-animate="fade-up" data-delay="0.6">
+                <div class="db-financial-card__icon">
+                    <i class="bi bi-graph-up"></i>
+                </div>
+                <div class="db-financial-card__content">
+                    <div class="db-financial-card__label">Net Profit</div>
+                    <div class="db-financial-card__value <%= data.financial.net_profit >= 0 ? 'positive' : 'negative' %>">
+                        <%= data.financial.net_profit >= 0 ? '₹' : '-₹' %><%= Math.abs(data.financial.net_profit).toLocaleString('en-IN') %>
+                    </div>
+                    <div class="db-financial-card__trend">Margin: <%= data.financial.profit_margin %>%</div>
+                </div>
+                <div class="db-financial-card__glow"></div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="db-financial-card db-financial-card--balance" data-animate="fade-up" data-delay="0.7">
+                <div class="db-financial-card__icon">
+                    <i class="bi bi-wallet2"></i>
+                </div>
+                <div class="db-financial-card__content">
+                    <div class="db-financial-card__label">Pending Receivables</div>
+                    <div class="db-financial-card__value">₹<%= Number(data.stats.balance_due || 0).toLocaleString('en-IN') %></div>
+                    <div class="db-financial-card__trend">To be collected</div>
+                </div>
+                <div class="db-financial-card__glow"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══ CHARTS & EXPENSE BREAKDOWN ROW ══ -->
+    <div class="row g-4 mb-4">
+        <div class="col-12 col-md-8">
+            <div class="db-card-premium" data-animate="fade-up" data-delay="0.8">
+                <div class="db-card-premium__header">
+                    <div class="db-card-premium__title">
+                        <i class="bi bi-bar-chart-steps"></i> Revenue vs Expenses Trend
+                    </div>
+                    <div class="db-card-premium__badge">Last 7 Days</div>
+                </div>
+                <div class="db-card-premium__body">
+                    <canvas id="revenueExpenseChart" style="max-height: 320px;"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="db-card-premium" data-animate="fade-up" data-delay="0.9">
+                <div class="db-card-premium__header">
+                    <div class="db-card-premium__title">
+                        <i class="bi bi-pie-chart"></i> Expense Breakdown
+                    </div>
+                    <div class="db-card-premium__badge">This Month</div>
+                </div>
+                <div class="db-card-premium__body">
+                    <canvas id="expenseCategoryChart" style="max-height: 220px;"></canvas>
+                    <div id="expenseLegend" class="db-legend-custom mt-3"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══ RECENT EXPENSES & PENDING APPROVALS ROW ══ -->
+    <div class="row g-4 mb-4">
+        <div class="col-12 col-lg-6">
+            <div class="db-card-premium" data-animate="fade-up" data-delay="1.0">
+                <div class="db-card-premium__header">
+                    <div class="db-card-premium__title">
+                        <i class="bi bi-clock-history"></i> Recent Expenses
+                    </div>
+                    <a href="/expenses/page" class="db-link">View All <i class="bi bi-arrow-right"></i></a>
+                </div>
+                <div class="db-card-premium__body p-0">
+                    <% if (data.recentExpenses.length === 0) { %>
+                        <div class="db-empty-state">
+                            <i class="bi bi-receipt"></i>
+                            <p>No expenses recorded yet</p>
+                            <small>Add your first expense via Expense Tracker</small>
+                        </div>
+                    <% } else { %>
+                        <div class="db-expense-list">
+                            <% data.recentExpenses.forEach(exp => { %>
+                                <div class="db-expense-item">
+                                    <div class="db-expense-item__icon">
+                                        <i class="bi bi-<%= exp.category === 'Electricity' ? 'lightbulb' : 
+                                                       exp.category === 'Salary' ? 'person-badge' :
+                                                       exp.category === 'Maintenance' ? 'wrench' :
+                                                       exp.category === 'Equipment' ? 'tools' : 'receipt' %>"></i>
+                                    </div>
+                                    <div class="db-expense-item__info">
+                                        <div class="db-expense-item__title"><%= exp.title %></div>
+                                        <div class="db-expense-item__meta">
+                                            <span><i class="bi bi-tag"></i> <%= exp.category %></span>
+                                            <span><i class="bi bi-calendar3"></i> <%= new Date(exp.expense_date).toLocaleDateString('en-IN') %></span>
+                                            <% if (exp.vendor) { %>
+                                                <span><i class="bi bi-building"></i> <%= exp.vendor %></span>
+                                            <% } %>
+                                        </div>
+                                    </div>
+                                    <div class="db-expense-item__amount">₹<%= Number(exp.amount).toLocaleString('en-IN') %></div>
+                                </div>
+                            <% }) %>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-lg-6">
+            <div class="db-card-premium" data-animate="fade-up" data-delay="1.1">
+                <div class="db-card-premium__header">
+                    <div class="db-card-premium__title">
+                        <i class="bi bi-hourglass-split"></i> Pending Approvals
+                    </div>
+                    <span class="db-badge-premium <%= data.pendingApprovals.length > 0 ? 'alert' : '' %>">
+                        <%= data.pendingApprovals.length %> pending
+                    </span>
+                </div>
+                <div class="db-card-premium__body p-0">
+                    <% if (data.pendingApprovals.length === 0) { %>
+                        <div class="db-empty-state">
+                            <i class="bi bi-check-circle-fill" style="color: #4ADE80;"></i>
+                            <p>No pending approvals</p>
+                            <small>All bookings are processed</small>
+                        </div>
+                    <% } else { %>
+                        <div class="db-approval-list">
+                            <% data.pendingApprovals.forEach(b => { %>
+                                <div class="db-approval-item" id="approval-<%= b.id %>">
+                                    <div class="db-approval-item__avatar"><%= b.customer_name.charAt(0).toUpperCase() %></div>
+                                    <div class="db-approval-item__info">
+                                        <div class="db-approval-item__name"><%= b.customer_name %></div>
+                                        <div class="db-approval-item__meta">
+                                            <span><i class="bi bi-telephone"></i> <%= b.customer_phone %></span>
+                                            <span><i class="bi bi-clock"></i> <%= b.start_time.slice(0,5) %> – <%= b.end_time.slice(0,5) %></span>
+                                            <% if (b.ground_name) { %>
+                                                <span><i class="bi bi-geo-alt"></i> <%= b.ground_name %></span>
+                                            <% } %>
+                                        </div>
+                                        <div class="db-approval-item__booking">₹<%= b.total_amount %> · <%= b.booking_no %></div>
+                                    </div>
+                                    <div class="db-approval-item__actions">
+                                        <button class="db-btn-approve-premium" onclick="dashApprove(<%= b.id %>)" title="Approve">
+                                            <i class="bi bi-check-lg"></i>
+                                        </button>
+                                        <button class="db-btn-reject-premium" onclick="dashReject(<%= b.id %>)" title="Reject">
+                                            <i class="bi bi-x-lg"></i>
+                                        </button>
+                                        <a href="/bookings/<%= b.id %>" class="db-btn-view-premium" title="View Details">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            <% }) %>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══ TODAY'S SCHEDULE & GROUND STATUS ══ -->
+    <div class="row g-4 mb-4">
+        <div class="col-12 col-lg-5">
+            <div class="db-card-premium" data-animate="fade-up" data-delay="1.2">
+                <div class="db-card-premium__header">
+                    <div class="db-card-premium__title">
+                        <i class="bi bi-calendar-event"></i> Today's Schedule
+                    </div>
+                    <div class="db-card-premium__badge"><%= data.todaySchedule.length %> bookings</div>
+                </div>
+                <div class="db-card-premium__body p-0">
+                    <% if (data.todaySchedule.length === 0) { %>
+                        <div class="db-empty-state">
+                            <i class="bi bi-calendar-x"></i>
+                            <p>No confirmed bookings today</p>
+                        </div>
+                    <% } else { %>
+                        <div class="db-schedule-list">
+                            <% data.todaySchedule.forEach((b, i) => { %>
+                                <div class="db-schedule-item">
+                                    <div class="db-schedule-item__time">
+                                        <span class="time-start"><%= b.start_time.slice(0,5) %></span>
+                                        <span class="time-end"><%= b.end_time.slice(0,5) %></span>
+                                    </div>
+                                    <div class="db-schedule-item__info">
+                                        <div class="db-schedule-item__name"><%= b.customer_name %></div>
+                                        <div class="db-schedule-item__ground">
+                                            <i class="bi bi-geo-alt"></i> <%= b.ground_name || 'Main Ground' %>
+                                        </div>
+                                    </div>
+                                    <div class="db-schedule-item__status">
+                                        <span class="payment-badge payment-<%= b.payment_status %>"><%= b.payment_status %></span>
+                                    </div>
+                                    <a href="/bookings/<%= b.id %>" class="db-schedule-item__link">
+                                        <i class="bi bi-arrow-right"></i>
+                                    </a>
+                                </div>
+                            <% }) %>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-lg-7">
+            <div class="db-card-premium" data-animate="fade-up" data-delay="1.3">
+                <div class="db-card-premium__header">
+                    <div class="db-card-premium__title">
+                        <i class="bi bi-geo-alt"></i> Ground Status Today
+                    </div>
+                </div>
+                <div class="db-card-premium__body">
+                    <div class="row g-3">
+                        <% data.grounds.forEach(g => { %>
+                            <div class="col-12 col-sm-6">
+                                <div class="db-ground-card-premium">
+                                    <div class="db-ground-card-premium__top">
+                                        <div class="db-ground-card-premium__img">
+                                            <% if (g.primary_image) { %>
+                                                <img src="/uploads/grounds/<%= g.primary_image %>" alt="<%= g.name %>">
+                                            <% } else { %>
+                                                <i class="bi bi-geo-alt-fill"></i>
+                                            <% } %>
+                                        </div>
+                                        <div>
+                                            <div class="db-ground-card-premium__name"><%= g.name %></div>
+                                            <div class="db-ground-card-premium__sport"><%= g.sport_type %></div>
+                                        </div>
+                                        <span class="db-ground-card-premium__status status-<%= g.status %>">
+                                            <%= g.status %>
+                                        </span>
+                                    </div>
+                                    <div class="db-ground-card-premium__stats">
+                                        <div class="stat">
+                                            <span class="stat-value"><%= g.today_confirmed %></span>
+                                            <span class="stat-label">Confirmed</span>
+                                        </div>
+                                        <div class="stat-divider"></div>
+                                        <div class="stat">
+                                            <span class="stat-value"><%= g.today_total %></span>
+                                            <span class="stat-label">Total</span>
+                                        </div>
+                                        <div class="stat-divider"></div>
+                                        <div class="stat">
+                                            <span class="stat-value"><%= g.total_slots > 0 ? Math.round((g.today_confirmed / g.total_slots) * 100) : 0 %>%</span>
+                                            <span class="stat-label">Occupancy</span>
+                                        </div>
+                                    </div>
+                                    <div class="db-ground-card-premium__bar">
+                                        <div class="bar-fill" style="width: <%= g.total_slots > 0 ? Math.round((g.today_confirmed / g.total_slots) * 100) : 0 %>%;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        <% }) %>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+// ── Data from server ──────────────────────────────
+const weeklyTrend = <%- JSON.stringify(data.weeklyTrend) %>;
+const expenseCategories = <%- JSON.stringify(data.expenseCategories) %>;
+const stats = <%- JSON.stringify(data.stats) %>;
+
+// ── Revenue vs Expenses Chart ─────────────────────
+const last7Days = [];
+const revenueData = [];
+const expenseData = [];
+
+for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const dateStr = d.toISOString().split('T')[0];
+    const found = weeklyTrend.find(r => r.date === dateStr);
+    last7Days.push(d.toLocaleDateString('en-IN', { weekday: 'short' }));
+    revenueData.push(found ? found.revenue : 0);
+    expenseData.push(0); // Placeholder - you can add daily expenses if tracked
+}
+
+new Chart(document.getElementById('revenueExpenseChart'), {
+    type: 'line',
+    data: {
+        labels: last7Days,
+        datasets: [
+            {
+                label: 'Revenue',
+                data: revenueData,
+                borderColor: '#1B4332',
+                backgroundColor: 'rgba(27, 67, 50, 0.05)',
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: '#1B4332',
+                pointBorderColor: '#fff',
+                pointRadius: 4,
+                pointHoverRadius: 6
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+            legend: { position: 'top' },
+            tooltip: { callbacks: { label: (ctx) => ` ₹${ctx.raw.toLocaleString('en-IN')}` } }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: { callback: (val) => '₹' + val.toLocaleString('en-IN') }
+            }
+        }
+    }
+});
+
+// ── Expense Category Chart ────────────────────────
+const categories = expenseCategories.map(c => c.category);
+const amounts = expenseCategories.map(c => c.total);
+const colors = ['#1B4332', '#2D6A4F', '#40916C', '#52B788', '#74C69D', '#D4AF37'];
+
+new Chart(document.getElementById('expenseCategoryChart'), {
+    type: 'doughnut',
+    data: {
+        labels: categories,
+        datasets: [{
+            data: amounts,
+            backgroundColor: colors.slice(0, categories.length),
+            borderWidth: 0,
+            hoverOffset: 10
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: { label: (ctx) => ` ${ctx.label}: ₹${ctx.raw.toLocaleString('en-IN')}` } }
+        },
+        cutout: '65%'
+    }
+});
+
+// Update legend
+const legendContainer = document.getElementById('expenseLegend');
+if (legendContainer && categories.length > 0) {
+    legendContainer.innerHTML = categories.map((cat, i) => `
+        <div class="db-legend-item">
+            <span class="db-legend-dot" style="background: ${colors[i % colors.length]}"></span>
+            <span class="db-legend-label">${cat}</span>
+            <span class="db-legend-value">₹${amounts[i].toLocaleString('en-IN')}</span>
+        </div>
+    `).join('');
+}
+
+// ── Approve / Reject Functions ────────────────────
+async function dashApprove(id) {
+    const row = document.getElementById('approval-' + id);
+    if (!confirm('Approve this booking?')) return;
+    const res = await fetch('/dashboard/approve', { 
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' }, 
+        body: JSON.stringify({ booking_id: id }) 
+    });
+    const data = await res.json();
+    if (data.success) {
+        row.style.transform = 'translateX(100%)';
+        row.style.opacity = '0';
+        setTimeout(() => { row.remove(); updatePendingCount(-1); }, 300);
+    }
+}
+
+async function dashReject(id) {
+    const row = document.getElementById('approval-' + id);
+    if (!confirm('Reject this booking?')) return;
+    const res = await fetch('/dashboard/reject', { 
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' }, 
+        body: JSON.stringify({ booking_id: id }) 
+    });
+    const data = await res.json();
+    if (data.success) {
+        row.style.transform = 'translateX(100%)';
+        row.style.opacity = '0';
+        setTimeout(() => { row.remove(); updatePendingCount(-1); }, 300);
+    }
+}
+
+function updatePendingCount(delta) {
+    const badge = document.querySelector('.db-badge-premium');
+    if (badge) {
+        const count = Math.max(0, parseInt(badge.textContent) + delta);
+        badge.textContent = count + ' pending';
+        if (count === 0) badge.classList.remove('alert');
+    }
+}
+
+// ── Scroll Animation Observer ─────────────────────
+const animateElements = document.querySelectorAll('[data-animate]');
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            const el = entry.target;
+            const animation = el.dataset.animate;
+            const delay = el.dataset.delay || 0;
+            el.style.animation = `${animation} 0.6s ease ${delay}s forwards`;
+            el.style.opacity = '0';
+            observer.unobserve(el);
+        }
+    });
+}, { threshold: 0.1 });
+
+animateElements.forEach(el => observer.observe(el));
+</script>
+
+<%- include('./partials/quickbook-drawer') %>
+<%- include('./partials/footer') %>

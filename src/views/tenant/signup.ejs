@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register Your Ground - Start Sports</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        body { background: #0f1923; min-height: 100vh; }
+
+        .signup-wrapper {
+            min-height: 100vh;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 40px 16px;
+        }
+
+        .signup-card {
+            background: #1a2332;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 560px;
+            padding: 40px;
+        }
+
+        .signup-logo {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        .signup-logo h1 {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 28px;
+            font-weight: 700;
+            color: #fff;
+            margin: 0;
+        }
+
+        .signup-logo p {
+            color: rgba(255,255,255,0.5);
+            font-size: 14px;
+            margin: 4px 0 0;
+        }
+
+        .section-label {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            color: rgba(255,255,255,0.35);
+            text-transform: uppercase;
+            margin: 24px 0 12px;
+        }
+
+        .form-label {
+            color: rgba(255,255,255,0.7);
+            font-size: 13px;
+            margin-bottom: 6px;
+        }
+
+        .form-control {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            color: #fff;
+            padding: 10px 14px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        .form-control:focus {
+            background: rgba(255,255,255,0.08);
+            border-color: #2ecc71;
+            color: #fff;
+            box-shadow: none;
+        }
+
+        .form-control::placeholder { color: rgba(255,255,255,0.25); }
+
+        /* Plan cards */
+        .plans-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin-bottom: 4px;
+        }
+
+        .plan-option { display: none; }
+
+        .plan-label {
+            display: block;
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 14px 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .plan-label:hover { border-color: rgba(46,204,113,0.4); }
+
+        .plan-option:checked + .plan-label {
+            border-color: #2ecc71;
+            background: rgba(46,204,113,0.08);
+        }
+
+        .plan-name {
+            font-weight: 600;
+            color: #fff;
+            font-size: 14px;
+        }
+
+        .plan-price {
+            font-size: 18px;
+            font-weight: 700;
+            color: #2ecc71;
+            margin: 4px 0;
+        }
+
+        .plan-trial {
+            font-size: 11px;
+            color: rgba(255,255,255,0.4);
+        }
+
+        .plan-grounds {
+            font-size: 11px;
+            color: rgba(255,255,255,0.5);
+            margin-top: 4px;
+        }
+
+        .btn-signup {
+            width: 100%;
+            background: #2ecc71;
+            color: #0f1923;
+            border: none;
+            border-radius: 8px;
+            padding: 13px;
+            font-size: 15px;
+            font-weight: 700;
+            margin-top: 28px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-signup:hover { background: #27ae60; }
+        .btn-signup:disabled { background: #555; cursor: not-allowed; }
+
+        .login-link {
+            text-align: center;
+            margin-top: 20px;
+            color: rgba(255,255,255,0.4);
+            font-size: 13px;
+        }
+
+        .login-link a { color: #2ecc71; text-decoration: none; }
+
+        .alert-error {
+            background: rgba(192,57,43,0.15);
+            border: 1px solid rgba(192,57,43,0.4);
+            color: #e74c3c;
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 16px; height: 16px;
+            border: 2px solid rgba(0,0,0,0.3);
+            border-top-color: #0f1923;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            vertical-align: middle;
+            margin-right: 6px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+
+<body>
+<div class="signup-wrapper">
+    <div class="signup-card">
+
+        <div class="signup-logo">
+            <h1>START SPORTS</h1>
+            <p>Register your ground and start managing bookings</p>
+        </div>
+
+        <!-- Error message -->
+        <div id="errorBox" class="alert-error" style="display:none;"></div>
+
+        <form id="signupForm">
+
+            <!-- Personal Info -->
+            <div class="section-label">Your Details</div>
+
+            <div class="mb-3">
+                <label class="form-label">Full Name *</label>
+                <input type="text" name="name" class="form-control" placeholder="e.g. Rahul Sharma" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Email Address *</label>
+                <input type="email" name="email" class="form-control" placeholder="you@example.com" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Password *</label>
+                <input type="password" name="password" class="form-control" placeholder="Min 6 characters" required minlength="6">
+            </div>
+
+            <!-- Business Info -->
+            <div class="section-label">Ground / Business Details</div>
+
+            <div class="mb-3">
+                <label class="form-label">Ground / Business Name *</label>
+                <input type="text" name="business_name" class="form-control" placeholder="e.g. ABC Cricket Arena" required>
+            </div>
+
+            <div class="row">
+                <div class="col-6 mb-3">
+                    <label class="form-label">Phone Number</label>
+                    <input type="tel" name="phone" class="form-control" placeholder="9876543210">
+                </div>
+                <div class="col-6 mb-3">
+                    <label class="form-label">City</label>
+                    <input type="text" name="city" class="form-control" placeholder="e.g. Jaipur">
+                </div>
+            </div>
+
+            <!-- Plan Selection -->
+            <div class="section-label">Choose Your Plan</div>
+
+            <div class="plans-grid">
+                <% plans.forEach((plan, index) => { %>
+                <div>
+                    <input
+                        type="radio"
+                        name="plan_id"
+                        id="plan_<%= plan.id %>"
+                        value="<%= plan.id %>"
+                        class="plan-option"
+                        <%= index === 0 ? 'checked' : '' %>
+                    >
+                    <label class="plan-label" for="plan_<%= plan.id %>">
+                        <div class="plan-name"><%= plan.name %></div>
+                        <div class="plan-price">
+                            <% if (plan.price_monthly == 0) { %>
+                                Free
+                            <% } else { %>
+                                ₹<%= plan.price_monthly %>/mo
+                            <% } %>
+                        </div>
+                        <div class="plan-trial"><%= plan.trial_days %> day free trial</div>
+                        <div class="plan-grounds">Up to <%= plan.max_grounds %> ground<%= plan.max_grounds > 1 ? 's' : '' %></div>
+                    </label>
+                </div>
+                <% }) %>
+            </div>
+
+            <button type="submit" class="btn-signup" id="submitBtn">
+                Start Free Trial
+            </button>
+
+        </form>
+
+        <div class="login-link">
+            Already have an account? <a href="/auth/login">Login here</a>
+        </div>
+
+    </div>
+</div>
+
+<script>
+document.getElementById('signupForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const btn       = document.getElementById('submitBtn');
+    const errorBox  = document.getElementById('errorBox');
+    const form      = e.target;
+
+    // Gather form data
+    const body = {
+        name:          form.name.value.trim(),
+        email:         form.email.value.trim(),
+        password:      form.password.value,
+        business_name: form.business_name.value.trim(),
+        phone:         form.phone.value.trim(),
+        city:          form.city.value.trim(),
+        plan_id:       form.plan_id.value
+    };
+
+    // Show loading
+    btn.disabled    = true;
+    btn.innerHTML   = '<span class="spinner"></span> Creating your account...';
+    errorBox.style.display = 'none';
+
+    try {
+        const res  = await fetch('/tenant/signup', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify(body)
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+            btn.innerHTML = '✓ Account created! Redirecting...';
+            setTimeout(() => {
+                window.location.href = data.data.redirect || '/dashboard';
+            }, 1000);
+        } else {
+            errorBox.textContent   = data.message || 'Something went wrong. Please try again.';
+            errorBox.style.display = 'block';
+            btn.disabled  = false;
+            btn.innerHTML = 'Start Free Trial';
+        }
+
+    } catch (err) {
+        errorBox.textContent   = 'Network error. Please check your connection.';
+        errorBox.style.display = 'block';
+        btn.disabled  = false;
+        btn.innerHTML = 'Start Free Trial';
+    }
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,496 @@
+<%- include('../partials/header') %>
+
+<div class="row settings-page-header">
+
+    <!-- Page Header -->
+    <div class="col-12 mb-4">
+        <div class="d-flex align-items-center justify-content-between">
+            <div>
+                <h4 class="fw-bold mb-1" style="font-family:'Rajdhani',sans-serif; letter-spacing:1px; color:#1B4332;">
+                    <%= ground ? 'Edit Ground' : 'Add New Ground' %>
+                </h4>
+                <small style="color:#ADB5BD;">
+                    <%= ground ? 'Update ground details, timings and pricing' : 'Fill in details to add a new ground' %>
+                </small>
+            </div>
+            <a href="/grounds" style="font-size:0.8rem; color:#6B7280; text-decoration:none;">
+                <i class="bi bi-arrow-left me-1"></i> Back 
+            </a>
+        </div>
+    </div>
+
+    <!-- Error Banner -->
+    <% if (error) { %>
+    <div class="col-12">
+        <div class="settings-warning">
+            <i class="bi bi-exclamation-triangle-fill"></i> <%= error %>
+        </div>
+    </div>
+    <% } %>
+
+    <!-- ══ IMAGE ACTION FORMS — MAIN FORM SE BILKUL BAHAR ══ -->
+    <% if (ground && ground.images && ground.images.length > 0) { %>
+        <% ground.images.forEach(img => { %>
+        <form id="form-primary-<%= img.id %>" method="POST"
+              action="/grounds/<%= ground.id %>/image/<%= img.id %>/primary" style="display:none;"></form>
+        <form id="form-delete-<%= img.id %>" method="POST"
+              action="/grounds/<%= ground.id %>/image/<%= img.id %>/delete" style="display:none;"></form>
+        <% }) %>
+    <% } %>
+
+    <!-- ══ MAIN FORM ══ -->
+    <form method="POST"
+          action="<%= ground ? '/grounds/' + ground.id + '/update' : '/grounds/create' %>"
+          enctype="multipart/form-data">
+
+        <!-- ── Section 1: Ground Info ─────────────── -->
+        <div class="col-12">
+            <div class="settings-card">
+                <div class="settings-card-header">
+                    <i class="bi bi-building"></i> Ground Information
+                </div>
+                <div class="settings-card-body">
+                    <div class="row g-3">
+
+                        <div class="col-12 col-md-4">
+                            <label class="s-label">Ground Name *</label>
+                            <input type="text" name="name"
+                                value="<%= ground ? ground.name : '' %>"
+                                placeholder="e.g. Start Sports Arena"
+                                class="s-input" required>
+                            <small class="s-hint">Shown to customers on booking site</small>
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label class="s-label">Contact Number *</label>
+                            <input type="tel" name="phone"
+                                value="<%= ground ? ground.phone : '' %>"
+                                placeholder="e.g. 9876543210"
+                                class="s-input" required>
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label class="s-label">Address *</label>
+                            <input type="text" name="address"
+                                value="<%= ground ? ground.address : '' %>"
+                                placeholder="e.g. Sector 12, Jaipur"
+                                class="s-input" required>
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label class="s-label">Sport Type</label>
+                            <select name="sport_type" class="s-input">
+                                <% ['cricket','football','badminton','basketball','tennis','volleyball','other'].forEach(s => { %>
+                                <option value="<%= s %>" <%= ground && ground.sport_type === s ? 'selected' : '' %>>
+                                    <%= s.charAt(0).toUpperCase() + s.slice(1) %>
+                                </option>
+                                <% }) %>
+                            </select>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Section 2: Ground Images ──────────── -->
+        <div class="col-12">
+            <div class="settings-card">
+                <div class="settings-card-header">
+                    <i class="bi bi-images"></i> Ground Images
+                </div>
+                <div class="settings-card-body">
+
+                    <% if (ground && ground.images && ground.images.length > 0) { %>
+                    <p class="s-divider">Uploaded Images</p>
+                    <div style="display:flex; flex-wrap:wrap; gap:12px; margin-bottom:1.5rem;">
+                        <% ground.images.forEach(img => { %>
+                        <div style="position:relative; width:130px;">
+                            <img src="/uploads/grounds/<%= img.filename %>"
+                                 style="width:130px; height:100px; object-fit:cover; border-radius:8px;
+                                        border: 2px solid <%= img.is_primary ? '#1B4332' : '#E5E7EB' %>;">
+
+                            <% if (img.is_primary) { %>
+                            <span style="position:absolute; top:5px; left:5px; background:#1B4332; color:#fff;
+                                         font-size:0.6rem; padding:2px 6px; border-radius:10px; font-weight:700;">
+                                PRIMARY
+                            </span>
+                            <% } %>
+
+                            <!-- type="button" — main form submit nahi hoga -->
+                            <div style="display:flex; gap:4px; margin-top:5px;">
+                                <% if (!img.is_primary) { %>
+                                <button type="button"
+                                    onclick="document.getElementById('form-primary-<%= img.id %>').submit()"
+                                    style="flex:1; font-size:0.65rem; padding:3px 0; border:1px solid #1B4332;
+                                           color:#1B4332; background:transparent; border-radius:4px; cursor:pointer;">
+                                    Set Primary
+                                </button>
+                                <% } %>
+                                <button type="button"
+                                    onclick="if(confirm('Delete this image?')) document.getElementById('form-delete-<%= img.id %>').submit()"
+                                    style="flex:1; font-size:0.65rem; padding:3px 0; border:1px solid #D90429;
+                                           color:#D90429; background:transparent; border-radius:4px; cursor:pointer;">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <% }) %>
+                    </div>
+                    <p class="s-divider">Upload More Images</p>
+                    <% } %>
+
+                    <div id="drop-area"
+                         style="border:2px dashed #D1D5DB; border-radius:10px; padding:2rem;
+                                text-align:center; cursor:pointer; transition:border-color 0.2s;"
+                         onclick="document.getElementById('ground-images').click()"
+                         ondragover="event.preventDefault(); this.style.borderColor='#1B4332';"
+                         ondragleave="this.style.borderColor='#D1D5DB';"
+                         ondrop="handleDrop(event)">
+                        <i class="bi bi-cloud-arrow-up" style="font-size:2rem; color:#ADB5BD;"></i>
+                        <p style="margin:0.5rem 0 0; color:#6B7280; font-size:0.85rem;">
+                            Click to upload or drag & drop images here
+                        </p>
+                        <small style="color:#ADB5BD;">JPG, PNG, WEBP — max 5MB each, up to 10 images</small>
+                    </div>
+
+                    <input type="file" id="ground-images" name="images"
+                           multiple accept=".jpg,.jpeg,.png,.webp"
+                           style="display:none;" onchange="previewImages(this.files)">
+
+                    <div id="image-preview" style="display:flex; flex-wrap:wrap; gap:12px; margin-top:1rem;"></div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Section 3: Operating Hours ────────── -->
+        <div class="col-12">
+            <div class="settings-card">
+                <div class="settings-card-header">
+                    <i class="bi bi-clock"></i> Operating Hours & Slot Duration
+                </div>
+                <div class="settings-card-body">
+                    <div class="row g-3">
+
+                        <div class="col-6 col-md-3">
+                            <label class="s-label">Opens At *</label>
+                            <%- timePickerHTML('open_time', ground && ground.open_time ? ground.open_time.slice(0,5) : '') %>
+                        </div>
+
+                        <div class="col-6 col-md-3">
+                            <label class="s-label">Closes At *</label>
+                            <%- timePickerHTML('close_time', ground && ground.close_time ? ground.close_time.slice(0,5) : '') %>
+                        </div>
+
+                        <div class="col-6 col-md-3">
+                            <label class="s-label">Slot Duration (minutes) *</label>
+                            <input type="number" name="slot_duration"
+                                value="<%= ground ? ground.slot_duration : '' %>"
+                                placeholder="e.g. 60" min="30" max="480"
+                                class="s-input" required>
+                        </div>
+
+                        <div class="col-6 col-md-3">
+                            <label class="s-label">Advance Booking (days) *</label>
+                            <input type="number" name="advance_booking_days"
+                                value="<%= ground ? ground.advance_booking_days : '7' %>"
+                                placeholder="e.g. 7" min="0" max="30"
+                                class="s-input" required>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Section 4: Peak Hours & Pricing ───── -->
+        <div class="col-12">
+            <div class="settings-card">
+                <div class="settings-card-header">
+                    <i class="bi bi-graph-up-arrow"></i> Peak Hours & Pricing
+                </div>
+                <div class="settings-card-body">
+
+                    <p class="s-divider">Peak Hour Window</p>
+                    <div class="row g-3 mb-4">
+                        <div class="col-6 col-md-3">
+                            <label class="s-label">Peak Starts At *</label>
+                            <%- timePickerHTML('peak_start_time', ground && ground.peak_start_time ? ground.peak_start_time.slice(0,5) : '') %>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <label class="s-label">Peak Ends At *</label>
+                            <%- timePickerHTML('peak_end_time', ground && ground.peak_end_time ? ground.peak_end_time.slice(0,5) : '') %>
+                        </div>
+                    </div>
+
+                    <p class="s-divider">Slot Pricing</p>
+                    <div class="row g-3">
+                        <div class="col-6 col-md-3">
+                            <label class="s-label">Off-Peak Price (₹) *</label>
+                            <input type="number" name="off_peak_price"
+                                value="<%= ground ? ground.off_peak_price : '' %>"
+                                placeholder="e.g. 800" min="0"
+                                class="s-input" required>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <label class="s-label">Peak Price (₹) *</label>
+                            <input type="number" name="peak_price"
+                                value="<%= ground ? ground.peak_price : '' %>"
+                                placeholder="e.g. 1200" min="0"
+                                class="s-input" required>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Section 5: Payment ─────────────────── -->
+        <div class="col-12">
+            <div class="settings-card">
+                <div class="settings-card-header">
+                    <i class="bi bi-cash-stack"></i> Payment Configuration
+                </div>
+                <div class="settings-card-body">
+                    <div class="row g-3">
+                        <div class="col-12 col-md-4">
+                            <label class="s-label">Advance Payment Deadline (hours) *</label>
+                            <input type="number" name="advance_payment_hours"
+                                value="<%= ground ? ground.advance_payment_hours : '2' %>"
+                                placeholder="e.g. 2" min="1" max="72"
+                                class="s-input" required>
+                            <small class="s-hint">Customer must pay within this time after approval</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Section 6: Live Slot Preview ──────── -->
+        <div class="col-12">
+            <div class="settings-card">
+                <div class="settings-card-header">
+                    <i class="bi bi-calendar3"></i> Live Slot Preview
+                </div>
+                <div class="settings-card-body">
+                    <p class="s-divider">Slots generated from current values</p>
+                    <div id="slot-preview-list" style="display:flex; flex-wrap:wrap; gap:10px;"></div>
+                    <div id="slot-preview-empty" style="display:none; font-size:0.8rem; color:#ADB5BD;">
+                        Fill in open time, close time and slot duration to see preview
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Warning (edit mode) ───────────────── -->
+        <% if (ground) { %>
+        <div class="col-12">
+            <div class="settings-warning">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                <div><strong>Heads up:</strong> Saving changes will delete all future slots for this ground and regenerate them. Existing bookings will not be affected.</div>
+            </div>
+        </div>
+        <% } %>
+
+        <!-- ── Save Button ────────────────────────── -->
+        <div class="col-12 mb-4">
+            <button type="submit" class="settings-save-btn">
+                <i class="bi bi-floppy me-2"></i>
+                <%= ground ? 'SAVE CHANGES' : 'ADD GROUND' %>
+            </button>
+        </div>
+
+    </form>
+</div>
+
+<%
+// ── EJS helper: generates AM/PM time picker HTML ─
+function timePickerHTML(name, val) {
+    // Parse existing HH:MM value
+    let h24 = 0, m = 0;
+    if (val) {
+        const parts = val.split(':');
+        h24 = parseInt(parts[0]) || 0;
+        m   = parseInt(parts[1]) || 0;
+    }
+    const ampm  = h24 >= 12 ? 'PM' : 'AM';
+    const h12   = h24 % 12 === 0 ? 12 : h24 % 12;
+
+    // Generate hour options 1-12
+    let hourOpts = '';
+    for (let i = 1; i <= 12; i++) {
+        hourOpts += `<option value="${i}" ${i === h12 ? 'selected' : ''}>${String(i).padStart(2,'0')}</option>`;
+    }
+
+    // Minute options: 00, 15, 30, 45
+    const mins = [0, 15, 30, 45];
+    let minOpts = '';
+    mins.forEach(min => {
+        minOpts += `<option value="${min}" ${min === m ? 'selected' : ''}>${String(min).padStart(2,'0')}</option>`;
+    });
+
+    const uid = name.replace(/_/g, '-');
+    return `
+        <input type="hidden" name="${name}" id="${uid}-hidden" value="${val || ''}">
+        <div class="tp-wrap" data-field="${uid}">
+            <select class="tp-select tp-hour" onchange="tpSync('${uid}')">
+                ${hourOpts}
+            </select>
+            <span class="tp-colon">:</span>
+            <select class="tp-select tp-min" onchange="tpSync('${uid}')">
+                ${minOpts}
+            </select>
+            <select class="tp-select tp-ampm" onchange="tpSync('${uid}')">
+                <option value="AM" ${ampm === 'AM' ? 'selected' : ''}>AM</option>
+                <option value="PM" ${ampm === 'PM' ? 'selected' : ''}>PM</option>
+            </select>
+        </div>`;
+}
+%>
+
+<style>
+.tp-wrap {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: #F8F9FA;
+    border: 1.5px solid #DEE2E6;
+    border-radius: 8px;
+    padding: 6px 10px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.tp-wrap:focus-within {
+    border-color: #1B4332;
+    box-shadow: 0 0 0 3px rgba(27,67,50,0.1);
+    background: #fff;
+}
+.tp-select {
+    background: transparent;
+    border: none;
+    outline: none;
+    font-size: 0.88rem;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    color: #1A1A2E;
+    cursor: pointer;
+    padding: 0;
+    -webkit-appearance: none;
+    appearance: none;
+    text-align: center;
+}
+.tp-hour { width: 36px; }
+.tp-min  { width: 36px; }
+.tp-ampm {
+    width: 44px;
+    color: #1B4332;
+    font-weight: 700;
+    font-size: 0.78rem;
+    letter-spacing: 0.5px;
+    margin-left: 2px;
+}
+.tp-colon {
+    font-weight: 700;
+    color: #6b7280;
+    font-size: 0.95rem;
+    line-height: 1;
+    margin: 0 1px;
+}
+</style>
+
+<script>
+function tpSync(uid) {
+    const wrap   = document.querySelector(`.tp-wrap[data-field="${uid}"]`);
+    const hour   = parseInt(wrap.querySelector('.tp-hour').value);
+    const min    = parseInt(wrap.querySelector('.tp-min').value);
+    const ampm   = wrap.querySelector('.tp-ampm').value;
+    let h24 = hour % 12;
+    if (ampm === 'PM') h24 += 12;
+    const val = String(h24).padStart(2,'0') + ':' + String(min).padStart(2,'0');
+    document.getElementById(uid + '-hidden').value = val;
+    // Trigger slot preview update
+    if (typeof updateSlotPreview === 'function') updateSlotPreview();
+}
+// Init all on load
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.tp-wrap').forEach(wrap => {
+        tpSync(wrap.dataset.field);
+    });
+});
+
+function previewImages(files) {
+    const preview = document.getElementById('image-preview');
+    preview.innerHTML = '';
+    Array.from(files).forEach((file, i) => {
+        const reader = new FileReader();
+        reader.onload = e => {
+            preview.innerHTML += `
+                <div style="position:relative; width:130px;">
+                    <img src="${e.target.result}"
+                         style="width:130px; height:100px; object-fit:cover;
+                                border-radius:8px; border:2px solid #E5E7EB;">
+                    ${i === 0 ? '<span style="position:absolute;top:5px;left:5px;background:#1B4332;color:#fff;font-size:0.6rem;padding:2px 6px;border-radius:10px;font-weight:700;">PRIMARY</span>' : ''}
+                    <p style="font-size:0.65rem; color:#6B7280; margin:4px 0 0; text-align:center; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">
+                        ${file.name}
+                    </p>
+                </div>`;
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+function handleDrop(e) {
+    e.preventDefault();
+    document.getElementById('drop-area').style.borderColor = '#D1D5DB';
+    const input = document.getElementById('ground-images');
+    input.files = e.dataTransfer.files;
+    previewImages(e.dataTransfer.files);
+}
+
+function updateSlotPreview() {
+    const open      = document.querySelector('[name="open_time"]').value;
+    const close     = document.querySelector('[name="close_time"]').value;
+    const duration  = parseInt(document.querySelector('[name="slot_duration"]').value) || 0;
+    const peakStart = document.querySelector('[name="peak_start_time"]').value;
+    const peakEnd   = document.querySelector('[name="peak_end_time"]').value;
+    const offPrice  = document.querySelector('[name="off_peak_price"]').value  || '–';
+    const peakPrice = document.querySelector('[name="peak_price"]').value       || '–';
+
+    const list  = document.getElementById('slot-preview-list');
+    const empty = document.getElementById('slot-preview-empty');
+
+    if (!open || !close || !duration) {
+        list.innerHTML = ''; empty.style.display = 'block'; return;
+    }
+    empty.style.display = 'none';
+
+    const toMins = t => { const [h,m] = t.split(':').map(Number); return h*60+m; };
+    const toTime = m => String(Math.floor(m/60)).padStart(2,'0') + ':' + String(m%60).padStart(2,'0');
+
+    const openM=toMins(open), closeM=toMins(close);
+    const peakS=peakStart?toMins(peakStart):null, peakE=peakEnd?toMins(peakEnd):null;
+
+    let html='', cur=openM;
+    while (cur+duration<=closeM) {
+        const end=cur+duration;
+        const isPeak=peakS!==null&&peakE!==null&&cur>=peakS&&cur<peakE;
+        html+=`<div class="slot-preview-item ${isPeak?'peak':'off-peak'}">
+                <span class="slot-preview-time">${toTime(cur)} – ${toTime(end)}</span>
+                <span class="slot-preview-price">₹${isPeak?peakPrice:offPrice}</span>
+                <span class="slot-preview-tag">${isPeak?'Peak':'Off-peak'}</span>
+               </div>`;
+        cur+=duration;
+    }
+    list.innerHTML = html || '<span style="font-size:0.8rem;color:#D90429;">No slots — check open/close times</span>';
+}
+
+['open_time','close_time','slot_duration','peak_start_time','peak_end_time','off_peak_price','peak_price']
+    .forEach(n => {
+        const el = document.querySelector(`[name="${n}"]`);
+        if (el) el.addEventListener('input', updateSlotPreview);
+    });
+
+document.addEventListener('DOMContentLoaded', updateSlotPreview);
+</script>
+
+<%- include('../partials/footer') %>

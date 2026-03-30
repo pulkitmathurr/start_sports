@@ -1,0 +1,160 @@
+<%- include('../partials/header') %>
+
+<div class="row settings-page-header">
+
+    <!-- Page Header -->
+    <div class="col-12 mb-4">
+        <div class="d-flex align-items-center justify-content-between">
+            <div>
+                <h4 class="fw-bold mb-1" style="font-family:'Rajdhani',sans-serif; letter-spacing:1px; color:#1B4332;">
+                    Manage Grounds
+                </h4>
+                <small style="color:#ADB5BD;">Add, edit or manage all your grounds</small>
+            </div>
+            <a href="/grounds/new" class="settings-save-btn" style="text-decoration:none; padding:0.5rem 1.4rem; font-size:0.82rem;">
+                <i class="bi bi-plus-lg me-1"></i> Add 
+            </a>
+        </div>
+    </div>
+
+    <!-- Success Banner -->
+    <% if (success) { %>
+    <div class="col-12">
+        <div class="settings-success">
+            <i class="bi bi-check-circle-fill"></i> <%= success %>
+        </div>
+    </div>
+    <% } %>
+
+    <!-- Error Banner -->
+    <% if (error) { %>
+    <div class="col-12">
+        <div class="settings-warning">
+            <i class="bi bi-exclamation-triangle-fill"></i> <%= error %>
+        </div>
+    </div>
+    <% } %>
+
+    <!-- Grounds Grid -->
+    <div class="col-12">
+        <% if (grounds.length === 0) { %>
+        <div class="settings-card">
+            <div class="settings-card-body text-center py-5">
+                <div style="font-size:3rem; margin-bottom:1rem; opacity:0.3;">⬡</div>
+                <p class="fw-bold mb-1" style="color:#1B4332; font-family:'Rajdhani',sans-serif; font-size:1.1rem;">No grounds added yet</p>
+                <small style="color:#ADB5BD;">Click "ADD GROUND" to create your first ground</small>
+            </div>
+        </div>
+        <% } else { %>
+        <div class="row g-4">
+            <% grounds.forEach(ground => { %>
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="ground-card">
+
+                    <!-- Image Panel -->
+<div class="ground-card__img-wrap">
+    <% if (ground.primary_image) { %>
+        <img src="/uploads/grounds/<%= ground.primary_image %>"
+             class="ground-card__img" alt="<%= ground.name %>">
+    <% } else { %>
+        <div class="ground-card__img-placeholder">
+            <i class="bi bi-geo-alt" style="font-size:2.5rem; opacity:0.5; color:#fff;"></i>
+        </div>
+    <% } %>
+
+    <!-- Overlay gradient -->
+    <div class="ground-card__overlay"></div>
+    
+    <!-- Add ground name on image overlay -->
+    <div class="ground-card__image-name">
+        <i class="bi bi-building me-1"></i><%= ground.name %>
+    </div>
+
+    <!-- Status badge on image -->
+    <span class="ground-card__status-badge ground-card__status-badge--<%= ground.status %>">
+        <span class="ground-card__status-dot"></span>
+        <%= ground.status.toUpperCase() %>
+    </span>
+
+    <!-- Sport tag -->
+    <span class="ground-card__sport-tag">
+        <i class="bi bi-dribbble me-1"></i><%= ground.sport_type %>
+    </span>
+</div>
+
+                    <!-- ── Content Panel ── -->
+                    <div class="ground-card__body">
+
+                        <!-- Name & Address -->
+                        <div class="ground-card__name"><%= ground.name %></div>
+                        <div class="ground-card__address">
+                            <i class="bi bi-geo-alt me-1"></i><%= ground.address %>
+                        </div>
+
+                        <!-- Info Pills -->
+                        <div class="ground-card__info-row">
+                            <span class="ground-card__info-pill">
+                                <i class="bi bi-clock"></i>
+                                <%= ground.open_time.slice(0,5) %> – <%= ground.close_time.slice(0,5) %>
+                            </span>
+                            <span class="ground-card__info-pill">
+                                <i class="bi bi-stopwatch"></i>
+                                <%= ground.slot_duration %> min
+                            </span>
+                        </div>
+
+                        <!-- Pricing Row -->
+                        <div class="ground-card__pricing">
+                            <div class="ground-card__price-item">
+                                <span class="ground-card__price-label">Off-Peak</span>
+                                <span class="ground-card__price-val">₹<%= ground.off_peak_price %></span>
+                            </div>
+                            <div class="ground-card__price-divider"></div>
+                            <div class="ground-card__price-item">
+                                <span class="ground-card__price-label">Peak</span>
+                                <span class="ground-card__price-val ground-card__price-val--peak">₹<%= ground.peak_price %></span>
+                            </div>
+                            <div class="ground-card__price-divider"></div>
+                            <!-- <div class="ground-card__price-item">
+                                <span class="ground-card__price-label">Phone</span>
+                                <span class="ground-card__price-val" style="font-size:0.78rem;"><%= ground.phone %></span>
+                            </div> -->
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="ground-card__actions">
+                            <a href="/grounds/<%= ground.id %>/edit" class="ground-card__btn ground-card__btn--edit">
+                                <i class="bi bi-pencil me-1"></i> EDIT
+                            </a>
+
+                            <form method="POST" action="/grounds/<%= ground.id %>/toggle" style="flex:1;">
+                                <button type="submit" class="ground-card__btn ground-card__btn--toggle" style="width:100%;">
+                                    <% if (ground.status === 'active') { %>
+                                        <i class="bi bi-pause-circle me-1"></i> DEACTIVATE
+                                    <% } else { %>
+                                        <i class="bi bi-play-circle me-1"></i> ACTIVATE
+                                    <% } %>
+                                </button>
+                            </form>
+
+                            <form method="POST" action="/grounds/<%= ground.id %>/delete"
+                                  onsubmit="return confirm('Delete <%= ground.name %>? This cannot be undone.');">
+                                <button type="submit" class="ground-card__btn ground-card__btn--delete">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            <% }) %>
+        </div>
+        <% } %>
+    </div>
+
+</div>
+
+
+
+<%- include('../partials/footer') %>

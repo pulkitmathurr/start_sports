@@ -1,0 +1,744 @@
+<%- include('../partials/header') %>
+
+    <div class="row">
+
+        <!-- Page Header -->
+        <div class="col-12 mb-3">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <h4 class="fw-bold mb-0"
+                        style="font-family:'Rajdhani',sans-serif; letter-spacing:1px; color:rgb(0, 0, 0);">
+                        <%= booking.booking_no %>
+                    </h4>
+                    <small style="color:#4a5568;">Booking Detail</small>
+                </div>
+                <div class="d-flex gap-2">
+                    <%# FIX 1: Force fresh page load on back — prevents stale cache showing old list %>
+                    <a href="/bookings" class="btn btn-sm"
+                        style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:#a0a8b8;"
+                        onclick="event.preventDefault(); window.location.replace('/bookings');">
+                        <i class="bi bi-arrow-left me-1"></i> Back
+                    </a>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Left — Booking Info -->
+        <div class="col-12 col-lg-7">
+            <div class="card mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center"
+                    style="font-family:'Rajdhani',sans-serif; letter-spacing:1px;">
+                    <span>BOOKING DETAILS</span>
+                    <% let statusBg, statusColor; if (booking.booking_status==='confirmed' ) {
+                        statusBg='rgba(57,255,20,0.12)' ; statusColor='#39ff14' ; } else if
+                        (booking.booking_status==='pending' ) { statusBg='rgba(245,158,11,0.12)' ; statusColor='#f59e0b'
+                        ; } else if (booking.booking_status==='approved' ) { statusBg='rgba(0,102,255,0.12)' ;
+                        statusColor='#0066ff' ; } else { statusBg='rgba(255,77,109,0.12)' ; statusColor='#ff4d6d' ; } %>
+                        <span class="badge"
+                            style="background:<%= statusBg %>; color:<%= statusColor %>; border:1px solid <%= statusColor %>44; text-transform:uppercase; letter-spacing:1px;">
+                            <%= booking.booking_status %>
+                        </span>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <div
+                                style="font-size:0.68rem; color:#4a5568; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">
+                                Customer Name</div>
+                            <div style="color:#000000; font-weight:600;">
+                                <%= booking.customer_name %>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div
+                                style="font-size:0.68rem; color:#4a5568; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">
+                                Phone</div>
+                            <div style="color:#000000;">
+                                <%= booking.customer_phone %>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div
+                                style="font-size:0.68rem; color:#4a5568; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">
+                                Email</div>
+                            <div style="color:#a0a8b8;">
+                                <%= booking.customer_email || '—' %>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div
+                                style="font-size:0.68rem; color:#4a5568; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">
+                                Booking Type</div>
+                            <div style="color:#a0a8b8; text-transform:capitalize;">
+                                <%= booking.booking_type %>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div
+                                style="font-size:0.68rem; color:#4a5568; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">
+                                Slot Date</div>
+                            <div style="color:#000000;">
+                                <%= new Date(booking.slot_date).toLocaleDateString('en-IN', {day:'2-digit',
+                                    month:'short', year:'numeric'}) %>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div
+                                style="font-size:0.68rem; color:#4a5568; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">
+                                Time Slot</div>
+                            <div style="color:#0066ff; font-family:'Rajdhani',sans-serif; font-weight:700;">
+                                <%= booking.start_time.slice(0,5) %> — <%= booking.end_time.slice(0,5) %>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div
+                                style="font-size:0.68rem; color:#4a5568; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">
+                                Total Amount</div>
+                            <div
+                                style="color:#000000; font-family:'Rajdhani',sans-serif; font-weight:700; font-size:1.1rem;">
+                                ₹<%= booking.total_amount %>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div
+                                style="font-size:0.68rem; color:#4a5568; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">
+                                Paid</div>
+                            <div
+                                style="color:#39ff14; font-family:'Rajdhani',sans-serif; font-weight:700; font-size:1.1rem;">
+                                ₹<%= booking.advance_amount %>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div
+                                style="font-size:0.68rem; color:#4a5568; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">
+                                Balance</div>
+                            <div
+                                style="color:<%= booking.balance_amount > 0 ? '#ff4d6d' : '#39ff14' %>; font-family:'Rajdhani',sans-serif; font-weight:700; font-size:1.1rem;">
+                                ₹<%= booking.balance_amount %>
+                            </div>
+                        </div>
+                        <% if (booking.notes) { %>
+                            <div class="col-12">
+                                <div
+                                    style="font-size:0.68rem; color:#4a5568; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">
+                                    Notes</div>
+                                <div style="color:#a0a8b8; font-size:0.82rem;">
+                                    <%= booking.notes %>
+                                </div>
+                            </div>
+                            <% } %>
+                                <% if (booking.rejection_reason) { %>
+                                    <div class="col-12">
+                                        <div
+                                            style="font-size:0.68rem; color:#ff4d6d; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">
+                                            Rejection Reason</div>
+                                        <div style="color:#ff4d6d; font-size:0.82rem;">
+                                            <%= booking.rejection_reason %>
+                                        </div>
+                                    </div>
+                                    <% } %>
+                                        <% if (booking.approval_expires_at && booking.booking_status==='approved' ) { %>
+                                            <div class="col-12">
+                                                <div
+                                                    style="background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.2); border-radius:8px; padding:10px;">
+                                                    <div
+                                                        style="font-size:0.7rem; color:#f59e0b; text-transform:uppercase; letter-spacing:1px;">
+                                                        Payment Deadline</div>
+                                                    <div
+                                                        style="color:#f59e0b; font-family:'Rajdhani',sans-serif; font-weight:700;">
+                                                        <%= new
+                                                            Date(booking.approval_expires_at).toLocaleString('en-IN') %>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <% } %>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="d-flex gap-2 flex-wrap mb-3">
+
+                <% if (booking.booking_status==='pending' ) { %>
+                    <button onclick="approveBooking(<%= booking.id %>)" class="btn btn-sm"
+                        style="background:rgba(57,255,20,0.12); border:1px solid rgba(57,255,20,0.3); color:#39ff14; font-family:'Rajdhani',sans-serif; letter-spacing:1px;">
+                        <i class="bi bi-check-circle me-1"></i> APPROVE
+                    </button>
+                    <button onclick="showRejectModal(<%= booking.id %>)" class="btn btn-sm"
+                        style="background:rgba(255,77,109,0.12); border:1px solid rgba(255,77,109,0.3); color:#ff4d6d; font-family:'Rajdhani',sans-serif; letter-spacing:1px;">
+                        <i class="bi bi-x-circle me-1"></i> REJECT
+                    </button>
+                    <% } %>
+
+                        <% if (['confirmed','approved'].includes(booking.booking_status)) { %>
+                            <button onclick="cancelBooking(<%= booking.id %>)" class="btn btn-sm"
+                                style="background:rgba(255,77,109,0.12); border:1px solid rgba(255,77,109,0.3); color:#ff4d6d; font-family:'Rajdhani',sans-serif; letter-spacing:1px;">
+                                <i class="bi bi-x-lg me-1"></i> CANCEL BOOKING
+                            </button>
+                            <% } %>
+
+                                <% if (booking.booking_status==='confirmed' && booking.balance_amount> 0) { %>
+                                    
+                                    <% } %>
+
+                                        <% if (booking.booking_status==='confirmed' ) { %>
+                                            <button onclick="printInvoice()" class="btn btn-sm"
+                                                style="background:rgba(27,67,50,0.1); border:1px solid rgba(27,67,50,0.3); color:#1B4332; font-family:'Rajdhani',sans-serif; letter-spacing:1px;">
+                                                <i class="bi bi-printer me-1"></i> PRINT INVOICE
+                                            </button>
+                                            <% } %>
+
+            </div>
+
+            <!-- Error/Success message -->
+            <div id="action-msg" style="display:none;" class="alert mb-3"></div>
+
+        </div>
+
+        <!-- Right — Payments -->
+        <div class="col-12 col-lg-5">
+
+            <!-- Payment History -->
+            <div class="card mb-3">
+                <div class="card-header" style="font-family:'Rajdhani',sans-serif; letter-spacing:1px;">
+                    PAYMENT HISTORY
+                </div>
+                <div class="card-body p-0">
+                    <% if (payments.length===0) { %>
+                        <div class="text-center py-4" style="color:#4a5568; font-size:0.82rem;">
+                            No payments recorded yet
+                        </div>
+                        <% } else { %>
+                            <table class="table mb-0" style="font-size:0.82rem;">
+                                <thead>
+                                    <tr style="border-bottom:1px solid #1e3a5f;">
+                                        <th style="color:#4a5568; font-weight:500; padding:10px 16px;">Date</th>
+                                        <th style="color:#4a5568; font-weight:500;">Amount</th>
+                                        <th style="color:#4a5568; font-weight:500;">Mode</th>
+                                        <th style="color:#4a5568; font-weight:500;">Type</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% payments.forEach(p=> { %>
+                                        <tr style="border-bottom:1px solid rgba(30,58,95,0.5);">
+                                            <td style="color:#a0a8b8; padding:10px 16px;">
+                                                <%= new Date(p.payment_date).toLocaleDateString('en-IN', {day:'2-digit',
+                                                    month:'short'}) %>
+                                            </td>
+                                            <td style="color:#39ff14; font-weight:600;">₹<%= p.amount %>
+                                            </td>
+                                            <td style="color:#a0a8b8; text-transform:capitalize;">
+                                                <%= p.payment_mode %>
+                                            </td>
+                                            <td style="color:#a0a8b8; text-transform:capitalize;">
+                                                <%= p.payment_type %>
+                                            </td>
+                                        </tr>
+                                        <% }) %>
+                                </tbody>
+                            </table>
+                            <% } %>
+                </div>
+            </div>
+
+            <!-- Add Payment -->
+            <% if (booking.booking_status==='approved' || (booking.booking_status==='confirmed' &&
+                booking.balance_amount> 0)) { %>
+                <div class="card" id="payment-section">
+                    <div class="card-header" style="font-family:'Rajdhani',sans-serif; letter-spacing:1px;">
+                        RECORD PAYMENT
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label
+                                style="font-size:0.7rem; color:#4a5568; text-transform:uppercase; letter-spacing:1px; display:block; margin-bottom:6px;">
+                                Amount *
+                            </label>
+                            <input type="number" id="pay-amount" placeholder="Enter amount"
+                                value="<%= booking.balance_amount %>" class="form-control"
+                                style="background:#0f1b2d; border:1px solid #1e3a5f; color:#000000;">
+                        </div>
+                        <div class="mb-3">
+                            <label
+                                style="font-size:0.7rem; color:#4a5568; text-transform:uppercase; letter-spacing:1px; display:block; margin-bottom:6px;">
+                                Payment Mode *
+                            </label>
+                            <select id="pay-mode" class="form-select"
+                                style="background:#0f1b2d; border:1px solid #1e3a5f; color:#000000;">
+                                <option value="cash">Cash</option>
+                                <option value="upi">UPI</option>
+                                <option value="card">Card</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label
+                                style="font-size:0.7rem; color:#4a5568; text-transform:uppercase; letter-spacing:1px; display:block; margin-bottom:6px;">
+                                Payment Type *
+                            </label>
+                            <select id="pay-type" class="form-select"
+                                style="background:#0f1b2d; border:1px solid #1e3a5f; color:#000000;">
+                                <option value="advance">Advance</option>
+                                <option value="balance">Balance</option>
+                                <option value="full">Full</option>
+                            </select>
+                        </div>
+                        <button onclick="recordPayment(<%= booking.id %>)" class="btn w-100"
+                            style="background:linear-gradient(135deg,#0044cc,#0066ff); border:none; color:#fff; font-family:'Rajdhani',sans-serif; font-weight:700; letter-spacing:2px;">
+                            RECORD PAYMENT
+                        </button>
+                    </div>
+                </div>
+                <% } %>
+
+        </div>
+    </div>
+
+    <!-- Reject Modal -->
+    <div id="reject-modal"
+        style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:9999; align-items:center; justify-content:center;">
+        <div
+            style="background:#16213e; border:1px solid #1e3a5f; border-radius:16px; padding:24px; max-width:400px; width:90%;">
+            <h5 style="font-family:'Rajdhani',sans-serif; color:#000000; margin-bottom:16px; letter-spacing:1px;">REJECT
+                BOOKING</h5>
+            <div class="mb-3">
+                <label
+                    style="font-size:0.7rem; color:#4a5568; text-transform:uppercase; letter-spacing:1px; display:block; margin-bottom:6px;">Reason
+                    *</label>
+                <textarea id="reject-reason" rows="3" placeholder="Enter rejection reason..." class="form-control"
+                    style="background:#0f1b2d; border:1px solid #1e3a5f; color:#000000; resize:none;"></textarea>
+            </div>
+            <div class="d-flex gap-2">
+                <button onclick="closeRejectModal()" class="btn btn-sm flex-fill"
+                    style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:#a0a8b8;">
+                    Cancel
+                </button>
+                <button onclick="submitReject()" class="btn btn-sm flex-fill"
+                    style="background:rgba(255,77,109,0.15); border:1px solid rgba(255,77,109,0.3); color:#ff4d6d; font-family:'Rajdhani',sans-serif; letter-spacing:1px;">
+                    REJECT
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let rejectBookingId = null;
+
+        function showMsg(msg, isError = false) {
+            const el = document.getElementById('action-msg');
+            el.textContent = msg;
+            el.style.display = 'block';
+            el.style.background = isError ? 'rgba(255,77,109,0.1)' : 'rgba(57,255,20,0.1)';
+            el.style.border = isError ? '1px solid rgba(255,77,109,0.3)' : '1px solid rgba(57,255,20,0.3)';
+            el.style.color = isError ? '#ff4d6d' : '#39ff14';
+            setTimeout(() => { el.style.display = 'none'; }, 4000);
+        }
+
+        async function approveBooking(id) {
+            try {
+                const res = await fetch('/bookings/approve', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ booking_id: id })
+                });
+                const data = await res.json();
+                if (data.success) { showMsg('✓ Booking approved! Deadline set.'); setTimeout(() => location.reload(), 1500); }
+                else showMsg(data.message, true);
+            } catch (e) { showMsg('Connection error', true); }
+        }
+
+        function showRejectModal(id) {
+            rejectBookingId = id;
+            const modal = document.getElementById('reject-modal');
+            modal.style.display = 'flex';
+        }
+
+        function closeRejectModal() {
+            document.getElementById('reject-modal').style.display = 'none';
+            document.getElementById('reject-reason').value = '';
+        }
+
+        async function submitReject() {
+            const reason = document.getElementById('reject-reason').value.trim();
+            if (!reason) { alert('Please enter a reason'); return; }
+            try {
+                const res = await fetch('/bookings/reject', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ booking_id: rejectBookingId, reason })
+                });
+                const data = await res.json();
+                if (data.success) { closeRejectModal(); showMsg('Booking rejected.'); setTimeout(() => location.reload(), 1500); }
+                else showMsg(data.message, true);
+            } catch (e) { showMsg('Connection error', true); }
+        }
+
+        async function cancelBooking(id) {
+            if (!confirm('Are you sure you want to cancel this booking?')) return;
+            try {
+                const res = await fetch('/bookings/cancel', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ booking_id: id })
+                });
+                const data = await res.json();
+                if (data.success) { showMsg('Booking cancelled.'); setTimeout(() => location.reload(), 1500); }
+                else showMsg(data.message, true);
+            } catch (e) { showMsg('Connection error', true); }
+        }
+
+        async function recordPayment(id) {
+            const amount = document.getElementById('pay-amount').value;
+            const mode = document.getElementById('pay-mode').value;
+            const type = document.getElementById('pay-type').value;
+
+            if (!amount || amount <= 0) { showMsg('Enter valid amount', true); return; }
+
+            try {
+                const res = await fetch('/bookings/payment', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ booking_id: id, amount, payment_mode: mode, payment_type: type })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showMsg('✓ Payment recorded!');
+                    // FIX 2: Redirect to bookings list so balance entry is visible there
+                    // Partial payment bhi list mein dikhe — isliye list pe jaate hain, sirf reload nahi
+                    setTimeout(() => { window.location.replace('/bookings'); }, 1500);
+                } else {
+                    showMsg(data.message, true);
+                }
+            } catch (e) { showMsg('Connection error', true); }
+        }
+    </script>
+
+    <%- include('../partials/quickbook-drawer') %>
+
+        <!-- ══ INVOICE (hidden, print only) ══════════════ -->
+        <div id="invoice-print" style="display:none;">
+            <div class="inv-page">
+
+                <!-- Header -->
+                <div class="inv-header">
+                    <div class="inv-header__brand">
+                        <div class="inv-header__logo">
+                            <img src="/images/startSportLogo1.png" alt="Logo" onerror="this.style.display='none'">
+                        </div>
+                        <div>
+                            <div class="inv-header__name"><%= settings && settings.ground_name ? settings.ground_name : 'Start Sports' %></div>
+                            <% if (settings && settings.ground_address) { %>
+                                <div class="inv-header__addr"><%= settings.ground_address %></div>
+                            <% } %>
+                            <% if (settings && settings.ground_phone) { %>
+                                <div class="inv-header__addr">Ph: <%= settings.ground_phone %></div>
+                            <% } %>
+                            <% if (settings && settings.ground_email) { %>
+                                <div class="inv-header__addr"><%= settings.ground_email %></div>
+                            <% } %>
+                        </div>
+                    </div>
+                    <div class="inv-header__right">
+                        <div class="inv-header__title">INVOICE</div>
+                        <div class="inv-header__no"># <%= booking.booking_no %></div>
+                        <div class="inv-header__date">Date: <%= new Date().toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'}) %></div>
+                        <div class="inv-status-badge <%= booking.booking_status === 'confirmed' ? 'inv-status--confirmed' : 'inv-status--other' %>">
+                            <%= booking.booking_status.toUpperCase() %>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="inv-divider"></div>
+
+                <!-- Bill To + Booking Info -->
+                <div class="inv-meta">
+                    <div class="inv-meta__box">
+                        <div class="inv-meta__title">BILLED TO</div>
+                        <div class="inv-meta__val inv-meta__val--lg"><%= booking.customer_name %></div>
+                        <div class="inv-meta__val">Ph: <%= booking.customer_phone %></div>
+                        <% if (booking.customer_email) { %>
+                            <div class="inv-meta__val"><%= booking.customer_email %></div>
+                        <% } %>
+                    </div>
+                    <div class="inv-meta__box inv-meta__box--right">
+                        <div class="inv-meta__title">BOOKING INFO</div>
+                        <div class="inv-meta__row">
+                            <span class="inv-meta__key">Booking No.</span>
+                            <span class="inv-meta__val inv-meta__val--green"><%= booking.booking_no %></span>
+                        </div>
+                        <div class="inv-meta__row">
+                            <span class="inv-meta__key">Booking Type</span>
+                            <span class="inv-meta__val" style="text-transform:capitalize;"><%= booking.booking_type %></span>
+                        </div>
+                        <% if (booking.ground_name) { %>
+                            <div class="inv-meta__row">
+                                <span class="inv-meta__key">Ground</span>
+                                <span class="inv-meta__val"><%= booking.ground_name %></span>
+                            </div>
+                        <% } %>
+                        <div class="inv-meta__row">
+                            <span class="inv-meta__key">Slot Date</span>
+                            <span class="inv-meta__val"><%= new Date(booking.slot_date + 'T00:00:00').toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'}) %></span>
+                        </div>
+                        <div class="inv-meta__row">
+                            <span class="inv-meta__key">Time</span>
+                            <span class="inv-meta__val"><%= booking.start_time.slice(0,5) %> – <%= booking.end_time.slice(0,5) %></span>
+                        </div>
+                        <div class="inv-meta__row">
+                            <span class="inv-meta__key">Payment Mode</span>
+                            <span class="inv-meta__val" style="text-transform:capitalize;"><%= booking.payment_mode || '—' %></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Slot Details Table -->
+                <table class="inv-table">
+                    <thead>
+                        <tr>
+                            <th style="width:40%;">Description</th>
+                            <th style="text-align:center;">Date</th>
+                            <th style="text-align:center;">Time Slot</th>
+                            <th style="text-align:right;">Original Price</th>
+                            <th style="text-align:right;">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <strong>Ground Booking</strong>
+                                <% if (booking.ground_name) { %>
+                                    <br><span style="font-size:0.78rem; color:#6b7280;"><%= booking.ground_name %></span>
+                                <% } %>
+                                <% if (booking.notes) { %>
+                                    <br><span style="font-size:0.75rem; color:#9ca3af;">Note: <%= booking.notes %></span>
+                                <% } %>
+                                <% if (booking.pricing_note) { %>
+                                    <br><span style="font-size:0.72rem; color:#6b7280; font-style:italic;"><%= booking.pricing_note %></span>
+                                <% } %>
+                            </td>
+                            <td style="text-align:center;">
+                                <%= new Date(booking.slot_date + 'T00:00:00').toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'}) %>
+                            </td>
+                            <td style="text-align:center; font-weight:700; color:#1B4332;">
+                                <%= booking.start_time.slice(0,5) %> – <%= booking.end_time.slice(0,5) %>
+                            </td>
+                            <td style="text-align:right; color:#6b7280;">
+                                ₹<%= Number(booking.original_amount || booking.total_amount).toLocaleString('en-IN') %>
+                            </td>
+                            <td style="text-align:right; font-weight:700;">
+                                ₹<%= Number(booking.total_amount).toLocaleString('en-IN') %>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <!-- Payment Summary -->
+                <div class="inv-summary">
+                    <% if (booking.original_amount && Number(booking.original_amount) !== Number(booking.total_amount)) { %>
+                        <div class="inv-summary__row">
+                            <span>Original Price</span>
+                            <span>₹<%= Number(booking.original_amount).toLocaleString('en-IN') %></span>
+                        </div>
+                    <% } %>
+                    <% if (booking.discount_amount && Number(booking.discount_amount) > 0) { %>
+                        <div class="inv-summary__row" style="color:#059669;">
+                            <span>Discount</span>
+                            <span>– ₹<%= Number(booking.discount_amount).toLocaleString('en-IN') %></span>
+                        </div>
+                    <% } %>
+                    <% if (booking.surcharge_amount && Number(booking.surcharge_amount) > 0) { %>
+                        <div class="inv-summary__row" style="color:#d97706;">
+                            <span>Surcharge</span>
+                            <span>+ ₹<%= Number(booking.surcharge_amount).toLocaleString('en-IN') %></span>
+                        </div>
+                    <% } %>
+                    <div class="inv-summary__row" style="font-weight:700;">
+                        <span>Total Amount</span>
+                        <span>₹<%= Number(booking.total_amount).toLocaleString('en-IN') %></span>
+                    </div>
+                    <div class="inv-summary__row inv-summary__row--paid">
+                        <span>Amount Paid</span>
+                        <span>₹<%= Number(booking.advance_amount).toLocaleString('en-IN') %></span>
+                    </div>
+                    <div class="inv-summary__divider"></div>
+                    <div class="inv-summary__row inv-summary__row--total">
+                        <span>Balance Due</span>
+                        <span style="color:<%= Number(booking.balance_amount) > 0 ? '#dc2626' : '#1B4332' %>;">
+                            ₹<%= Number(booking.balance_amount).toLocaleString('en-IN') %>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Payment History -->
+                <% if (payments && payments.length > 0) { %>
+                    <div class="inv-payments">
+                        <div class="inv-payments__title">PAYMENT HISTORY</div>
+                        <table class="inv-pay-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Date</th>
+                                    <th>Mode</th>
+                                    <th>Type</th>
+                                    <th style="text-align:right;">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% payments.forEach((p, i) => { %>
+                                    <tr>
+                                        <td><%= i + 1 %></td>
+                                        <td><%= new Date(p.payment_date).toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'}) %></td>
+                                        <td style="text-transform:capitalize;"><%= p.payment_mode %></td>
+                                        <td style="text-transform:capitalize;"><%= p.payment_type %></td>
+                                        <td style="text-align:right; font-weight:600; color:#1B4332;">₹<%= Number(p.amount).toLocaleString('en-IN') %></td>
+                                    </tr>
+                                <% }) %>
+                            </tbody>
+                        </table>
+                    </div>
+                <% } %>
+
+                <!-- Notes -->
+                <% if (booking.notes) { %>
+                    <div style="margin-top:18px; padding:10px 14px; background:#f9fafb; border:1px solid #e5e7eb; border-radius:6px; font-size:0.82rem; color:#4b5563;">
+                        <strong>Notes:</strong> <%= booking.notes %>
+                    </div>
+                <% } %>
+
+                <!-- Footer -->
+                <div class="inv-footer">
+                    <div class="inv-footer__status">
+                        <% if (Number(booking.balance_amount) <= 0) { %>
+                            <span class="inv-footer__paid">✓ FULLY PAID</span>
+                        <% } else { %>
+                            <span class="inv-footer__pending">⚠ BALANCE DUE: ₹<%= Number(booking.balance_amount).toLocaleString('en-IN') %></span>
+                        <% } %>
+                    </div>
+                    <div class="inv-footer__note">Thank you for your booking. Please present this invoice at the ground.</div>
+                    <div class="inv-footer__generated">Generated on <%= new Date().toLocaleString('en-IN') %></div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ══ INVOICE CSS ══════════════════════════════ -->
+        <style>
+            @media print {
+                @page { size: A4 portrait; margin: 0; }
+                body * { visibility: hidden; }
+                #invoice-print, #invoice-print * { visibility: visible; }
+                #invoice-print {
+                    display: block !important;
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    z-index: 99999;
+                    background: #fff;
+                }
+            }
+            .inv-page {
+                width: 210mm;
+                min-height: 297mm;
+                padding: 14mm 16mm;
+                margin: 0 auto;
+                background: #fff;
+                color: #111;
+                font-family: 'Segoe UI', Arial, sans-serif;
+                font-size: 13px;
+                line-height: 1.5;
+                box-sizing: border-box;
+            }
+            .inv-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                margin-bottom: 14px;
+            }
+            .inv-header__brand { display: flex; align-items: flex-start; gap: 12px; }
+            .inv-header__logo img { width: 54px; height: 54px; object-fit: contain; }
+            .inv-header__name { font-size: 1.2rem; font-weight: 800; color: #1B4332; letter-spacing: 0.5px; }
+            .inv-header__addr { font-size: 0.78rem; color: #6b7280; margin-top: 2px; }
+            .inv-header__right { text-align: right; }
+            .inv-header__title { font-size: 1.8rem; font-weight: 900; color: #1B4332; letter-spacing: 3px; }
+            .inv-header__no { font-size: 0.85rem; color: #374151; font-weight: 600; margin-top: 2px; }
+            .inv-header__date { font-size: 0.78rem; color: #6b7280; margin-top: 2px; }
+            .inv-status-badge {
+                display: inline-block; margin-top: 6px; padding: 2px 10px;
+                border-radius: 20px; font-size: 0.7rem; font-weight: 700; letter-spacing: 1px;
+            }
+            .inv-status--confirmed { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
+            .inv-status--other { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
+            .inv-divider {
+                height: 2px;
+                background: linear-gradient(90deg, #1B4332, #4ADE80, #1B4332);
+                margin: 10px 0 16px; border-radius: 2px;
+            }
+            .inv-meta {
+                display: flex; justify-content: space-between; gap: 20px;
+                margin-bottom: 20px; padding: 14px 16px;
+                background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px;
+            }
+            .inv-meta__box { flex: 1; }
+            .inv-meta__box--right { text-align: right; }
+            .inv-meta__title {
+                font-size: 0.65rem; font-weight: 700; color: #9ca3af;
+                text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 6px;
+            }
+            .inv-meta__val { font-size: 0.82rem; color: #374151; margin-bottom: 2px; }
+            .inv-meta__val--lg { font-size: 1rem; font-weight: 700; color: #111; }
+            .inv-meta__val--green { color: #1B4332; font-weight: 700; }
+            .inv-meta__row { display: flex; justify-content: flex-end; gap: 10px; font-size: 0.8rem; margin-bottom: 3px; }
+            .inv-meta__key { color: #9ca3af; }
+            .inv-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; font-size: 0.82rem; }
+            .inv-table thead tr { background: #1B4332; color: #fff; }
+            .inv-table th { padding: 9px 12px; font-weight: 600; font-size: 0.75rem; letter-spacing: 0.5px; }
+            .inv-table tbody tr { border-bottom: 1px solid #e5e7eb; }
+            .inv-table tbody tr:last-child { border-bottom: 2px solid #1B4332; }
+            .inv-table td { padding: 10px 12px; color: #374151; vertical-align: top; }
+            .inv-summary { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; margin-bottom: 20px; }
+            .inv-summary__row { display: flex; justify-content: space-between; width: 240px; font-size: 0.82rem; color: #374151; }
+            .inv-summary__row--paid { color: #1B4332; font-weight: 600; }
+            .inv-summary__divider { width: 240px; height: 1px; background: #d1d5db; margin: 4px 0; }
+            .inv-summary__row--total { font-size: 0.95rem; font-weight: 800; color: #111; }
+            .inv-payments { margin-bottom: 18px; }
+            .inv-payments__title {
+                font-size: 0.68rem; font-weight: 700; color: #9ca3af;
+                text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px;
+            }
+            .inv-pay-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+            .inv-pay-table th {
+                padding: 6px 10px; background: #f3f4f6; color: #6b7280;
+                font-weight: 600; border-bottom: 1px solid #e5e7eb; text-align: left;
+            }
+            .inv-pay-table td { padding: 6px 10px; border-bottom: 1px solid #f3f4f6; color: #374151; }
+            .inv-footer { margin-top: 30px; padding-top: 16px; border-top: 1px solid #e5e7eb; text-align: center; }
+            .inv-footer__status { margin-bottom: 8px; }
+            .inv-footer__paid {
+                display: inline-block; background: #d1fae5; color: #065f46;
+                border: 1px solid #6ee7b7; padding: 4px 16px; border-radius: 20px;
+                font-weight: 700; font-size: 0.82rem; letter-spacing: 1px;
+            }
+            .inv-footer__pending {
+                display: inline-block; background: #fef2f2; color: #991b1b;
+                border: 1px solid #fca5a5; padding: 4px 16px; border-radius: 20px;
+                font-weight: 700; font-size: 0.82rem; letter-spacing: 1px;
+            }
+            .inv-footer__note { font-size: 0.75rem; color: #6b7280; margin-top: 8px; }
+            .inv-footer__generated { font-size: 0.7rem; color: #9ca3af; margin-top: 4px; }
+        </style>
+
+        <script>
+            function printInvoice() {
+                document.getElementById('invoice-print').style.display = 'block';
+                setTimeout(() => {
+                    window.print();
+                    setTimeout(() => {
+                        document.getElementById('invoice-print').style.display = 'none';
+                    }, 500);
+                }, 300);
+            }
+        </script>
+
+        <%- include('../partials/footer') %>

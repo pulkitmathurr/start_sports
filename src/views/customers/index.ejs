@@ -1,0 +1,152 @@
+<%- include('../partials/header') %>
+
+    <div class="cx-page">
+
+        <!-- Header -->
+        <div class="cx-header">
+            <div class="cx-header__left">
+                <div class="cx-header__icon"><i class="bi bi-people-fill"></i></div>
+                <div>
+                    <div class="cx-header__eyebrow">Management</div>
+                    <h4 class="cx-header__title">Customers</h4>
+                    <span class="cx-header__sub">View and search all customers and their booking history</span>
+                </div>
+            </div>
+            <div class="cx-header__badge">
+                <i class="bi bi-person-check me-1"></i>
+                <%= pagination.totalRecords %> Customer<%= pagination.totalRecords !==1 ? 's' : '' %>
+            </div>
+        </div>
+
+        <!-- Search -->
+        <div class="cx-search-bar">
+            <form method="GET" action="/customers" class="d-flex gap-2 align-items-center w-100">
+                <div class="cx-search-wrap">
+                    <i class="bi bi-search"></i>
+                    <input type="text" name="search" class="cx-search-input"
+                        placeholder="Search by Customer ID or Phone number..."
+                    value="<%= search || '' %>" autocomplete="off">
+                </div>
+                <button type="submit" class="cx-btn-search">
+                    <i class="bi bi-search"></i> Search
+                </button>
+                <% if (search) { %>
+                    <a href="/customers" class="cx-btn-clear">
+                        <i class="bi bi-x-lg"></i> Clear
+                    </a>
+                    <% } %>
+            </form>
+        </div>
+
+        <!-- Content -->
+        <% if (customers.length===0) { %>
+            <div class="cx-empty">
+                <div class="cx-empty__icon"><i class="bi bi-people"></i></div>
+                <p class="cx-empty__title">No customers found</p>
+                <small class="cx-empty__sub">Customers are created automatically when a booking is made</small>
+            </div>
+            <% } else { %>
+                <div class="cx-table-card">
+                    <div class="table-responsive">
+                        <table class="cx-table">
+                            <thead>
+                                <tr>
+                                    <th>Customer ID</th>
+                                    <th>Name</th>
+                                    <th>Phone</th>
+                                    <th>Email</th>
+                                    <th class="text-center">Total Bookings</th>
+                                    <th class="text-center">Total Spent</th>
+                                    <th>Member Since</th>
+                                    <th class="text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% customers.forEach(customer=> { %>
+                                    <tr>
+                                        <td><span class="cx-cid">
+                                                <%= customer.customer_id %>
+                                            </span></td>
+                                        <td>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <div class="cx-avatar">
+                                                    <%= customer.name.charAt(0).toUpperCase() %>
+                                                </div>
+                                                <span class="cx-name">
+                                                    <%= customer.name %>
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td><span class="cx-phone"><i class="bi bi-telephone-fill"></i>
+                                                <%= customer.phone %>
+                                            </span></td>
+                                        <td><span class="cx-email">
+                                                <%= customer.email || '—' %>
+                                            </span></td>
+                                        <td class="text-center"><span class="cx-booking-badge">
+                                                <%= customer.total_bookings %>
+                                            </span></td>
+                                        <td class="text-center"><span class="cx-spent">₹<%= Number(customer.total_spent
+                                                    || 0).toLocaleString('en-IN') %></span></td>
+                                        <td>
+                                            <span class="cx-date">
+                                                <i class="bi bi-calendar3 me-1"></i>
+                                                <%= new Date(customer.created_at).toLocaleDateString('en-IN', {
+                                                    day:'2-digit', month:'short', year:'numeric' }) %>
+                                            </span>
+                                        </td>
+                                        <td class="text-center">
+                                            <a href="/customers/<%= customer.customer_id %>" class="cx-btn-view">
+                                                <i class="bi bi-eye"></i> View Profile
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    <% }) %>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <% if (pagination.totalPages> 1) { %>
+                        <div class="cx-pager">
+                            <span class="cx-pager__info">
+                                Showing <%= ((pagination.currentPage - 1) * pagination.limit) + 1 %>–<%=
+                                        Math.min(pagination.currentPage * pagination.limit, pagination.totalRecords) %>
+                                        of <strong>
+                                            <%= pagination.totalRecords %>
+                                        </strong> customers
+                            </span>
+                            <nav>
+                                <ul class="pagination cx-pagination mb-0">
+                                    <% if (pagination.currentPage> 1) { %>
+                                        <li class="page-item">
+                                            <a class="page-link"
+                                                href="/customers?page=<%= pagination.currentPage - 1 %><%= search ? '&search=' + search : '' %>"><i
+                                                    class="bi bi-chevron-left"></i></a>
+                                        </li>
+                                        <% } %>
+                                            <% for (let i=1; i <=pagination.totalPages; i++) { %>
+                                                <li
+                                                    class="page-item <%= i === pagination.currentPage ? 'active' : '' %>">
+                                                    <a class="page-link"
+                                                        href="/customers?page=<%= i %><%= search ? '&search=' + search : '' %>">
+                                                        <%= i %>
+                                                    </a>
+                                                </li>
+                                                <% } %>
+                                                    <% if (pagination.currentPage < pagination.totalPages) { %>
+                                                        <li class="page-item">
+                                                            <a class="page-link"
+                                                                href="/customers?page=<%= pagination.currentPage + 1 %><%= search ? '&search=' + search : '' %>"><i
+                                                                    class="bi bi-chevron-right"></i></a>
+                                                        </li>
+                                                        <% } %>
+                                </ul>
+                            </nav>
+                        </div>
+                        <% } %>
+                </div>
+                <% } %>
+
+    </div>
+
+    <%- include('../partials/footer') %>

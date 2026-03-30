@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Start Sports</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+<main>
+
+<div class="login-bg">
+    <div class="login-bg-grid"></div>
+</div>
+
+<div class="login-wrapper">
+    <div class="dual-card">
+
+        <!-- LEFT — Image Panel -->
+        <div class="dual-card-left">
+            <div class="image-panel-content">
+                <div class="image-panel-tag">WELCOME TO</div>
+                <h2 class="image-panel-title">START<br>SPORTS</h2>
+                <p class="image-panel-sub">The ultimate platform for cricket ground management. Book slots, track payments, manage bookings.</p>
+                <div class="image-panel-stats">
+                    <div class="image-panel-stat">
+                        <span class="image-panel-stat-num">12K+</span>
+                        <span class="image-panel-stat-label">Players</span>
+                    </div>
+                    <div class="image-panel-stat-divider"></div>
+                    <div class="image-panel-stat">
+                        <span class="image-panel-stat-num">500+</span>
+                        <span class="image-panel-stat-label">Matches</span>
+                    </div>
+                    <div class="image-panel-stat-divider"></div>
+                    <div class="image-panel-stat">
+                        <span class="image-panel-stat-num">98%</span>
+                        <span class="image-panel-stat-label">Uptime</span>
+                    </div>
+                </div>
+            </div>
+            <img src="/images/login-bg.jpg" alt="Sports" class="image-panel-img" onerror="this.style.display='none'">
+        </div>
+
+        <!-- RIGHT — Login Form -->
+        <div class="dual-card-right">
+
+            <div style="margin-bottom:1.5rem;">
+                <div style="font-family:'Rajdhani',sans-serif; font-size:1.4rem; font-weight:800; color:#003366; letter-spacing:3px; text-transform:uppercase;">
+                    START SPORTS
+                </div>
+                <div style="width:40px; height:3px; background:linear-gradient(90deg,#003366,#D90429); border-radius:2px; margin-top:6px;"></div>
+            </div>
+
+            <h1 class="login-title">Welcome Back</h1>
+            <p class="login-subtitle">Sign in to your admin account</p>
+
+            <% if (error) { %>
+                <div class="error-banner show">
+                    <span>⚠</span> <%= error %>
+                </div>
+            <% } %>
+
+            <div class="error-banner" id="errorBanner">
+                <span>⚠</span> <span id="errorText"></span>
+            </div>
+
+            <form id="loginForm" novalidate autocomplete="off">
+
+                <div class="field-group">
+                    <label class="field-label" for="email">Email Address</label>
+                    <div class="field-wrap">
+                        <span class="field-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V4zm2-1a1 1 0 0 0-1 1v.217l7 4.2 7-4.2V4a1 1 0 0 0-1-1H2zm13 2.383-4.758 2.855L15 11.114V5.383zm-.034 6.878L9.271 8.82 8 9.583 6.728 8.82l-5.694 3.44A1 1 0 0 0 2 13h12a1 1 0 0 0 .966-.739zM1 11.114l4.758-2.876L1 5.383v5.731z"/>
+                            </svg>
+                        </span>
+                        <input type="email" id="email" name="email" class="field-input" placeholder="admin@startsports.com" required>
+                    </div>
+                </div>
+
+                <div class="field-group">
+                    <label class="field-label" for="password">Password</label>
+                    <div class="field-wrap">
+                        <span class="field-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2zm3 6V3a3 3 0 0 0-6 0v4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2zM5 8h6a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/>
+                            </svg>
+                        </span>
+                        <input type="password" id="password" name="password" class="field-input" placeholder="Enter your password" required>
+                        <button type="button" class="toggle-pwd" id="togglePwd">
+                            <svg id="eyeOpenIcon" xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"/>
+                                <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z"/>
+                            </svg>
+                            <svg id="eyeClosedIcon" xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16" style="display:none;">
+                                <path d="M13.359 11.238C15.06 9.72 16 8 16 8s-3-5.5-8-5.5a7.028 7.028 0 0 0-2.79.588l.77.771A5.944 5.944 0 0 1 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.134 13.134 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755-.165.165-.337.328-.517.486l.708.709z"/>
+                                <path d="M11.297 9.176a3.5 3.5 0 0 0-4.474-4.474l.823.823a2.5 2.5 0 0 1 2.829 2.829l.822.822zm-2.943 1.299.822.822a3.5 3.5 0 0 1-4.474-4.474l.823.823a2.5 2.5 0 0 0 2.829 2.829z"/>
+                                <path d="M3.35 5.47c-.18.16-.353.322-.518.487A13.134 13.134 0 0 0 1.172 8l.195.288c.335.48.83 1.12 1.465 1.755C4.121 11.332 5.881 12.5 8 12.5c.716 0 1.39-.133 2.02-.36l.77.772A7.029 7.029 0 0 1 8 13.5C3 13.5 0 8 0 8s.939-1.721 2.641-3.238l.708.709zm10.296 8.884-12-12 .708-.708 12 12-.708.708z"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- <div class="options-row">
+                    <label class="remember-wrap">
+                        <input type="checkbox" id="rememberMe">
+                        <span>Remember me</span>
+                    </label>
+                    <a href="/forgot-password" class="forgot-link">Forgot password?</a>
+                </div> -->
+
+                <button type="submit" class="btn-login" id="submitBtn">
+                    <span id="btnText">SIGN IN</span>
+                    <span class="spinner d-none" id="btnSpinner"></span>
+                </button>
+
+            </form>
+
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('togglePwd').addEventListener('click', function () {
+    const input      = document.getElementById('password');
+    const openIcon   = document.getElementById('eyeOpenIcon');
+    const closedIcon = document.getElementById('eyeClosedIcon');
+    const isText     = input.type === 'text';
+    input.type = isText ? 'password' : 'text';
+    if (!isText) {
+        openIcon.style.display   = '';
+        closedIcon.style.display = 'none';
+        this.style.color = '';
+    } else {
+        openIcon.style.display   = 'none';
+        closedIcon.style.display = '';
+        this.style.color = '#003366';
+    }
+});
+
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const submitBtn   = document.getElementById('submitBtn');
+    const btnText     = document.getElementById('btnText');
+    const spinner     = document.getElementById('btnSpinner');
+    const errorBanner = document.getElementById('errorBanner');
+    const errorText   = document.getElementById('errorText');
+
+    submitBtn.disabled = true;
+    btnText.textContent = 'SIGNING IN';
+    spinner.classList.remove('d-none');
+    errorBanner.classList.remove('show');
+
+    const formData = {
+        email:    document.getElementById('email').value.trim(),
+        password: document.getElementById('password').value
+    };
+
+    try {
+        const response = await fetch('/auth/login', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify(formData)
+        });
+        const data = await response.json();
+
+        if (data.success) {
+            localStorage.setItem('access_token',  data.data.access_token);
+            localStorage.setItem('refresh_token', data.data.refresh_token);
+            btnText.textContent = '✓ REDIRECTING';
+            spinner.classList.add('d-none');
+            submitBtn.style.background = 'linear-gradient(135deg,#1a4a35,#2D6A4F)';
+            const role = data.data.user.role;
+            const redirectTo = (role === 'super_admin') ? '/super-admin/dashboard' : '/dashboard';
+            setTimeout(() => { window.location.href = redirectTo; }, 500);
+        } else {
+            errorText.textContent = data.message || 'Invalid email or password.';
+            errorBanner.classList.add('show');
+            submitBtn.disabled  = false;
+            btnText.textContent = 'SIGN IN';
+            spinner.classList.add('d-none');
+            document.getElementById('loginForm').style.animation = 'shake 0.4s ease';
+            setTimeout(() => { document.getElementById('loginForm').style.animation = ''; }, 400);
+        }
+    } catch (err) {
+        errorText.textContent = 'Connection error. Please try again.';
+        errorBanner.classList.add('show');
+        submitBtn.disabled  = false;
+        btnText.textContent = 'SIGN IN';
+        spinner.classList.add('d-none');
+    }
+});
+</script>
+
+<style>
+/* Hide scrollbars visually but allow scrolling on mobile */
+*, *::before, *::after { -ms-overflow-style: none; scrollbar-width: none; }
+*::-webkit-scrollbar { display: none; }
+
+/* Desktop: hide overflow for clean look */
+@media (min-width: 769px) {
+    html, body { overflow: hidden; height: 100%; }
+    .login-wrapper { overflow: auto; }
+}
+
+/* Mobile: allow full scroll so card is never cut */
+@media (max-width: 768px) {
+    html, body { overflow-y: auto; height: auto; min-height: 100%; }
+    .login-wrapper { overflow: visible; min-height: 100vh; }
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-8px); }
+    40% { transform: translateX(8px); }
+    60% { transform: translateX(-5px); }
+    80% { transform: translateX(5px); }
+}
+</style>
+
+</main>
+<script src="/js/bootstrap.bundle.min.js"></script>
+<script src="/js/main.js"></script>
+</body>
+</html>

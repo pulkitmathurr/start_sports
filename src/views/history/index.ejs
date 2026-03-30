@@ -1,0 +1,125 @@
+<%- include('../partials/header') %>
+
+<div class="row settings-page-header">
+
+    <!-- Page Header -->
+    <div class="col-12 mb-4">
+        <div class="hx-page-header">
+            <div class="hx-page-header__left">
+                <div class="hx-page-header__icon">
+                    <i class="bi bi-clock-history"></i>
+                </div>
+                <div>
+                    <h4 class="hx-page-header__title">Booking History</h4>
+                    <span class="hx-page-header__sub">Select a ground to explore its complete booking record</span>
+                </div>
+            </div>
+            <div class="hx-page-header__meta">
+                <span class="hx-ground-count"><%= grounds.length %> Ground<%= grounds.length !== 1 ? 's' : '' %></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Grounds Grid -->
+    <div class="col-12">
+        <% if (grounds.length === 0) { %>
+        <div class="hx-empty">
+            <div class="hx-empty__icon"><i class="bi bi-geo-alt"></i></div>
+            <p class="hx-empty__title">No grounds found</p>
+            <small class="hx-empty__sub">Add a ground first to start viewing booking history</small>
+        </div>
+        <% } else { %>
+        <div class="row g-4">
+            <% grounds.forEach(ground => { %>
+            <div class="col-12 col-sm-6 col-lg-4 col-xl-4">
+                <a href="/history/<%= ground.id %>" class="text-decoration-none">
+                    <div class="hx-card">
+
+                        <!-- Left: Image Panel -->
+                        <div class="hx-card__img-panel">
+                            <% if (ground.primary_image) { %>
+                                <img src="/uploads/grounds/<%= ground.primary_image %>" class="hx-card__img" alt="<%= ground.name %>">
+                            <% } else { %>
+                                <div class="hx-card__img-placeholder">
+                                    <i class="bi bi-geo-alt-fill"></i>
+                                </div>
+                            <% } %>
+                            <div class="hx-card__img-overlay"></div>
+
+                            <!-- Sport badge -->
+                            <span class="hx-card__sport">
+                                <i class="bi bi-dribbble"></i>
+                                <%= ground.sport_type %>
+                            </span>
+
+                            <!-- Status dot -->
+                            <span class="hx-card__status-dot hx-card__status-dot--<%= ground.status %>"></span>
+                        </div>
+
+                        <!-- Right: Info Panel -->
+                        <div class="hx-card__body">
+
+                            <div class="hx-card__top">
+                                <div>
+                                    <div class="hx-card__name"><%= ground.name %></div>
+                                    <div class="hx-card__address">
+                                        <i class="bi bi-geo-alt me-1"></i><%= ground.address %>
+                                    </div>
+                                </div>
+                                <span class="hx-card__status-badge hx-card__status-badge--<%= ground.status %>">
+                                    <%= ground.status %>
+                                </span>
+                            </div>
+
+                            <!-- Divider -->
+                            <div class="hx-card__divider"></div>
+
+                            <!-- Stats Row -->
+                            <div class="hx-card__stats">
+                                <div class="hx-card__stat">
+                                    <span class="hx-card__stat-val"><%= ground.total_bookings || 0 %></span>
+                                    <span class="hx-card__stat-label">Total</span>
+                                </div>
+                                <div class="hx-card__stat-sep"></div>
+                                <div class="hx-card__stat">
+                                    <span class="hx-card__stat-val hx-card__stat-val--green"><%= ground.confirmed_bookings || 0 %></span>
+                                    <span class="hx-card__stat-label">Confirmed</span>
+                                </div>
+                                <div class="hx-card__stat-sep"></div>
+                                <div class="hx-card__stat">
+                                    <span class="hx-card__stat-val hx-card__stat-val--amber"><%= ground.pending_bookings || 0 %></span>
+                                    <span class="hx-card__stat-label">Pending</span>
+                                </div>
+                                <div class="hx-card__stat-sep"></div>
+                                <div class="hx-card__stat">
+                                    <span class="hx-card__stat-val hx-card__stat-val--green">₹<%= Number(ground.total_revenue || 0).toLocaleString('en-IN') %></span>
+                                    <span class="hx-card__stat-label">Revenue</span>
+                                </div>
+                            </div>
+
+                            <!-- Footer -->
+                            <div class="hx-card__footer">
+                                <span class="hx-card__last-booking">
+                                    <% if (ground.last_booking_date) { %>
+                                        <i class="bi bi-calendar3 me-1"></i>Last: <%= new Date(ground.last_booking_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) %>
+                                    <% } else { %>
+                                        <i class="bi bi-calendar-x me-1"></i>No bookings yet
+                                    <% } %>
+                                </span>
+                                <span class="hx-card__cta">
+                                    View History <i class="bi bi-arrow-right ms-1"></i>
+                                </span>
+                            </div>
+
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <% }) %>
+        </div>
+        <% } %>
+    </div>
+
+</div>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,310 @@
+<%- include('../partials/header') %>
+
+<div class="row settings-page-header">
+
+    <!-- Page Header -->
+    <div class="col-12 mb-4">
+        <div class="d-flex align-items-center justify-content-between">
+            <div>
+                <h4 class="fw-bold mb-1" style="font-family:'Rajdhani',sans-serif; letter-spacing:1px; color:#1B4332;">
+                    Ground Settings
+                </h4>
+                <small style="color:#ADB5BD;">Manage ground info, timings and pricing</small>
+            </div>
+            
+        </div>
+    </div>
+
+    <!-- Success Banner -->
+    <% if (success) { %>
+    <div class="col-12">
+        <div class="settings-success">
+            <i class="bi bi-check-circle-fill"></i>
+            Settings saved successfully — future slots have been regenerated with new configuration.
+        </div>
+    </div>
+    <% } %>
+
+    <form method="POST" action="/settings/update">
+
+        <!-- ── Section 1: Ground Info ─────────────── -->
+        <div class="col-12">
+            <div class="settings-card">
+                <div class="settings-card-header">
+                    <i class="bi bi-building"></i>
+                    Ground Information
+                </div>
+                <div class="settings-card-body">
+                    <div class="row g-3">
+
+                        <div class="col-12 col-md-4">
+                            <label class="s-label">Ground Name</label>
+                            <input type="text" name="ground_name"
+                                value="<%= settings.ground_name || '' %>"
+                                placeholder="e.g. Start Sports Arena"
+                                class="s-input">
+                            <small class="s-hint">Shown to customers on the booking site</small>
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label class="s-label">Contact Number</label>
+                            <input type="tel" name="ground_phone"
+                                value="<%= settings.ground_phone || '' %>"
+                                placeholder="e.g. 9876543210"
+                                class="s-input">
+                            <small class="s-hint">Customer support number</small>
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label class="s-label">Address</label>
+                            <input type="text" name="ground_address"
+                                value="<%= settings.ground_address || '' %>"
+                                placeholder="e.g. Sector 12, Jaipur"
+                                class="s-input">
+                            <small class="s-hint">Full ground address</small>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Section 2: Operating Hours ────────── -->
+        <div class="col-12">
+            <div class="settings-card">
+                <div class="settings-card-header">
+                    <i class="bi bi-clock"></i>
+                    Operating Hours & Slot Duration
+                </div>
+                <div class="settings-card-body">
+                    <div class="row g-3">
+
+                        <div class="col-6 col-md-3">
+                            <label class="s-label">Opens At</label>
+                            <input type="time" name="open_time"
+                                value="<%= settings.open_time ? settings.open_time.slice(0,5) : '' %>"
+                                class="s-input">
+                            <small class="s-hint">Ground opens from this time</small>
+                        </div>
+
+                        <div class="col-6 col-md-3">
+                            <label class="s-label">Closes At</label>
+                            <input type="time" name="close_time"
+                                value="<%= settings.close_time ? settings.close_time.slice(0,5) : '' %>"
+                                class="s-input">
+                            <small class="s-hint">Ground closes at this time</small>
+                        </div>
+
+                        <div class="col-6 col-md-3">
+                            <label class="s-label">Slot Duration (minutes)</label>
+                            <input type="number" name="slot_duration"
+                                value="<%= settings.slot_duration || '' %>"
+                                placeholder="e.g. 210"
+                                min="30" max="480"
+                                class="s-input">
+                            <small class="s-hint">
+                                Currently <%= settings.slot_duration %> min
+                                = <%= (settings.slot_duration / 60).toFixed(1) %> hrs per slot
+                            </small>
+                        </div>
+
+                        <div class="col-6 col-md-3">
+                            <label class="s-label">Advance Booking (days)</label>
+                            <input type="number" name="advance_booking_days"
+                                value="<%= settings.advance_booking_days || '' %>"
+                                placeholder="e.g. 3"
+                                min="0" max="30"
+                                class="s-input">
+                            <small class="s-hint">How many days ahead customers can book</small>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Section 3: Peak Hours & Pricing ───── -->
+        <div class="col-12">
+            <div class="settings-card">
+                <div class="settings-card-header">
+                    <i class="bi bi-graph-up-arrow"></i>
+                    Peak Hours & Pricing
+                </div>
+                <div class="settings-card-body">
+
+                    <p class="s-divider">Peak Hour Window</p>
+                    <div class="row g-3 mb-4">
+
+                        <div class="col-6 col-md-3">
+                            <label class="s-label">Peak Starts At</label>
+                            <input type="time" name="peak_start_time"
+                                value="<%= settings.peak_start_time ? settings.peak_start_time.slice(0,5) : '' %>"
+                                class="s-input">
+                            <small class="s-hint">Peak pricing applies from here</small>
+                        </div>
+
+                        <div class="col-6 col-md-3">
+                            <label class="s-label">Peak Ends At</label>
+                            <input type="time" name="peak_end_time"
+                                value="<%= settings.peak_end_time ? settings.peak_end_time.slice(0,5) : '' %>"
+                                class="s-input">
+                            <small class="s-hint">Off-peak pricing resumes after</small>
+                        </div>
+
+                    </div>
+
+                    <p class="s-divider">Slot Pricing</p>
+                    <div class="row g-3">
+
+                        <div class="col-6 col-md-3">
+                            <label class="s-label">Off-Peak Price (₹)</label>
+                            <input type="number" name="off_peak_price"
+                                value="<%= settings.off_peak_price || '' %>"
+                                placeholder="e.g. 3500"
+                                min="0"
+                                class="s-input">
+                            <small class="s-hint">Morning & afternoon slots</small>
+                        </div>
+
+                        <div class="col-6 col-md-3">
+                            <label class="s-label">Peak Price (₹)</label>
+                            <input type="number" name="peak_price"
+                                value="<%= settings.peak_price || '' %>"
+                                placeholder="e.g. 5000"
+                                min="0"
+                                class="s-input">
+                            <small class="s-hint">Evening & night slots</small>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Section 4: Payment ─────────────────── -->
+        <div class="col-12">
+            <div class="settings-card">
+                <div class="settings-card-header">
+                    <i class="bi bi-cash-stack"></i>
+                    Payment Configuration
+                </div>
+                <div class="settings-card-body">
+                    <div class="row g-3">
+
+                        <div class="col-12 col-md-4">
+                            <label class="s-label">Advance Payment Deadline (hours)</label>
+                            <input type="number" name="advance_payment_hours"
+                                value="<%= settings.advance_payment_hours || '' %>"
+                                placeholder="e.g. 24"
+                                min="1" max="72"
+                                class="s-input">
+                            <small class="s-hint">
+                                After approval, customer must pay within this many hours to confirm
+                            </small>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Section 5: Live Slot Preview ──────── -->
+        <div class="col-12">
+            <div class="settings-card">
+                <div class="settings-card-header">
+                    <i class="bi bi-calendar3"></i>
+                    Live Slot Preview
+                </div>
+                <div class="settings-card-body">
+                    <p class="s-divider">Slots generated from current values</p>
+                    <div id="slot-preview-list" style="display:flex; flex-wrap:wrap; gap:10px;">
+                        <!-- Rendered by JS -->
+                    </div>
+                    <div id="slot-preview-empty" style="display:none; font-size:0.8rem; color:#ADB5BD;">
+                        Fill in open time, close time and slot duration to see preview
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Warning ───────────────────────────── -->
+        <div class="col-12">
+            <div class="settings-warning">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                <div>
+                    <strong>Heads up:</strong> Saving these settings will delete all future slots and regenerate them with the new configuration. Existing bookings and history will not be affected.
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Save Button ────────────────────────── -->
+        <div class="col-12 mb-4">
+            <button type="submit" class="settings-save-btn">
+                <i class="bi bi-floppy me-2"></i>SAVE SETTINGS
+            </button>
+        </div>
+
+    </form>
+
+</div>
+
+<script>
+function updateSlotPreview() {
+    const open      = document.querySelector('[name="open_time"]').value;
+    const close     = document.querySelector('[name="close_time"]').value;
+    const duration  = parseInt(document.querySelector('[name="slot_duration"]').value) || 0;
+    const peakStart = document.querySelector('[name="peak_start_time"]').value;
+    const peakEnd   = document.querySelector('[name="peak_end_time"]').value;
+    const offPrice  = document.querySelector('[name="off_peak_price"]').value  || '–';
+    const peakPrice = document.querySelector('[name="peak_price"]').value       || '–';
+
+    const list  = document.getElementById('slot-preview-list');
+    const empty = document.getElementById('slot-preview-empty');
+
+    if (!open || !close || !duration) {
+        list.innerHTML = '';
+        empty.style.display = 'block';
+        return;
+    }
+
+    empty.style.display = 'none';
+
+    const toMins = t => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
+    const toTime = m => String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0');
+
+    const openM   = toMins(open);
+    const closeM  = toMins(close);
+    const peakS   = peakStart ? toMins(peakStart) : null;
+    const peakE   = peakEnd   ? toMins(peakEnd)   : null;
+
+    let html = '';
+    let cur  = openM;
+
+    while (cur + duration <= closeM) {
+        const end    = cur + duration;
+        const isPeak = peakS !== null && peakE !== null && cur >= peakS && cur < peakE;
+        const cls    = isPeak ? 'peak' : 'off-peak';
+        const price  = isPeak ? peakPrice : offPrice;
+        const tag    = isPeak ? 'Peak' : 'Off-peak';
+
+        html += `<div class="slot-preview-item ${cls}">
+                    <span class="slot-preview-time">${toTime(cur)} – ${toTime(end)}</span>
+                    <span class="slot-preview-price">₹${price}</span>
+                    <span class="slot-preview-tag">${tag}</span>
+                 </div>`;
+        cur += duration;
+    }
+
+    list.innerHTML = html || '<span style="font-size:0.8rem;color:#D90429;">No slots — check open/close times</span>';
+}
+
+['open_time','close_time','slot_duration','peak_start_time','peak_end_time','off_peak_price','peak_price']
+    .forEach(n => {
+        const el = document.querySelector(`[name="${n}"]`);
+        if (el) el.addEventListener('input', updateSlotPreview);
+    });
+
+document.addEventListener('DOMContentLoaded', updateSlotPreview);
+</script>
+
+<%- include('../partials/footer') %>

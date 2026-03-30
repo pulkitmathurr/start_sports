@@ -1,0 +1,561 @@
+<%- include('../partials/header', { title, activePage }) %>
+
+<style>
+/* ── Billing Page Styles ──────────────────────────────────── */
+.billing-hero {
+    background: linear-gradient(135deg, rgba(243,156,18,0.08) 0%, rgba(243,156,18,0.02) 100%);
+    border: 1px solid rgba(243,156,18,0.15);
+    border-radius: 16px;
+    padding: 28px 32px;
+    margin-bottom: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+.billing-hero .sub-label {
+    font-size: 12px;
+    color: rgba(255,255,255,0.4);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+}
+.billing-hero .sub-plan {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 4px;
+}
+.billing-hero .sub-meta {
+    font-size: 13px;
+    color: rgba(255,255,255,0.5);
+}
+.billing-hero .sub-meta span { color: #f39c12; font-weight: 600; }
+
+.status-pill {
+    border-radius: 20px;
+    padding: 5px 16px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+.status-active    { background: rgba(46,204,113,0.15); color: #2ecc71; border: 1px solid rgba(46,204,113,0.3); }
+.status-trial     { background: rgba(52,152,219,0.15); color: #3498db; border: 1px solid rgba(52,152,219,0.3); }
+.status-expired   { background: rgba(231,76,60,0.15);  color: #e74c3c; border: 1px solid rgba(231,76,60,0.3); }
+.status-grace     { background: rgba(243,156,18,0.15); color: #f39c12; border: 1px solid rgba(243,156,18,0.3); }
+
+/* ── Plan Cards ──────────────────────────────────────────── */
+.plans-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    margin-bottom: 32px;
+}
+.plan-card {
+    background: #1a2332;
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 16px;
+    padding: 28px;
+    position: relative;
+    transition: border-color 0.2s, transform 0.2s;
+}
+.plan-card:hover { border-color: rgba(243,156,18,0.3); transform: translateY(-2px); }
+.plan-card.current-plan {
+    border-color: rgba(243,156,18,0.5);
+    background: linear-gradient(135deg, #1a2332 0%, rgba(243,156,18,0.05) 100%);
+}
+.plan-card .current-badge {
+    position: absolute;
+    top: -1px; right: 20px;
+    background: #f39c12;
+    color: #000;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 12px;
+    border-radius: 0 0 8px 8px;
+    letter-spacing: 0.5px;
+}
+.plan-name {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 6px;
+}
+.plan-price {
+    margin-bottom: 20px;
+}
+.plan-price .amount {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 36px;
+    font-weight: 700;
+    color: #f39c12;
+}
+.plan-price .period {
+    font-size: 13px;
+    color: rgba(255,255,255,0.4);
+    margin-left: 4px;
+}
+.plan-price .yearly-price {
+    font-size: 12px;
+    color: rgba(255,255,255,0.35);
+    margin-top: 2px;
+}
+.plan-features {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 24px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    padding-top: 16px;
+}
+.plan-features li {
+    font-size: 13px;
+    color: rgba(255,255,255,0.65);
+    padding: 5px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.plan-features li::before {
+    content: '✓';
+    color: #2ecc71;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+/* Billing toggle */
+.billing-toggle {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+    background: #1a2332;
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 10px;
+    padding: 6px;
+    width: fit-content;
+}
+.toggle-btn {
+    background: transparent;
+    border: none;
+    color: rgba(255,255,255,0.5);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px 20px;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.toggle-btn.active {
+    background: rgba(243,156,18,0.15);
+    color: #f39c12;
+    border: 1px solid rgba(243,156,18,0.3);
+}
+.yearly-badge {
+    background: rgba(46,204,113,0.15);
+    color: #2ecc71;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin-left: 6px;
+    border: 1px solid rgba(46,204,113,0.2);
+}
+
+/* Subscribe btn */
+.btn-subscribe {
+    width: 100%;
+    background: rgba(243,156,18,0.1);
+    border: 1px solid rgba(243,156,18,0.3);
+    color: #f39c12;
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.3px;
+}
+.btn-subscribe:hover {
+    background: rgba(243,156,18,0.2);
+    border-color: #f39c12;
+    color: #fff;
+}
+.btn-subscribe:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+.btn-current {
+    width: 100%;
+    background: rgba(46,204,113,0.08);
+    border: 1px solid rgba(46,204,113,0.2);
+    color: #2ecc71;
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: default;
+}
+
+/* History table */
+.hist-table { width: 100%; border-collapse: collapse; }
+.hist-table th {
+    text-align: left;
+    font-size: 11px;
+    color: rgba(255,255,255,0.35);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 0 14px 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+.hist-table td {
+    padding: 13px 14px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.75);
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.hist-table tr:last-child td { border-bottom: none; }
+
+/* Section card */
+.section-card {
+    background: #1a2332;
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 14px;
+    padding: 24px;
+    margin-bottom: 24px;
+}
+.section-card h4 {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 20px;
+}
+
+/* Expired banner */
+.expired-banner {
+    background: rgba(231,76,60,0.08);
+    border: 1px solid rgba(231,76,60,0.25);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 28px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+.expired-banner .icon { font-size: 28px; }
+.expired-banner .msg  { font-size: 14px; color: rgba(255,255,255,0.75); }
+.expired-banner .msg strong { color: #e74c3c; }
+
+/* Toast */
+.toast-msg {
+    position: fixed; bottom: 24px; right: 24px;
+    background: #1a2332;
+    border: 1px solid rgba(46,204,113,0.4);
+    color: #2ecc71;
+    border-radius: 10px;
+    padding: 14px 22px;
+    font-size: 14px;
+    display: none;
+    z-index: 9999;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+</style>
+
+<div class="main-container container-fluid">
+
+    <!-- ── Page Header ───────────────────────────────────────── -->
+    <div class="page-header">
+        <div class="page-leftheader">
+            <h4 class="page-title mb-0">Billing & Subscription</h4>
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/dashboard">Dashboard</a></li>
+                <li class="breadcrumb-item active">Billing</li>
+            </ol>
+        </div>
+    </div>
+
+    <!-- ── Expired banner (if subscription expired) ──────────── -->
+    <% if (!currentSub || currentSub.status === 'expired' || currentSub.status === 'cancelled') { %>
+    <div class="expired-banner">
+        <div class="icon">⚠️</div>
+        <div class="msg">
+            <strong>Your subscription has expired.</strong><br>
+            Choose a plan below to restore full access to your account.
+        </div>
+    </div>
+    <% } %>
+
+    <!-- ── Current Subscription Hero ─────────────────────────── -->
+    <% if (currentSub) { %>
+    <div class="billing-hero">
+        <div>
+            <div class="sub-label">Current Plan</div>
+            <div class="sub-plan"><%= currentSub.plan_name || 'No Plan' %></div>
+            <div class="sub-meta">
+                Billing: <span><%= currentSub.billing_cycle %></span> &nbsp;·&nbsp;
+                <% if (currentSub.status === 'active') { %>
+                    Renews on <span><%= new Date(currentSub.expires_at).toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'}) %></span>
+                <% } else { %>
+                    Expired on <span style="color:#e74c3c"><%= new Date(currentSub.expires_at).toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'}) %></span>
+                <% } %>
+            </div>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+            <% if (currentSub.billing_cycle === 'trial') { %>
+                <span class="status-pill status-trial">Free Trial</span>
+            <% } else if (currentSub.status === 'active') { %>
+                <span class="status-pill status-active">Active</span>
+            <% } else if (currentSub.status === 'grace') { %>
+                <span class="status-pill status-grace">Grace Period</span>
+            <% } else { %>
+                <span class="status-pill status-expired">Expired</span>
+            <% } %>
+            <% if (currentSub.amount_paid > 0) { %>
+            <div style="text-align:right">
+                <div style="font-size:11px;color:rgba(255,255,255,0.35);margin-bottom:2px">Last Paid</div>
+                <div style="font-size:18px;font-weight:700;color:#2ecc71;font-family:'Rajdhani',sans-serif">
+                    ₹<%= Number(currentSub.amount_paid).toLocaleString('en-IN') %>
+                </div>
+            </div>
+            <% } %>
+        </div>
+    </div>
+    <% } %>
+
+    <!-- ── Plans Section ─────────────────────────────────────── -->
+    <div class="section-card">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
+            <h4 class="mb-0">Choose a Plan</h4>
+            <div class="billing-toggle">
+                <button class="toggle-btn active" id="btnMonthly" onclick="setBilling('monthly')">Monthly</button>
+                <button class="toggle-btn" id="btnYearly" onclick="setBilling('yearly')">
+                    Yearly <span class="yearly-badge">Save 17%</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="plans-grid">
+            <% plans.forEach(plan => {
+                const isCurrent = currentSub && currentSub.plan_id === plan.id && currentSub.status === 'active';
+            %>
+            <div class="plan-card <%= isCurrent ? 'current-plan' : '' %>">
+                <% if (isCurrent) { %><div class="current-badge">CURRENT</div><% } %>
+
+                <div class="plan-name"><%= plan.name %></div>
+
+                <div class="plan-price">
+                    <% if (plan.price_monthly == 0) { %>
+                        <span class="amount">Free</span>
+                        <span class="period">/ 14-day trial</span>
+                    <% } else { %>
+                        <div>
+                            <span class="amount monthly-price">₹<%= Number(plan.price_monthly).toLocaleString('en-IN') %></span>
+                            <span class="period monthly-period">/month</span>
+                            <span class="amount yearly-price-big" style="display:none">₹<%= Number(plan.price_yearly).toLocaleString('en-IN') %></span>
+                            <span class="period yearly-period" style="display:none">/year</span>
+                        </div>
+                        <div class="yearly-price monthly-hint">Billed as ₹<%= Number(plan.price_yearly).toLocaleString('en-IN') %>/yr if yearly</div>
+                        <div class="yearly-price yearly-hint" style="display:none">₹<%= Number(plan.price_monthly).toLocaleString('en-IN') %>/mo if monthly</div>
+                    <% } %>
+                </div>
+
+                <ul class="plan-features">
+                    <li>Up to <%= plan.max_grounds %> ground<%= plan.max_grounds > 1 ? 's' : '' %></li>
+                    <li>Bookings &amp; scheduling</li>
+                    <li>Customer management</li>
+                    <% if (plan.price_monthly >= 1000) { %>
+                    <li>Balance sheet &amp; expenses</li>
+                    <li>Revenue reports</li>
+                    <% } %>
+                    <% if (plan.price_monthly >= 1999) { %>
+                    <li>Priority support</li>
+                    <li>Advanced analytics</li>
+                    <% } %>
+                </ul>
+
+                <% if (isCurrent && currentSub.status === 'active') { %>
+                    <button class="btn-current">✓ Current Plan</button>
+                <% } else if (plan.price_monthly == 0) { %>
+                    <button class="btn-subscribe" disabled>Trial Only on Signup</button>
+                <% } else { %>
+                    <button class="btn-subscribe" onclick="selectPlan(<%= plan.id %>, '<%= plan.name %>')">
+                        Subscribe to <%= plan.name %>
+                    </button>
+                <% } %>
+            </div>
+            <% }) %>
+        </div>
+    </div>
+
+    <!-- ── Payment History ───────────────────────────────────── -->
+    <div class="section-card">
+        <h4>Subscription History</h4>
+        <% if (subHistory.length === 0) { %>
+            <p style="color:rgba(255,255,255,0.3);font-size:14px;text-align:center;padding:24px 0">No subscription history yet.</p>
+        <% } else { %>
+        <table class="hist-table">
+            <thead>
+                <tr>
+                    <th>Plan</th>
+                    <th>Cycle</th>
+                    <th>Started</th>
+                    <th>Expires</th>
+                    <th>Amount Paid</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% subHistory.forEach(s => { %>
+                <tr>
+                    <td style="color:#fff;font-weight:600"><%= s.plan_name %></td>
+                    <td style="text-transform:capitalize"><%= s.billing_cycle %></td>
+                    <td><%= new Date(s.started_at).toLocaleDateString('en-IN') %></td>
+                    <td><%= new Date(s.expires_at).toLocaleDateString('en-IN') %></td>
+                    <td style="color:#2ecc71;font-weight:600">
+                        <%= s.amount_paid > 0 ? '₹' + Number(s.amount_paid).toLocaleString('en-IN') : '—' %>
+                    </td>
+                    <td>
+                        <% if (s.status === 'active' && s.billing_cycle === 'trial') { %>
+                            <span class="status-pill status-trial" style="font-size:11px">Trial</span>
+                        <% } else if (s.status === 'active') { %>
+                            <span class="status-pill status-active" style="font-size:11px">Active</span>
+                        <% } else { %>
+                            <span class="status-pill status-expired" style="font-size:11px"><%= s.status %></span>
+                        <% } %>
+                    </td>
+                </tr>
+                <% }) %>
+            </tbody>
+        </table>
+        <% } %>
+    </div>
+
+</div>
+
+<!-- ── Confirm Modal ──────────────────────────────────────────── -->
+<div class="modal fade" id="confirmModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background:#1a2332;border:1px solid rgba(255,255,255,0.1);border-radius:16px">
+            <div class="modal-header" style="border-color:rgba(255,255,255,0.07)">
+                <h5 class="modal-title" style="color:#fff;font-family:'Rajdhani',sans-serif;font-size:20px">Confirm Subscription</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" style="color:rgba(255,255,255,0.75);font-size:14px">
+                <p>You are subscribing to:</p>
+                <div style="background:rgba(243,156,18,0.08);border:1px solid rgba(243,156,18,0.2);border-radius:10px;padding:16px;margin:12px 0">
+                    <div style="font-family:'Rajdhani',sans-serif;font-size:22px;font-weight:700;color:#fff" id="modalPlanName"></div>
+                    <div style="font-size:13px;color:rgba(255,255,255,0.5);margin-top:4px" id="modalPlanCycle"></div>
+                    <div style="font-size:24px;font-weight:700;color:#f39c12;margin-top:8px;font-family:'Rajdhani',sans-serif" id="modalPlanPrice"></div>
+                </div>
+                <p style="font-size:12px;color:rgba(255,255,255,0.35);margin-top:8px">
+                    ⚠️ This is a demo activation. In production, a payment gateway (Razorpay/Stripe) would process payment before activation.
+                </p>
+            </div>
+            <div class="modal-footer" style="border-color:rgba(255,255,255,0.07)">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn" id="confirmBtn"
+                    style="background:rgba(243,156,18,0.15);border:1px solid rgba(243,156,18,0.4);color:#f39c12;font-weight:600"
+                    onclick="confirmSubscription()">
+                    <span id="confirmBtnText">Activate Plan</span>
+                    <span id="confirmSpinner" class="spinner-border spinner-border-sm d-none ms-2"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="toast-msg" id="toastMsg"></div>
+
+<script>
+let selectedPlanId   = null;
+let selectedPlanName = null;
+let selectedCycle    = 'monthly';
+
+// ── Billing toggle ────────────────────────────────────────────
+function setBilling(cycle) {
+    selectedCycle = cycle;
+    document.getElementById('btnMonthly').classList.toggle('active', cycle === 'monthly');
+    document.getElementById('btnYearly').classList.toggle('active',  cycle === 'yearly');
+
+    document.querySelectorAll('.monthly-price, .monthly-period, .monthly-hint').forEach(el => {
+        el.style.display = cycle === 'monthly' ? '' : 'none';
+    });
+    document.querySelectorAll('.yearly-price-big, .yearly-period, .yearly-hint').forEach(el => {
+        el.style.display = cycle === 'yearly' ? '' : 'none';
+    });
+}
+
+// ── Select plan ───────────────────────────────────────────────
+function selectPlan(planId, planName) {
+    selectedPlanId   = planId;
+    selectedPlanName = planName;
+
+    document.getElementById('modalPlanName').textContent  = planName;
+    document.getElementById('modalPlanCycle').textContent = selectedCycle === 'yearly' ? 'Yearly billing' : 'Monthly billing';
+
+    // Get the price from the card
+    const cards = document.querySelectorAll('.plan-card');
+    let priceText = '';
+    cards.forEach(card => {
+        const btn = card.querySelector('.btn-subscribe');
+        if (btn && btn.getAttribute('onclick') && btn.getAttribute('onclick').includes(planId)) {
+            const amountEl = card.querySelector(selectedCycle === 'yearly' ? '.yearly-price-big' : '.monthly-price');
+            if (amountEl) priceText = amountEl.textContent + (selectedCycle === 'yearly' ? '/year' : '/month');
+        }
+    });
+    document.getElementById('modalPlanPrice').textContent = priceText || '—';
+
+    new bootstrap.Modal(document.getElementById('confirmModal')).show();
+}
+
+// ── Confirm & activate ────────────────────────────────────────
+async function confirmSubscription() {
+    const btn     = document.getElementById('confirmBtn');
+    const btnText = document.getElementById('confirmBtnText');
+    const spinner = document.getElementById('confirmSpinner');
+
+    btn.disabled = true;
+    btnText.textContent = 'Processing…';
+    spinner.classList.remove('d-none');
+
+    try {
+        const res  = await fetch('/billing/subscribe', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ plan_id: selectedPlanId, billing_cycle: selectedCycle })
+        });
+        const data = await res.json();
+
+        bootstrap.Modal.getInstance(document.getElementById('confirmModal')).hide();
+
+        if (data.success) {
+            showToast('✓ ' + data.message, false);
+            setTimeout(() => window.location.reload(), 1500);
+        } else {
+            showToast(data.message || 'Something went wrong', true);
+        }
+    } catch {
+        showToast('Network error. Please try again.', true);
+    } finally {
+        btn.disabled = false;
+        btnText.textContent = 'Activate Plan';
+        spinner.classList.add('d-none');
+    }
+}
+
+// ── Toast ─────────────────────────────────────────────────────
+function showToast(msg, isError = false) {
+    const t = document.getElementById('toastMsg');
+    t.textContent = msg;
+    t.style.display = 'block';
+    t.style.borderColor  = isError ? 'rgba(231,76,60,0.4)' : 'rgba(46,204,113,0.4)';
+    t.style.color = isError ? '#e74c3c' : '#2ecc71';
+    setTimeout(() => t.style.display = 'none', 3500);
+}
+</script>
+
+<%- include('../partials/footer') %>
