@@ -5,170 +5,95 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= title %> - Start Sports</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/css/bootstrap.min.css">
-    <link rel="stylesheet" href="/css/style.css">
-    <style>
-        body { background: #0f1923; color: #fff; }
-
-        .sa-sidebar {
-            width: 220px; min-height: 100vh;
-            background: #1a2332;
-            border-right: 1px solid rgba(255,255,255,0.07);
-            position: fixed; top: 0; left: 0;
-            display: flex; flex-direction: column;
-            padding: 28px 0;
-        }
-        .sa-logo {
-            font-family: 'Rajdhani', sans-serif;
-            font-size: 20px; font-weight: 700;
-            color: #fff; padding: 0 24px 24px;
-            border-bottom: 1px solid rgba(255,255,255,0.07);
-        }
-        .sa-logo span { color: #f39c12; font-size: 11px; display: block; font-weight: 500; letter-spacing: 1px; }
-        .sa-nav { padding: 16px 0; flex: 1; }
-        .sa-nav a {
-            display: flex; align-items: center; gap: 10px;
-            padding: 10px 24px; color: rgba(255,255,255,0.55);
-            text-decoration: none; font-size: 14px;
-            transition: all 0.2s; border-left: 3px solid transparent;
-        }
-        .sa-nav a:hover, .sa-nav a.active {
-            color: #fff; background: rgba(255,255,255,0.05);
-            border-left-color: #f39c12;
-        }
-        .sa-main { margin-left: 220px; padding: 32px; }
-        .sa-topbar {
-            display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 32px;
-        }
-        .sa-topbar h1 { font-family: 'Rajdhani', sans-serif; font-size: 26px; margin: 0; }
-        .sa-topbar .badge-sa {
-            background: rgba(243,156,18,0.15); color: #f39c12;
-            border: 1px solid rgba(243,156,18,0.3);
-            border-radius: 20px; padding: 4px 14px; font-size: 12px;
-        }
-
-        /* Stat cards */
-        .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
-        .stat-card {
-            background: #1a2332; border: 1px solid rgba(255,255,255,0.07);
-            border-radius: 12px; padding: 20px;
-        }
-        .stat-card .label { font-size: 12px; color: rgba(255,255,255,0.45); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
-        .stat-card .value { font-size: 28px; font-weight: 700; font-family: 'Rajdhani', sans-serif; }
-        .stat-card .sub   { font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 4px; }
-        .val-green  { color: #2ecc71; }
-        .val-yellow { color: #f39c12; }
-        .val-red    { color: #e74c3c; }
-        .val-blue   { color: #3498db; }
-
-        /* Section cards */
-        .section-card {
-            background: #1a2332; border: 1px solid rgba(255,255,255,0.07);
-            border-radius: 12px; padding: 24px; margin-bottom: 20px;
-        }
-        .section-card h3 { font-size: 16px; font-weight: 600; margin-bottom: 16px; color: rgba(255,255,255,0.85); }
-
-        /* Tenant table */
-        .tenant-table { width: 100%; border-collapse: collapse; }
-        .tenant-table th {
-            text-align: left; font-size: 11px; color: rgba(255,255,255,0.35);
-            text-transform: uppercase; letter-spacing: 0.5px;
-            padding: 0 12px 12px; border-bottom: 1px solid rgba(255,255,255,0.07);
-        }
-        .tenant-table td {
-            padding: 14px 12px; border-bottom: 1px solid rgba(255,255,255,0.04);
-            font-size: 14px; color: rgba(255,255,255,0.8);
-        }
-        .tenant-table tr:last-child td { border-bottom: none; }
-        .tenant-table tr:hover td { background: rgba(255,255,255,0.02); }
-
-        /* Status badges */
-        .badge { border-radius: 20px; padding: 3px 10px; font-size: 11px; font-weight: 600; }
-        .badge-active    { background: rgba(46,204,113,0.15); color: #2ecc71; }
-        .badge-trial     { background: rgba(52,152,219,0.15); color: #3498db; }
-        .badge-suspended { background: rgba(231,76,60,0.15);  color: #e74c3c; }
-        .badge-expired   { background: rgba(149,165,166,0.15);color: #95a5a6; }
-
-        /* Plan breakdown */
-        .plan-row {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
-        .plan-row:last-child { border-bottom: none; }
-        .plan-bar-wrap { flex: 1; margin: 0 16px; background: rgba(255,255,255,0.06); border-radius: 4px; height: 6px; }
-        .plan-bar { height: 6px; border-radius: 4px; background: #f39c12; }
-
-        .btn-view {
-            background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
-            color: rgba(255,255,255,0.7); border-radius: 6px;
-            padding: 5px 12px; font-size: 12px; text-decoration: none;
-            transition: all 0.2s;
-        }
-        .btn-view:hover { background: rgba(255,255,255,0.1); color: #fff; }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="/css/super-admin.css">
 </head>
 <body>
+    <%- include('../partials/sidebar', { 
+        adminType: 'SUPER ADMIN',
+        currentPage: 'dashboard',
+        logoutUrl: '/auth/logout',
+        loginUrl: '/auth/login'
+    }) %>
 
-<!-- Sidebar -->
-<div class="sa-sidebar">
-    <div class="sa-logo">
-        START SPORTS
-        <span>SUPER ADMIN</span>
-    </div>
-    <nav class="sa-nav">
-        <a href="/super-admin/dashboard" class="active">📊 Dashboard</a>
-        <a href="/super-admin/tenants">🏢 Tenants</a>
-        <a href="/auth/logout" onclick="doLogout(event)">🚪 Logout</a>
-    </nav>
-</div>
-
-<!-- Main content -->
-<div class="sa-main">
-
-    <div class="sa-topbar">
-        <h1>Dashboard</h1>
-        <div class="badge-sa">Super Admin</div>
-    </div>
-
-    <!-- Stat cards -->
-    <div class="stat-grid">
-        <div class="stat-card">
-            <div class="label">Total Tenants</div>
-            <div class="value val-blue"><%= data.stats.total_tenants %></div>
-            <div class="sub"><%= data.stats.active_tenants %> active</div>
+    <main class="sa-main">
+        <div class="sa-topbar">
+            <div class="page-title">
+                <h1>Platform Dashboard</h1>
+                <p>Overview of all partners, revenue, and activity</p>
+            </div>
+            <div class="topbar-right">
+                <div class="admin-badge"><i class="bi bi-shield-lock-fill"></i><span>Super Admin</span></div>
+            </div>
         </div>
-        <div class="stat-card">
-            <div class="label">Paying Tenants</div>
-            <div class="value val-green"><%= data.revenue.paying_tenants %></div>
-            <div class="sub">Active subscriptions</div>
-        </div>
-        <div class="stat-card">
-            <div class="label">On Free Trial</div>
-            <div class="value val-yellow"><%= data.stats.trial_tenants %></div>
-            <div class="sub">Not yet paying</div>
-        </div>
-        <div class="stat-card">
-            <div class="label">This Month Revenue</div>
-            <div class="value val-green">₹<%= Number(data.revenue.this_month_revenue).toLocaleString('en-IN') %></div>
-            <div class="sub">Total: ₹<%= Number(data.revenue.total_revenue).toLocaleString('en-IN') %></div>
-        </div>
-    </div>
 
-    <div class="row">
-        <!-- Recent Tenants -->
-        <div class="col-8">
-            <div class="section-card">
-                <h3>Recently Joined Tenants</h3>
-                <table class="tenant-table">
+        <!-- Modern Compact Stat Cards -->
+        <div class="stat-grid">
+            <div class="stat-card modern-card" data-accent="blue">
+                <div class="stat-icon stat-icon-blue"><i class="bi bi-building"></i></div>
+                <div class="stat-label">Total Partners</div>
+                <div class="stat-value value-blue"><%= data.stats.total_tenants %></div>
+                <div class="stat-sub"><%= data.stats.active_tenants %> active</div>
+            </div>
+            <div class="stat-card modern-card" data-accent="yellow">
+                <div class="stat-icon stat-icon-yellow"><i class="bi bi-currency-rupee"></i></div>
+                <div class="stat-label">Platform Revenue</div>
+                <div class="stat-value value-yellow">₹<%= Number(data.revenue.total_revenue).toLocaleString('en-IN') %></div>
+                <div class="stat-sub">₹<%= Number(data.revenue.this_month_revenue).toLocaleString('en-IN') %> this month</div>
+            </div>
+            <div class="stat-card modern-card" data-accent="red">
+                <div class="stat-icon stat-icon-red"><i class="bi bi-people"></i></div>
+                <div class="stat-label">Paying Partners</div>
+                <div class="stat-value value-red"><%= data.revenue.paying_tenants %></div>
+                <div class="stat-sub"><%= data.stats.trial_tenants %> on free trial</div>
+            </div>
+            <div class="stat-card modern-card" data-accent="black">
+                <div class="stat-icon stat-icon-black"><i class="bi bi-ban"></i></div>
+                <div class="stat-label">Suspended / Expired</div>
+                <div class="stat-value value-black"><%= data.stats.suspended_tenants %> / <%= data.stats.expired_tenants %></div>
+                <div class="stat-sub">Need attention</div>
+            </div>
+        </div>
+        
+        <!-- Chart + Plan Breakdown -->
+        <div class="grid-3">
+            <div class="section-card modern-panel">
+                <div class="section-header">
+                    <h3><i class="bi bi-graph-up"></i> New Signups (12 months)</h3>
+                </div>
+                <canvas id="signupChart" height="100"></canvas>
+            </div>
+            <div class="section-card modern-panel">
+                <div class="section-header">
+                    <h3><i class="bi bi-pie-chart"></i> By Plan</h3>
+                </div>
+                <% const maxCount = Math.max(...data.planBreakdown.map(p => p.tenant_count), 1); %>
+                <% data.planBreakdown.forEach(p => { %>
+                <div class="plan-item">
+                    <span class="plan-name-text"><%= p.plan_name %></span>
+                    <div class="plan-bar-container">
+                        <div class="plan-bar" style="width: <%= Math.round((p.tenant_count/maxCount)*100) %>%"></div>
+                    </div>
+                    <span class="plan-count"><%= p.tenant_count %></span>
+                </div>
+                <% }) %>
+            </div>
+        </div>
+
+        <!-- Recent Tenants + Expiring Soon -->
+        <div class="grid-2">
+            <div class="section-card modern-panel">
+                <div class="section-header">
+                    <h3><i class="bi bi-clock-history"></i> Recently Joined</h3>
+                </div>
+                <table class="tenant-table modern-table">
                     <thead>
                         <tr>
                             <th>Business</th>
-                            <th>Owner</th>
                             <th>Plan</th>
                             <th>Status</th>
-                            <th>Joined</th>
                             <th></th>
                         </tr>
                     </thead>
@@ -176,85 +101,103 @@
                         <% data.recentTenants.forEach(t => { %>
                         <tr>
                             <td>
-                                <div style="font-weight:600;color:#fff"><%= t.business_name %></div>
-                                <div style="font-size:12px;color:rgba(255,255,255,0.35)"><%= t.city || '—' %></div>
+                                <div class="tenant-cell">
+                                    <div class="tenant-initial"><%= t.business_name.charAt(0).toUpperCase() %></div>
+                                    <div>
+                                        <div class="tenant-name-text"><%= t.business_name %></div>
+                                        <div class="tenant-email-text"><%= t.email %></div>
+                                    </div>
+                                </div>
                             </td>
-                            <td>
-                                <div><%= t.owner_name %></div>
-                                <div style="font-size:12px;color:rgba(255,255,255,0.35)"><%= t.email %></div>
-                            </td>
-                            <td><%= t.plan_name || '—' %></td>
+                            <td class="plan-cell"><%= t.plan_name || '—' %></td>
                             <td>
                                 <% if (t.sub_status === 'active' && t.billing_cycle === 'trial') { %>
-                                    <span class="badge badge-trial">Trial</span>
-                                <% } else if (t.sub_status === 'active') { %>
-                                    <span class="badge badge-active">Active</span>
+                                    <span class="badge badge-trial modern-badge">Trial</span>
                                 <% } else if (t.status === 'suspended') { %>
-                                    <span class="badge badge-suspended">Suspended</span>
+                                    <span class="badge badge-suspended modern-badge">Suspended</span>
+                                <% } else if (t.sub_status === 'active') { %>
+                                    <span class="badge badge-active modern-badge">Active</span>
                                 <% } else { %>
-                                    <span class="badge badge-expired">Expired</span>
+                                    <span class="badge badge-expired modern-badge">Expired</span>
                                 <% } %>
                             </td>
-                            <td style="font-size:12px;color:rgba(255,255,255,0.45)">
-                                <%= new Date(t.created_at).toLocaleDateString('en-IN') %>
-                            </td>
-                            <td>
-                                <a href="/super-admin/tenants/<%= t.id %>" class="btn-view">View</a>
-                            </td>
+                            <td><a href="/super-admin/tenants/<%= t.id %>" class="btn-view minimal-btn"><i class="bi bi-eye"></i> View</a></td>
                         </tr>
                         <% }) %>
                     </tbody>
                 </table>
-                <div style="margin-top:16px">
-                    <a href="/super-admin/tenants" style="color:#f39c12;font-size:13px;text-decoration:none">View all tenants →</a>
-                </div>
+                <a href="/super-admin/tenants" class="view-all-link">View all partners <i class="bi bi-arrow-right"></i></a>
             </div>
-        </div>
 
-        <!-- Plan Breakdown -->
-        <div class="col-4">
-            <div class="section-card">
-                <h3>Tenants by Plan</h3>
-                <% const maxCount = Math.max(...data.planBreakdown.map(p => p.tenant_count), 1); %>
-                <% data.planBreakdown.forEach(p => { %>
-                <div class="plan-row">
-                    <div style="font-size:13px;min-width:80px"><%= p.plan_name %></div>
-                    <div class="plan-bar-wrap">
-                        <div class="plan-bar" style="width:<%= Math.round((p.tenant_count / maxCount) * 100) %>%"></div>
+            <div class="section-card modern-panel">
+                <div class="section-header">
+                    <h3><i class="bi bi-alarm"></i> Expiring Soon</h3>
+                </div>
+                <% if (data.expiringTenants.length === 0) { %>
+                    <div class="empty-state modern-empty">
+                        <i class="bi bi-check-circle"></i>
+                        <p>No subscriptions expiring in 7 days</p>
                     </div>
-                    <div style="font-size:13px;font-weight:600;min-width:24px;text-align:right"><%= p.tenant_count %></div>
-                </div>
-                <% }) %>
-            </div>
-
-            <!-- Quick stats -->
-            <div class="section-card">
-                <h3>Quick Stats</h3>
-                <div class="plan-row">
-                    <span style="font-size:13px;color:rgba(255,255,255,0.6)">Suspended</span>
-                    <span style="color:#e74c3c;font-weight:600"><%= data.stats.suspended_tenants %></span>
-                </div>
-                <div class="plan-row">
-                    <span style="font-size:13px;color:rgba(255,255,255,0.6)">Expired</span>
-                    <span style="color:#95a5a6;font-weight:600"><%= data.stats.expired_tenants %></span>
-                </div>
-                <div class="plan-row">
-                    <span style="font-size:13px;color:rgba(255,255,255,0.6)">Total Revenue</span>
-                    <span style="color:#2ecc71;font-weight:600">₹<%= Number(data.revenue.total_revenue).toLocaleString('en-IN') %></span>
-                </div>
+                <% } else { %>
+                    <% data.expiringTenants.forEach(t => { %>
+                    <div class="expiring-item modern-expiry-item">
+                        <div>
+                            <div class="expiry-business"><%= t.business_name %></div>
+                            <div class="expiry-meta"><%= t.plan_name %> · <%= t.email %></div>
+                        </div>
+                        <div class="expiry-right">
+                            <span class="days-badge <%= t.days_left <= 1 ? 'days-1' : t.days_left <= 3 ? 'days-3' : 'days-7' %>">
+                                <%= t.days_left === 0 ? 'Today' : t.days_left + 'd left' %>
+                            </span>
+                            <div class="expiry-action"><a href="/super-admin/tenants/<%= t.id %>" class="btn-view minimal-btn small">View</a></div>
+                        </div>
+                    </div>
+                    <% }) %>
+                <% } %>
             </div>
         </div>
-    </div>
-
-</div>
+    </main>
 
 <script>
-async function doLogout(e) {
-    e.preventDefault();
-    await fetch('/auth/logout', { method: 'POST' });
-    window.location.href = '/auth/login';
-}
+(function() {
+    function ping() {
+        fetch('/super-admin/keepalive', { method: 'GET', credentials: 'same-origin' })
+            .catch(function() {});
+    }
+    ping();
+    setInterval(ping, 10 * 60 * 1000);
+})();
+(function () {
+    const raw = <%- JSON.stringify(data.signupTrend) %>;
+    const labels = raw.map(function (r) {
+        const d = new Date(r.month + '-01');
+        return d.toLocaleDateString('en-IN', { month: 'short', year: '2-digit' });
+    });
+    const counts = raw.map(function (r) { return r.count; });
+    const ctx = document.getElementById('signupChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'New Signups',
+                data: counts,
+                backgroundColor: 'rgba(30, 58, 138, 0.2)',
+                borderColor: '#1e3a8a',
+                borderWidth: 1.5,
+                borderRadius: 6,
+                borderSkipped: false
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true, ticks: { stepSize: 1, precision: 0, font: { size: 10 } }, grid: { color: 'rgba(0,0,0,0.04)' } },
+                       x: { ticks: { font: { size: 10 } }, grid: { display: false } } }
+        }
+    });
+})();
 </script>
-
 </body>
 </html>

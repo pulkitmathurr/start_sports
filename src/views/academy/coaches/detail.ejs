@@ -1,0 +1,192 @@
+<%- include('../../partials/header') %>
+
+<div class="row settings-page-header">
+
+    <!-- Page Header -->
+    <div class="col-12 mb-4">
+        <div class="student-profile-header">
+            <div class="student-profile-header__left">
+                <div class="student-profile-header__icon">
+                    <i class="bi bi-person-badge"></i>
+                </div>
+                <div>
+                    <h4 class="student-profile-header__title">Coach Profile</h4>
+                    <span class="student-profile-header__sub">
+                        <a href="/academy/coaches" class="student-profile-breadcrumb">Coaches</a>
+                        &rsaquo; <%= coach.name %>
+                    </span>
+                </div>
+            </div>
+            <div class="student-profile-header__actions">
+                <a href="/academy/coaches/<%= coach.id %>/edit" class="student-profile-edit-btn">
+                    <i class="bi bi-pencil"></i> Edit
+                </a>
+                <a href="/academy/coaches" class="student-profile-back-btn">
+                    <i class="bi bi-arrow-left"></i> Back
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <% if (success) { %>
+    <script>document.addEventListener('DOMContentLoaded',()=>xToast('<%= success.replace(/'/g,"\'") %>','success'));</script>
+    <% } %>
+    <% if (error) { %>
+    <script>document.addEventListener('DOMContentLoaded',()=>xToast('<%= error.replace(/'/g,"\'") %>','error'));</script>
+    <% } %>
+
+    <!-- Profile Card -->
+    <div class="col-12 col-lg-4 mb-4">
+        <div class="student-profile-card h-100">
+            <div class="student-profile-card__body text-center py-4">
+
+                <!-- Photo -->
+                <% if (coach.photo) { %>
+                    <img src="/uploads/coaches/<%= coach.photo %>" class="student-profile-avatar">
+                <% } else { %>
+                    <div class="student-profile-avatar-placeholder">
+                        <%= coach.name.charAt(0).toUpperCase() %>
+                    </div>
+                <% } %>
+
+                <h5 class="student-profile-name"><%= coach.name %></h5>
+
+                <% if (coach.specialization) { %>
+                    <span class="student-profile-batch-badge"><%= coach.specialization %></span>
+                <% } %>
+
+                <div class="mt-2">
+                    <% if (coach.status === 1) { %>
+                        <span class="student-profile-status-badge student-profile-status-active">Active</span>
+                    <% } else { %>
+                        <span class="student-profile-status-badge student-profile-status-inactive">Inactive</span>
+                    <% } %>
+                </div>
+
+                <hr class="student-profile-divider">
+
+                <div class="student-profile-details">
+                    <div class="student-profile-detail-row">
+                        <i class="bi bi-phone"></i>
+                        <span><%= coach.phone %></span>
+                    </div>
+                    <% if (coach.email) { %>
+                    <div class="student-profile-detail-row">
+                        <i class="bi bi-envelope"></i>
+                        <span><%= coach.email %></span>
+                    </div>
+                    <% } %>
+                    <% if (coach.experience_years) { %>
+                    <div class="student-profile-detail-row">
+                        <i class="bi bi-award"></i>
+                        <span><%= coach.experience_years %> yr<%= coach.experience_years !== 1 ? 's' : '' %> experience</span>
+                    </div>
+                    <% } %>
+                    <div class="student-profile-detail-row">
+                        <i class="bi bi-calendar-plus"></i>
+                        <span>Joined <%= new Date(coach.created_at).toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'}) %></span>
+                    </div>
+
+                    <% if (coach.bio) { %>
+                    <hr class="student-profile-divider-light">
+                    <div class="student-profile-section-title">About</div>
+                    <p class="text-muted small mt-1" style="text-align:left;"><%= coach.bio %></p>
+                    <% } %>
+                </div>
+
+                <!-- Actions -->
+                <hr class="student-profile-divider-light">
+                <div class="d-flex gap-2 justify-content-center px-2">
+                    <form method="POST" action="/academy/coaches/<%= coach.id %>/toggle" onsubmit="return confirm('Toggle status for this coach?')">
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                        <button type="submit" class="btn btn-sm <%= coach.status === 1 ? 'btn-warning' : 'btn-success' %>">
+                            <i class="bi bi-<%= coach.status === 1 ? 'pause-circle' : 'play-circle' %>"></i>
+                            <%= coach.status === 1 ? 'Deactivate' : 'Activate' %>
+                        </button>
+                    </form>
+                    <form method="POST" action="/academy/coaches/<%= coach.id %>/delete" onsubmit="return confirm('Delete this coach? Their batches will be unassigned.')">
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                        <button type="submit" class="btn btn-sm btn-danger">
+                            <i class="bi bi-trash"></i> Delete
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Assigned Batches -->
+    <div class="col-12 col-lg-8 mb-4">
+        <div class="student-profile-card">
+            <div class="student-profile-card__header">
+                <i class="bi bi-people"></i>
+                Assigned Batches
+                <span class="badge bg-primary ms-2"><%= coach.batches.length %></span>
+            </div>
+            <div class="student-profile-card__body">
+
+                <% if (!coach.batches || coach.batches.length === 0) { %>
+                <div class="student-profile-empty">
+                    <div class="student-profile-empty__icon">
+                        <i class="bi bi-collection"></i>
+                    </div>
+                    <p>No batches assigned</p>
+                    <small>This coach has not been assigned to any batch yet</small>
+                </div>
+                <% } else { %>
+                <div class="table-responsive">
+                    <table class="student-profile-table">
+                        <thead>
+                            <tr>
+                                <th>Batch</th>
+                                <th>Sport</th>
+                                <th>Timing</th>
+                                <th>Days</th>
+                                <th>Students</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% coach.batches.forEach(batch => { %>
+                            <tr>
+                                <td>
+                                    <a href="/academy/batches/<%= batch.id %>" class="fw-semibold text-decoration-none">
+                                        <%= batch.batch_name %>
+                                    </a>
+                                </td>
+                                <td><%= batch.sport || '—' %></td>
+                                <td class="text-nowrap">
+                                    <% if (batch.start_time && batch.end_time) { %>
+                                        <%
+                                            function fmtTime(t) {
+                                                if (!t) return '';
+                                                const [h, m] = String(t).slice(0,5).split(':').map(Number);
+                                                const p = h >= 12 ? 'PM' : 'AM';
+                                                return `${(h%12||12).toString().padStart(2,'0')}:${m.toString().padStart(2,'0')} ${p}`;
+                                            }
+                                        %>
+                                        <%= fmtTime(batch.start_time) %> – <%= fmtTime(batch.end_time) %>
+                                    <% } else { %>—<% } %>
+                                </td>
+                                <td><%= batch.days_of_week || '—' %></td>
+                                <td><span class="badge bg-secondary"><%= batch.student_count %></span></td>
+                                <td>
+                                    <% if (batch.status === 1) { %>
+                                        <span class="student-profile-status-badge student-profile-status-active">Active</span>
+                                    <% } else { %>
+                                        <span class="student-profile-status-badge student-profile-status-inactive">Inactive</span>
+                                    <% } %>
+                                </td>
+                            </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                </div>
+                <% } %>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<%- include('../../partials/footer') %>

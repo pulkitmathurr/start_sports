@@ -17,22 +17,12 @@
         </div>
     </div>
 
-    <!-- Success Banner -->
+    <!-- Toast triggers from query params -->
     <% if (success) { %>
-    <div class="col-12">
-        <div class="settings-success">
-            <i class="bi bi-check-circle-fill"></i> <%= success %>
-        </div>
-    </div>
+    <script>document.addEventListener('DOMContentLoaded',()=>xToast('<%= success.replace(/'/g,"\'") %>','success'));</script>
     <% } %>
-
-    <!-- Error Banner -->
     <% if (error) { %>
-    <div class="col-12">
-        <div class="settings-warning">
-            <i class="bi bi-exclamation-triangle-fill"></i> <%= error %>
-        </div>
-    </div>
+    <script>document.addEventListener('DOMContentLoaded',()=>xToast('<%= error.replace(/'/g,"\'") %>','error'));</script>
     <% } %>
 
     <!-- Grounds Grid -->
@@ -62,24 +52,10 @@
         </div>
     <% } %>
 
-    <!-- Overlay gradient -->
-    <div class="ground-card__overlay"></div>
     
-    <!-- Add ground name on image overlay -->
-    <div class="ground-card__image-name">
-        <i class="bi bi-building me-1"></i><%= ground.name %>
-    </div>
+    
 
-    <!-- Status badge on image -->
-    <span class="ground-card__status-badge ground-card__status-badge--<%= ground.status %>">
-        <span class="ground-card__status-dot"></span>
-        <%= ground.status.toUpperCase() %>
-    </span>
-
-    <!-- Sport tag -->
-    <span class="ground-card__sport-tag">
-        <i class="bi bi-dribbble me-1"></i><%= ground.sport_type %>
-    </span>
+   
 </div>
 
                     <!-- ── Content Panel ── -->
@@ -104,8 +80,8 @@
                         </div>
 
                         <!-- Pricing Row -->
-                        <div class="ground-card__pricing">
-                            <div class="ground-card__price-item">
+                        <!-- <div class="ground-card__pricing"> -->
+                            <!-- <div class="ground-card__price-item">
                                 <span class="ground-card__price-label">Off-Peak</span>
                                 <span class="ground-card__price-val">₹<%= ground.off_peak_price %></span>
                             </div>
@@ -114,12 +90,12 @@
                                 <span class="ground-card__price-label">Peak</span>
                                 <span class="ground-card__price-val ground-card__price-val--peak">₹<%= ground.peak_price %></span>
                             </div>
-                            <div class="ground-card__price-divider"></div>
+                            <div class="ground-card__price-divider"></div> -->
                             <!-- <div class="ground-card__price-item">
                                 <span class="ground-card__price-label">Phone</span>
                                 <span class="ground-card__price-val" style="font-size:0.78rem;"><%= ground.phone %></span>
                             </div> -->
-                        </div>
+                        <!-- </div> -->
 
                         <!-- Action Buttons -->
                         <div class="ground-card__actions">
@@ -127,7 +103,19 @@
                                 <i class="bi bi-pencil me-1"></i> EDIT
                             </a>
 
+                            <button type="button"
+                                onclick="openGroundBlock(<%= ground.id %>, '<%= ground.name.replace(/'/g, "\\'") %>')"
+                                class="ground-card__btn"
+                                style="flex:1; background:#FFFBEB; color:#b45309; border:1.5px solid #FDE68A;
+                                       font-family:'Rajdhani',sans-serif; font-weight:700; font-size:0.72rem;
+                                       letter-spacing:1px; border-radius:8px; cursor:pointer; padding:8px 10px;
+                                       transition:all 0.18s; display:inline-flex; align-items:center; justify-content:center; gap:5px;"
+                                onmouseover="this.style.background='#FEF3C7'" onmouseout="this.style.background='#FFFBEB'">
+                                <i class="bi bi-cone-striped"></i> BLOCK
+                            </button>
+
                             <form method="POST" action="/grounds/<%= ground.id %>/toggle" style="flex:1;">
+                                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                                 <button type="submit" class="ground-card__btn ground-card__btn--toggle" style="width:100%;">
                                     <% if (ground.status === 'active') { %>
                                         <i class="bi bi-pause-circle me-1"></i> DEACTIVATE
@@ -137,9 +125,10 @@
                                 </button>
                             </form>
 
-                            <form method="POST" action="/grounds/<%= ground.id %>/delete"
-                                  onsubmit="return confirm('Delete <%= ground.name %>? This cannot be undone.');">
-                                <button type="submit" class="ground-card__btn ground-card__btn--delete">
+                            <form method="POST" action="/grounds/<%= ground.id %>/delete" id="del-ground-<%= ground.id %>">
+                                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                <button type="button" class="ground-card__btn ground-card__btn--delete"
+                                    onclick="showDelModal('<%= ground.name %>',()=>document.getElementById('del-ground-<%= ground.id %>').submit())">
                                     <i class="bi bi-trash"></i>
                                 </button>
                             </form>
@@ -157,4 +146,5 @@
 
 
 
+<%- include('../partials/groundBlock.ejs') %>
 <%- include('../partials/footer') %>

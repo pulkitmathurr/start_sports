@@ -6,11 +6,13 @@ module.exports.validate = (method) => {
     // ── Online Booking Request ──
     case "createBooking": {
       return [
-        body("slot_id")
+        body("start_time")
           .notEmpty()
-          .withMessage("Slot is required")
-          .isInt()
-          .withMessage("Invalid slot"),
+          .withMessage("Start time is required"),
+
+        body("end_time")
+          .notEmpty()
+          .withMessage("End time is required"),
 
         body("slot_date")
           .notEmpty()
@@ -47,11 +49,13 @@ module.exports.validate = (method) => {
     // ── Quick Book (Admin) ────────────────────
     case "quickBook": {
       return [
-        body("slot_id")
+        body("start_time")
           .notEmpty()
-          .withMessage("Slot is required")
-          .isInt()
-          .withMessage("Invalid slot"),
+          .withMessage("Start time is required"),
+
+        body("end_time")
+          .notEmpty()
+          .withMessage("End time is required"),
 
         body("slot_date")
           .notEmpty()

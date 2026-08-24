@@ -1,0 +1,511 @@
+<%- include('../partials/header') %>
+
+<div class="bs-page">
+
+    <!-- Header -->
+    <div class="bs-header-premium">
+        <div class="bs-header-premium__content">
+            <div class="bs-header-premium__icon">
+                <i class="bi bi-receipt-cutoff"></i>
+            </div>
+            <div class="bs-header-premium__text">
+                <h1 id="pageTitle">Expense Detail</h1>
+                <p id="pageSubtitle">Individual transaction breakdown</p>
+            </div>
+        </div>
+        <!-- <a href="/balance-sheet/page" class="ed-back-btn">
+            <i class="bi bi-arrow-left"></i> 
+        </a> -->
+    </div>
+
+    <!-- Filter Card -->
+    <div class="bs-filter-card">
+        <div class="bs-filter-card__header">
+            <i class="bi bi-funnel-fill"></i>
+            <span>Filter Entries</span>
+        </div>
+        <div class="bs-filter-card__body">
+            <div class="bs-filter-group">
+                <div class="bs-filter-item">
+                    <label class="bs-filter-label"><i class="bi bi-geo-alt-fill"></i> Ground</label>
+                    <select id="groundSelect" class="bs-filter-select bs-filter-select--ground">
+                        <option value="">🏟️ All Grounds</option>
+                        <% if (typeof grounds !== 'undefined' && grounds.length > 0) { %>
+                            <% grounds.forEach(g => { %>
+                                <option value="<%= g.id %>">⚽ <%= g.name %></option>
+                            <% }) %>
+                        <% } %>
+                    </select>
+                </div>
+
+                <div class="bs-filter-item">
+                    <label class="bs-filter-label"><i class="bi bi-calendar-range"></i> Report Type</label>
+                    <select id="periodType" class="bs-filter-select">
+                        <option value="yearly">📊 Yearly</option>
+                        <option value="monthly">📅 Monthly</option>
+                    </select>
+                </div>
+
+                <div class="bs-filter-item">
+                    <label class="bs-filter-label"><i class="bi bi-calendar3"></i> Year</label>
+                    <select id="yearSelect" class="bs-filter-select">
+                        <% years.forEach(y => { %>
+                            <option value="<%= y %>" <%= y == currentYear ? 'selected' : '' %>><%= y %> - <%= y+1 %> Fiscal Year</option>
+                        <% }) %>
+                    </select>
+                </div>
+
+                <div class="bs-filter-item" id="monthFilterWrapper" style="display:none;">
+                    <label class="bs-filter-label"><i class="bi bi-calendar-month"></i> Month</label>
+                    <select id="monthSelect" class="bs-filter-select">
+                        <option value="1">January</option>
+                        <option value="2">February</option>
+                        <option value="3">March</option>
+                        <option value="4">April</option>
+                        <option value="5">May</option>
+                        <option value="6">June</option>
+                        <option value="7">July</option>
+                        <option value="8">August</option>
+                        <option value="9">September</option>
+                        <option value="10">October</option>
+                        <option value="11">November</option>
+                        <option value="12">December</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="bs-filter-actions">
+                <button id="applyFiltersBtn" class="bs-btn-primary">
+                    <i class="bi bi-check-lg"></i> Apply Filter
+                </button>
+                <button id="downloadExcelBtn" class="ed-btn-excel">
+                    <i class="bi bi-file-earmark-excel"></i> Download Excel
+                </button>
+                <button id="downloadPdfBtn" class="ed-btn-pdf">
+                    <i class="bi bi-file-earmark-pdf"></i> Download PDF
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="ed-summary-row">
+        <div class="ed-summary-card ed-summary-card--total">
+            <div class="ed-summary-icon"><i class="bi bi-currency-rupee"></i></div>
+            <div class="ed-summary-info">
+                <div class="ed-summary-label">Total Amount</div>
+                <div class="ed-summary-value" id="summaryTotal">₹0</div>
+            </div>
+        </div>
+        <div class="ed-summary-card ed-summary-card--count">
+            <div class="ed-summary-icon"><i class="bi bi-list-ol"></i></div>
+            <div class="ed-summary-info">
+                <div class="ed-summary-label">Total Entries</div>
+                <div class="ed-summary-value" id="summaryCount">0</div>
+            </div>
+        </div>
+        <div class="ed-summary-card ed-summary-card--period">
+            <div class="ed-summary-icon"><i class="bi bi-calendar-check"></i></div>
+            <div class="ed-summary-info">
+                <div class="ed-summary-label">Period</div>
+                <div class="ed-summary-value" id="summaryPeriod">—</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="ed-table-card" id="printArea">
+        <div class="ed-table-card__header">
+            <div>
+                <span id="tableTitle">Expense Entries</span>
+                <span class="ed-badge" id="tableAccountCode"></span>
+            </div>
+        </div>
+        <div class="ed-table-wrapper">
+            <table class="ed-table" id="detailTable">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Date</th>
+                        <th>Title</th>
+                        <th>Vendor</th>
+                        <th>Ground</th>
+                        <th>Payment Mode</th>
+                        <th>Notes</th>
+                        <th class="text-end">Amount (₹)</th>
+                    </tr>
+                </thead>
+                <tbody id="detailTableBody">
+                    <tr><td colspan="8" class="text-center text-muted py-4">
+                        <i class="bi bi-arrow-repeat spin-icon"></i> Loading...
+                    </td></tr>
+                </tbody>
+                <tfoot id="detailTableFoot"></tfoot>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<style>
+/* ── Expense Detail Page Styles ── */
+.ed-back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 18px;
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    transition: background 0.2s;
+    white-space: nowrap;
+}
+.ed-back-btn:hover { background: rgba(255,255,255,0.25); color: #fff; }
+
+.bs-header-premium__content { display: flex; align-items: center; gap: 16px; flex: 1; }
+
+.ed-summary-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 20px;
+}
+.ed-summary-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px 24px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    border: 1px solid #e5e7eb;
+}
+.ed-summary-icon {
+    width: 48px; height: 48px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+}
+.ed-summary-card--total .ed-summary-icon { background: #d1fae5; color: #065f46; }
+.ed-summary-card--count .ed-summary-icon { background: #dbeafe; color: #1e40af; }
+.ed-summary-card--period .ed-summary-icon { background: #fef9c3; color: #854d0e; }
+.ed-summary-label { font-size: 12px; color: #6b7280; font-weight: 500; margin-bottom: 4px; }
+.ed-summary-value { font-size: 20px; font-weight: 700; color: #111827; }
+
+.ed-btn-excel {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 18px; border-radius: 8px; font-size: 13px; font-weight: 600;
+    border: none; cursor: pointer; transition: all 0.2s;
+    background: #16a34a; color: #fff;
+}
+.ed-btn-excel:hover { background: #15803d; }
+.ed-btn-pdf {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 18px; border-radius: 8px; font-size: 13px; font-weight: 600;
+    border: none; cursor: pointer; transition: all 0.2s;
+    background: #dc2626; color: #fff;
+}
+.ed-btn-pdf:hover { background: #b91c1c; }
+
+.ed-table-card {
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    border: 1px solid #e5e7eb;
+    overflow: hidden;
+    margin-bottom: 24px;
+}
+.ed-table-card__header {
+    padding: 16px 20px;
+    border-bottom: 1px solid #e5e7eb;
+    font-weight: 700;
+    font-size: 15px;
+    color: #1B4332;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.ed-badge {
+    display: inline-block;
+    margin-left: 10px;
+    padding: 2px 10px;
+    background: #d1fae5;
+    color: #065f46;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+}
+.ed-table-wrapper { overflow-x: auto; }
+.ed-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+.ed-table thead th {
+    background: #f9fafb;
+    padding: 10px 14px;
+    text-align: left;
+    font-weight: 600;
+    color: #374151;
+    border-bottom: 1px solid #e5e7eb;
+    white-space: nowrap;
+}
+.ed-table tbody td {
+    padding: 10px 14px;
+    border-bottom: 1px solid #f3f4f6;
+    color: #374151;
+    vertical-align: middle;
+}
+.ed-table tbody tr:hover { background: #f9fafb; }
+.ed-table tfoot td {
+    padding: 12px 14px;
+    font-weight: 700;
+    background: #f0fdf4;
+    border-top: 2px solid #1B4332;
+    color: #1B4332;
+}
+.ed-payment-badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+.ed-payment-badge.cash    { background: #d1fae5; color: #065f46; }
+.ed-payment-badge.upi     { background: #dbeafe; color: #1e40af; }
+.ed-payment-badge.card    { background: #fef3c7; color: #92400e; }
+.ed-payment-badge.bank    { background: #ede9fe; color: #5b21b6; }
+.ed-payment-badge.cheque  { background: #fce7f3; color: #9d174d; }
+.ed-payment-badge.other   { background: #f3f4f6; color: #374151; }
+.text-end { text-align: right !important; }
+.ed-no-data { text-align: center; padding: 40px; color: #9ca3af; font-size: 14px; }
+@media (max-width: 768px) {
+    .ed-summary-row { grid-template-columns: 1fr; }
+    .bs-header-premium { flex-direction: column; align-items: flex-start; gap: 12px; }
+}
+</style>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+const urlParams   = new URLSearchParams(window.location.search);
+const accountCode = urlParams.get('account_code') || '';
+const incomeType  = urlParams.get('income_type') || '0';
+let currentData   = null;
+
+// Pre-set filters from URL params
+(function initFilters() {
+    const pt = urlParams.get('period_type');
+    const yr = urlParams.get('year');
+    const mn = urlParams.get('month');
+    const gid = urlParams.get('ground_id');
+    if (pt) document.getElementById('periodType').value = pt;
+    if (yr) document.getElementById('yearSelect').value = yr;
+    if (mn) { document.getElementById('monthSelect').value = mn; }
+    if (gid) document.getElementById('groundSelect').value = gid;
+    if (pt === 'monthly') document.getElementById('monthFilterWrapper').style.display = 'block';
+})();
+
+function formatCurrency(amount) {
+    return new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0, minimumFractionDigits: 0 }).format(amount);
+}
+
+function formatDate(dateStr) {
+    if (!dateStr) return '—';
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+function paymentBadge(mode) {
+    const m = (mode || 'cash').toLowerCase();
+    const label = m.charAt(0).toUpperCase() + m.slice(1);
+    return `<span class="ed-payment-badge ${m}">${label}</span>`;
+}
+
+async function loadDetail() {
+    const periodType = document.getElementById('periodType').value;
+    const year       = document.getElementById('yearSelect').value;
+    const month      = document.getElementById('monthSelect').value;
+    const groundId   = document.getElementById('groundSelect').value;
+
+    const tbody = document.getElementById('detailTableBody');
+    tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted py-4">
+        <i class="bi bi-arrow-repeat spin-icon"></i> Loading...
+    </td></tr>`;
+
+    let url = `/balance-sheet/api/expense-detail?account_code=${accountCode}&period_type=${periodType}&year=${year}&income_type=${incomeType}`;
+    if (periodType === 'monthly') url += `&month=${month}`;
+    if (groundId) url += `&ground_id=${groundId}`;
+
+    try {
+        const res    = await fetch(url);
+        const result = await res.json();
+        if (!result.success) throw new Error(result.message);
+
+        currentData = result.data;
+        renderTable(result.data);
+        renderSummary(result.data, periodType, year, month);
+    } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="8" class="ed-no-data">
+            <i class="bi bi-exclamation-circle"></i> Failed to load data. Please try again.
+        </td></tr>`;
+        console.error(err);
+    }
+}
+
+function renderSummary(data, periodType, year, month) {
+    document.getElementById('summaryTotal').textContent = '₹' + formatCurrency(data.total);
+    document.getElementById('summaryCount').textContent = data.count;
+
+    let periodLabel = '';
+    if (periodType === 'monthly') {
+        const monthNames = ['','January','February','March','April','May','June','July','August','September','October','November','December'];
+        periodLabel = `${monthNames[parseInt(month)]} ${year}`;
+    } else {
+        periodLabel = `${year} - ${parseInt(year)+1}`;
+    }
+    document.getElementById('summaryPeriod').textContent = periodLabel;
+
+    // Update page title
+    const name = data.account?.account_name || accountCode;
+    document.getElementById('pageTitle').textContent = name + ' — Detail';
+    document.getElementById('pageSubtitle').textContent = `${data.count} entries · ${periodLabel}`;
+    document.getElementById('tableTitle').textContent = name + ' Entries';
+    document.getElementById('tableAccountCode').textContent = 'A/c ' + data.account?.account_code;
+    document.title = name + ' Detail';
+}
+
+function renderTable(data) {
+    const tbody = document.getElementById('detailTableBody');
+    const tfoot = document.getElementById('detailTableFoot');
+
+    if (!data.entries || data.entries.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="ed-no-data">
+            <i class="bi bi-inbox"></i><br>No entries found for the selected filters.
+        </td></tr>`;
+        tfoot.innerHTML = '';
+        return;
+    }
+
+    tbody.innerHTML = data.entries.map((e, i) => `
+        <tr>
+            <td style="color:#9ca3af;font-size:12px;">${i + 1}</td>
+            <td><strong>${formatDate(e.expense_date)}</strong></td>
+            <td>${e.title || '—'}</td>
+            <td>${e.vendor || '<span style="color:#d1d5db">—</span>'}</td>
+            <td><small style="color:#6b7280">${e.ground_name || 'All Grounds'}</small></td>
+            <td>${paymentBadge(e.payment_mode)}</td>
+            <td><small style="color:#6b7280">${e.notes || '—'}</small></td>
+            <td class="text-end"><strong>₹${formatCurrency(e.amount)}</strong></td>
+        </tr>
+    `).join('');
+
+    tfoot.innerHTML = `
+        <tr>
+            <td colspan="7"><strong>Total (${data.count} entries)</strong></td>
+            <td class="text-end"><strong>₹${formatCurrency(data.total)}</strong></td>
+        </tr>
+    `;
+}
+
+// ── Download Excel ────────────────────────────────────────────
+document.getElementById('downloadExcelBtn').addEventListener('click', () => {
+    if (!currentData || !currentData.entries.length) return xToast('No data to download', 'error');
+
+    const name = currentData.account?.account_name || accountCode;
+    const rows = currentData.entries.map((e, i) => ({
+        '#': i + 1,
+        'Date': formatDate(e.expense_date),
+        'Title': e.title || '',
+        'Vendor': e.vendor || '',
+        'Ground': e.ground_name || 'All Grounds',
+        'Payment Mode': e.payment_mode || '',
+        'Notes': e.notes || '',
+        'Amount (₹)': parseFloat(e.amount)
+    }));
+    rows.push({ '#': '', 'Date': '', 'Title': '', 'Vendor': '', 'Ground': '', 'Payment Mode': '', 'Notes': 'TOTAL', 'Amount (₹)': currentData.total });
+
+    const ws   = XLSX.utils.json_to_sheet(rows);
+    const wb   = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, name.substring(0, 31));
+
+    // Column widths
+    ws['!cols'] = [
+        {wch:4},{wch:14},{wch:24},{wch:18},{wch:18},{wch:14},{wch:28},{wch:14}
+    ];
+
+    XLSX.writeFile(wb, `${name.replace(/\s+/g,'_')}_detail.xlsx`);
+});
+
+// ── Download PDF (print to PDF) ───────────────────────────────
+document.getElementById('downloadPdfBtn').addEventListener('click', () => {
+    if (!currentData) return xToast('No data to download', 'error');
+    const name    = currentData.account?.account_name || accountCode;
+    const period  = document.getElementById('summaryPeriod').textContent;
+    const ground  = document.getElementById('groundSelect');
+    const groundLabel = ground.value
+        ? ground.options[ground.selectedIndex].text.replace('⚽ ', '')
+        : 'All Grounds';
+
+    const rows = currentData.entries.map((e, i) => `
+        <tr>
+            <td>${i+1}</td>
+            <td>${formatDate(e.expense_date)}</td>
+            <td>${e.title || '—'}</td>
+            <td>${e.vendor || '—'}</td>
+            <td>${e.ground_name || 'All Grounds'}</td>
+            <td>${(e.payment_mode||'cash').charAt(0).toUpperCase()+(e.payment_mode||'cash').slice(1)}</td>
+            <td>${e.notes || '—'}</td>
+            <td style="text-align:right">₹${formatCurrency(e.amount)}</td>
+        </tr>
+    `).join('');
+
+    const html = `
+    <!DOCTYPE html><html><head><meta charset="UTF-8">
+    <title>${name} Detail - ${period}</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; padding: 32px; color: #111; }
+        h2 { color: #1B4332; margin: 0 0 4px; }
+        .meta { color: #6b7280; font-size: 13px; margin-bottom: 24px; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        th { background: #1B4332; color: #fff; padding: 8px 10px; text-align: left; }
+        td { padding: 8px 10px; border-bottom: 1px solid #e5e7eb; }
+        tr:nth-child(even) td { background: #f9fafb; }
+        tfoot td { background: #d1fae5; font-weight: 700; color: #065f46; border-top: 2px solid #1B4332; }
+    </style></head><body>
+    <h2>${name} — Expense Detail</h2>
+    <div class="meta">Period: ${period} &nbsp;|&nbsp; Ground: ${groundLabel} &nbsp;|&nbsp; Total Entries: ${currentData.count}</div>
+    <table>
+        <thead><tr><th>#</th><th>Date</th><th>Title</th><th>Vendor</th><th>Ground</th><th>Payment</th><th>Notes</th><th>Amount (₹)</th></tr></thead>
+        <tbody>${rows}</tbody>
+        <tfoot><tr><td colspan="7">Total (${currentData.count} entries)</td><td style="text-align:right">₹${formatCurrency(currentData.total)}</td></tr></tfoot>
+    </table>
+    </body></html>`;
+
+    const win = window.open('', '_blank');
+    win.document.write(html);
+    win.document.close();
+    win.onload = () => { win.print(); };
+});
+
+// ── Event Listeners ───────────────────────────────────────────
+document.getElementById('periodType').addEventListener('change', function() {
+    document.getElementById('monthFilterWrapper').style.display = this.value === 'monthly' ? 'block' : 'none';
+});
+document.getElementById('applyFiltersBtn').addEventListener('click', loadDetail);
+
+// Init
+if (!accountCode) {
+    document.getElementById('detailTableBody').innerHTML = `<tr><td colspan="8" class="ed-no-data">
+        No expense selected. Please go back to the Balance Sheet and click an expense row.
+    </td></tr>`;
+} else {
+    loadDetail();
+}
+</script>
+
+<%- include('../partials/footer') %>

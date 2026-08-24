@@ -1,11 +1,23 @@
 require('dotenv').config();
 const nodemailer = require('nodemailer');
+const logger = require('../utils/logger');
 
 const transporter = nodemailer.createTransport({
-    service: process.env.MAIL_SERVICE || 'gmail',
+    host: 'smtp-relay.brevo.com',
+    port: 587,
+    secure: false,
     auth: {
-        user: process.env.MAIL_USER,
-        pass: process.env.MAIL_PASS
+    user: process.env.MAIL_USER,
+    pass: process.env.MAIL_PASS
+}
+});
+
+// Verify transporter config on startup
+transporter.verify((error) => {
+    if (error) {
+        logger.error('Mail transporter verification failed', { error: error.message });
+    } else {
+        logger.info('Mail transporter ready', { user: process.env.MAIL_USER });
     }
 });
 
@@ -30,7 +42,10 @@ const formatTime = (timeStr) => {
 
 // ── Send Booking Confirmation ─────────────────────
 const sendBookingConfirmation = async ({ customer_name, customer_email, booking_no, slot_date, start_time, end_time, ground_name, total_amount, advance_amount, balance_amount, payment_mode }) => {
-    if (!customer_email) return;
+    if (!customer_email) {
+        logger.warn('Booking confirmation email skipped — no customer email', { booking_no });
+        return;
+    }
 
     const mailOptions = {
         from: MAIL_FROM,
@@ -85,10 +100,14 @@ const sendBookingConfirmation = async ({ customer_name, customer_email, booking_
         `
     };
 
-    await transporter.sendMail(mailOptions);
+    try {
+        await transporter.sendMail(mailOptions);
+        logger.info('Booking confirmation email sent', { booking_no, to: customer_email });
+    } catch (err) {
+        logger.error('Booking confirmation email FAILED', { booking_no, to: customer_email, error: err.message });
+        throw err;
+    }
 };
-
-// ── Send Booking Approval Notification ───────────
 const sendBookingApproval = async ({ customer_name, customer_email, booking_no, slot_date, start_time, end_time, total_amount, deadline }) => {
     if (!customer_email) return;
 
@@ -262,7 +281,6 @@ const sendTenantWelcomeEmail = async ({ name, email, business_name, trial_days, 
     await transporter.sendMail(mailOptions);
 };
 
-
 // ── Send Trial Expiry Reminder Email ─────────────────────────
 // Called by the cron job 3 days before trial/subscription expires
 const sendTrialExpiryReminderEmail = async ({ name, email, business_name, expires_at, days_left }) => {
@@ -299,9 +317,68 @@ const sendTrialExpiryReminderEmail = async ({ name, email, business_name, expire
     await transporter.sendMail(mailOptions);
 };
 
+// ── Notify Super Admin: New Account Created ───────────────────
+const sendNewAccountNotificationToSuperAdmin = async ({ name, email, business_name, phone, city, plan_name, trial_days, expires_at }) => {
+    const adminEmail = process.env.SUPER_ADMIN_EMAIL;
+    if (!adminEmail) return;
 
-// ── Also add these to your module.exports: ────────────────────
-// sendTenantWelcomeEmail,
-// sendTrialExpiryReminderEmail,
+    const mailOptions = {
+        from:    MAIL_FROM,
+        to:      adminEmail,
+        subject: `New Account Created — ${business_name}`,
+        html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
+            <div style="background: #1B4332; padding: 24px; text-align: center;">
+                <h2 style="color: white; margin: 0;">New Account Created 🎉</h2>
+            </div>
+            <div style="padding: 24px;">
+                <p style="font-size: 16px;">A new admin account has been created on the platform.</p>
+                <table style="width: 100%; border-collapse: collapse; margin-top: 16px;">
+                    <tr style="background: #f5f5f5;">
+                        <td style="padding: 10px; font-weight: bold;">Name</td>
+                        <td style="padding: 10px;">${name}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; font-weight: bold;">Email</td>
+                        <td style="padding: 10px;">${email}</td>
+                    </tr>
+                    <tr style="background: #f5f5f5;">
+                        <td style="padding: 10px; font-weight: bold;">Business</td>
+                        <td style="padding: 10px;">${business_name}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; font-weight: bold;">Phone</td>
+                        <td style="padding: 10px;">${phone || '—'}</td>
+                    </tr>
+                    <tr style="background: #f5f5f5;">
+                        <td style="padding: 10px; font-weight: bold;">City</td>
+                        <td style="padding: 10px;">${city || '—'}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; font-weight: bold;">Plan</td>
+                        <td style="padding: 10px;">${plan_name} (${trial_days}-day trial)</td>
+                    </tr>
+                    <tr style="background: #f5f5f5;">
+                        <td style="padding: 10px; font-weight: bold;">Trial Ends</td>
+                        <td style="padding: 10px;">${expires_at}</td>
+                    </tr>
+                </table>
+            </div>
+            <div style="background: #f9f9f9; padding: 16px; text-align: center; color: #999; font-size: 12px;">
+                Start Sports Arena Platform
+            </div>
+        </div>`
+    };
 
-module.exports = { sendBookingConfirmation, sendBookingApproval, sendBalancePaymentConfirmation,sendTenantWelcomeEmail,sendTrialExpiryReminderEmail };
+    await transporter.sendMail(mailOptions);
+    logger.info('Super admin new account notification sent', { to: adminEmail, business_name });
+};
+
+module.exports = {
+    sendBookingConfirmation,
+    sendBookingApproval,
+    sendBalancePaymentConfirmation,
+    sendTenantWelcomeEmail,
+    sendTrialExpiryReminderEmail,
+    sendNewAccountNotificationToSuperAdmin
+};

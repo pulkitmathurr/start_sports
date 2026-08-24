@@ -32,6 +32,17 @@ const subscriptionGuard = async (req, res, next) => {
             return res.redirect('/auth/login');
         }
 
+        // ── CASE 0: Tenant suspended by super admin ───────────
+        // This is separate from subscription expiry — a suspended
+        // account is locked regardless of whether the subscription
+        // is paid and active. Only super admin can lift this.
+        if (req.tenant.status === 'suspended') {
+            if (req.xhr || (req.headers.accept && req.headers.accept.includes('application/json'))) {
+                return res.status(403).json(errorResponse('Your account has been suspended. Please contact support.'));
+            }
+            return res.redirect('/auth/login?suspended=1');
+        }
+
         // Fetch latest subscription for this tenant
         const [rows] = await db.promise().query(
             `SELECT * FROM tbl_subscriptions

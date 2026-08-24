@@ -3,205 +3,418 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage Tenants - Start Sports</title>
-    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/css/bootstrap.min.css">
-    <link rel="stylesheet" href="/css/style.css">
+    <title>Manage Partners - Start Sports</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="/css/super-admin.css">
     <style>
-        body { background: #0f1923; color: #fff; }
-        .sa-sidebar {
-            width: 220px; min-height: 100vh; background: #1a2332;
-            border-right: 1px solid rgba(255,255,255,0.07);
-            position: fixed; top: 0; left: 0;
-            display: flex; flex-direction: column; padding: 28px 0;
-        }
-        .sa-logo { font-family: 'Rajdhani', sans-serif; font-size: 20px; font-weight: 700; color: #fff; padding: 0 24px 24px; border-bottom: 1px solid rgba(255,255,255,0.07); }
-        .sa-logo span { color: #f39c12; font-size: 11px; display: block; font-weight: 500; letter-spacing: 1px; }
-        .sa-nav a { display: flex; align-items: center; gap: 10px; padding: 10px 24px; color: rgba(255,255,255,0.55); text-decoration: none; font-size: 14px; transition: all 0.2s; border-left: 3px solid transparent; }
-        .sa-nav a:hover, .sa-nav a.active { color: #fff; background: rgba(255,255,255,0.05); border-left-color: #f39c12; }
-        .sa-main { margin-left: 220px; padding: 32px; }
-
-        .filters-row { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
-        .filter-input {
-            background: #1a2332; border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 8px; color: #fff; padding: 8px 14px; font-size: 13px;
-        }
-        .filter-input:focus { outline: none; border-color: #f39c12; }
-        .filter-input option { background: #1a2332; }
-
-        .tenant-table { width: 100%; border-collapse: collapse; }
-        .tenant-table th { text-align: left; font-size: 11px; color: rgba(255,255,255,0.35); text-transform: uppercase; letter-spacing: 0.5px; padding: 0 14px 12px; border-bottom: 1px solid rgba(255,255,255,0.07); }
-        .tenant-table td { padding: 14px; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 14px; }
-        .tenant-table tr:hover td { background: rgba(255,255,255,0.02); }
-
-        .badge { border-radius: 20px; padding: 3px 10px; font-size: 11px; font-weight: 600; }
-        .badge-active    { background: rgba(46,204,113,0.15); color: #2ecc71; }
-        .badge-trial     { background: rgba(52,152,219,0.15); color: #3498db; }
-        .badge-suspended { background: rgba(231,76,60,0.15);  color: #e74c3c; }
-        .badge-expired   { background: rgba(149,165,166,0.15); color: #95a5a6; }
-
-        .action-btn {
-            border: 1px solid rgba(255,255,255,0.1); border-radius: 6px;
-            padding: 4px 10px; font-size: 12px; cursor: pointer;
-            background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.7);
-            transition: all 0.2s; margin-right: 4px;
-        }
-        .action-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
-        .action-btn.green { border-color: rgba(46,204,113,0.3); color: #2ecc71; }
-        .action-btn.red   { border-color: rgba(231,76,60,0.3);  color: #e74c3c; }
-
-        .section-card { background: #1a2332; border: 1px solid rgba(255,255,255,0.07); border-radius: 12px; padding: 24px; }
-
-        /* Toast */
-        .toast-msg {
-            position: fixed; bottom: 24px; right: 24px;
-            background: #1a2332; border: 1px solid rgba(46,204,113,0.4);
-            color: #2ecc71; border-radius: 8px; padding: 12px 20px;
-            font-size: 14px; display: none; z-index: 9999;
-        }
+        .page-btn { display:inline-flex; align-items:center; justify-content:center; min-width:32px; height:32px; padding:0 8px; border-radius:8px; border:1px solid var(--border); font-size:13px; font-weight:500; color:var(--text); text-decoration:none; transition:all .15s; }
+        .page-btn:hover:not(.disabled):not(.active) { background:var(--hover); }
+        .page-btn.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+        .page-btn.disabled { opacity:0.4; pointer-events:none; }
     </style>
 </head>
 <body>
+<%- include('../partials/sidebar', {
+    adminType: 'SUPER ADMIN',
+    currentPage: 'tenants',
+    logoutUrl: '/auth/logout',
+    loginUrl: '/auth/login'
+}) %>
 
-<div class="sa-sidebar">
-    <div class="sa-logo">START SPORTS<span>SUPER ADMIN</span></div>
-    <nav class="sa-nav">
-        <a href="/super-admin/dashboard">📊 Dashboard</a>
-        <a href="/super-admin/tenants" class="active">🏢 Tenants</a>
-        <a href="/auth/logout" onclick="doLogout(event)">🚪 Logout</a>
-    </nav>
-</div>
-
-<div class="sa-main">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:28px">
-        <h1 style="font-family:'Rajdhani',sans-serif;font-size:26px;margin:0">Manage Tenants</h1>
-        <span style="color:rgba(255,255,255,0.4);font-size:14px"><%= tenants.length %> tenants found</span>
+<main class="sa-main">
+    <div class="sa-topbar">
+        <div class="page-title">
+            <h1>Manage Partners</h1>
+            <p><%= pagination.totalRecords %> tenant<%= pagination.totalRecords !== 1 ? 's' : '' %> found</p>
+        </div>
+        <div class="topbar-right">
+            <div class="admin-badge"><i class="bi bi-shield-lock-fill"></i><span>Super Admin</span></div>
+            <button class="btn btn-primary" onclick="openCreateDrawer()">
+                <i class="bi bi-plus-lg"></i> Add Partner
+            </button>
+        </div>
     </div>
 
-    <!-- Filters -->
-    <div class="filters-row">
-        <input type="text" id="searchInput" class="filter-input" placeholder="Search name / email..."
-               value="<%= filters.search || '' %>" style="width:220px">
-
-        <select id="statusFilter" class="filter-input">
-            <option value="all" <%= !filters.status || filters.status==='all' ? 'selected' : '' %>>All Status</option>
-            <option value="active"    <%= filters.status==='active'    ? 'selected' : '' %>>Active</option>
-            <option value="suspended" <%= filters.status==='suspended' ? 'selected' : '' %>>Suspended</option>
-        </select>
-
-        <select id="planFilter" class="filter-input">
-            <option value="all">All Plans</option>
-            <% plans.forEach(p => { %>
-            <option value="<%= p.id %>" <%= filters.plan_id == p.id ? 'selected' : '' %>><%= p.name %></option>
-            <% }) %>
-        </select>
-
-        <button onclick="applyFilters()" class="action-btn" style="padding:8px 16px">Apply</button>
-    </div>
-
-    <!-- Table -->
     <div class="section-card">
+        <div class="filters-bar">
+            <select class="filter-select" id="statusFilter" onchange="applyFilters()">
+                <option value="all"             <%= !filters.status || filters.status==='all'              ? 'selected' : '' %>>All Status</option>
+                <option value="pending_approval"<%= filters.status==='pending_approval' ? 'selected' : '' %>>Pending Approval</option>
+                <option value="active"          <%= filters.status==='active'           ? 'selected' : '' %>>Active</option>
+                <option value="suspended"       <%= filters.status==='suspended'        ? 'selected' : '' %>>Suspended</option>
+            </select>
+            <select class="filter-select" id="planFilter" onchange="applyFilters()">
+                <option value="all" <%= !filters.plan_id || filters.plan_id==='all' ? 'selected' : '' %>>All Plans</option>
+                <% plans.forEach(p => { %>
+                <option value="<%= p.id %>" <%= filters.plan_id == p.id ? 'selected' : '' %>><%= p.name %></option>
+                <% }) %>
+            </select>
+            <input type="text" class="filter-input" id="searchInput" placeholder="Search by name, email..." value="<%= filters.search || '' %>">
+            <button class="btn btn-ghost" onclick="applyFilters()"><i class="bi bi-search"></i> Search</button>
+            <% if (filters.status || filters.plan_id || filters.search) { %>
+            <a href="/super-admin/tenants" class="btn btn-ghost"><i class="bi bi-x"></i> Clear</a>
+            <% } %>
+        </div>
+
+        <% if (tenants.length === 0) { %>
+        <div class="empty-state"><i class="bi bi-building-x"></i><p>No tenants found</p></div>
+        <% } else { %>
+        <div class="table-responsive">
         <table class="tenant-table">
             <thead>
                 <tr>
-                    <th>#</th>
+                    <th>Sr. No.</th>
                     <th>Business</th>
-                    <th>Owner</th>
                     <th>Plan</th>
-                    <th>Expires</th>
-                    <th>Bookings</th>
+                    <th>Subscription</th>
+                    <th>Grounds / Bookings</th>
                     <th>Status</th>
                     <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
                 <% tenants.forEach((t, i) => { %>
-                <tr id="row-<%= t.id %>">
-                    <td style="color:rgba(255,255,255,0.3)"><%= i + 1 %></td>
-                    <td>
-                        <div style="font-weight:600;color:#fff"><%= t.business_name %></div>
-                        <div style="font-size:12px;color:rgba(255,255,255,0.35)"><%= t.city || '—' %></div>
+    <tr>
+        <td style="color: var(--text-3); font-size: 13px;"><%= pagination.offset + i + 1 %></td>
+        <td>
+                        <div class="tenant-cell">
+                            <div class="tenant-initial"><%= t.business_name.charAt(0).toUpperCase() %></div>
+                            <div>
+                                <div style="font-weight:600;font-size:13px"><%= t.business_name %></div>
+                                <div style="font-size:11px;color:var(--text-3)"><%= t.owner_name %> · <%= t.email %></div>
+                                <div style="font-size:11px;color:var(--text-3)"><%= t.city || '' %></div>
+                            </div>
+                        </div>
                     </td>
                     <td>
-                        <div style="color:rgba(255,255,255,0.85)"><%= t.owner_name %></div>
-                        <div style="font-size:12px;color:rgba(255,255,255,0.35)"><%= t.email %></div>
+                        <div style="font-weight:600;font-size:13px"><%= t.plan_name || '—' %></div>
+                        <div style="font-size:11px;color:var(--text-3);text-transform:capitalize"><%= t.billing_cycle || '' %></div>
                     </td>
-                    <td style="color:rgba(255,255,255,0.7)"><%= t.plan_name || '—' %></td>
-                    <td style="font-size:12px;color:rgba(255,255,255,0.5)">
-                        <%= t.expires_at ? new Date(t.expires_at).toLocaleDateString('en-IN') : '—' %>
-                    </td>
-                    <td style="color:rgba(255,255,255,0.7)"><%= t.total_bookings %></td>
                     <td>
-                        <% if (t.status === 'suspended') { %>
-                            <span class="badge badge-suspended">Suspended</span>
-                        <% } else if (t.sub_status === 'active' && t.billing_cycle === 'trial') { %>
-                            <span class="badge badge-trial">Trial</span>
-                        <% } else if (t.sub_status === 'active') { %>
-                            <span class="badge badge-active">Active</span>
-                        <% } else { %>
-                            <span class="badge badge-expired">Expired</span>
+                        <div style="font-size:12px;color:var(--text-2)">
+                            <% if (t.expires_at) { %>Expires <%= new Date(t.expires_at).toLocaleDateString('en-IN', {day:'numeric',month:'short',year:'numeric'}) %><% } else { %>—<% } %>
+                        </div>
+                        <% if (t.payment_status === 'paid') { %>
+                            <span style="font-size:11px;color:var(--green)"><i class="bi bi-check-circle-fill"></i> Paid</span>
+                        <% } else if (t.payment_status === 'unpaid') { %>
+                            <span style="font-size:11px;color:var(--red)"><i class="bi bi-x-circle-fill"></i> Unpaid</span>
                         <% } %>
                     </td>
+                    <td style="font-size:13px">
+                        <i class="bi bi-geo-alt" style="color:var(--accent)"></i> <%= t.total_grounds %>
+                        &nbsp;·&nbsp;
+                        <i class="bi bi-calendar-check" style="color:var(--blue)"></i> <%= t.total_bookings %>
+                    </td>
                     <td>
-                        <a href="/super-admin/tenants/<%= t.id %>" class="action-btn">View</a>
-                        <% if (t.status === 'active') { %>
-                        <button class="action-btn red" onclick="suspendTenant(<%= t.id %>)">Suspend</button>
+                        <% if (t.status === 'pending_approval') { %>
+                            <span class="badge badge-pending"><i class="bi bi-hourglass-split"></i> Pending Approval</span>
                         <% } else if (t.status === 'suspended') { %>
-                        <button class="action-btn green" onclick="activateTenant(<%= t.id %>)">Activate</button>
+                            <span class="badge badge-suspended"><i class="bi bi-ban"></i> Suspended</span>
+                        <% } else if (t.sub_status === 'active' && t.billing_cycle === 'trial') { %>
+                            <span class="badge badge-trial"><i class="bi bi-gift"></i> Trial</span>
+                        <% } else if (t.sub_status === 'active') { %>
+                            <span class="badge badge-active"><i class="bi bi-check-circle"></i> Active</span>
+                        <% } else if (t.sub_status === 'expired') { %>
+                            <span class="badge badge-expired">Expired</span>
+                        <% } else { %>
+                            <span class="badge badge-pending"><%= t.sub_status || 'Unknown' %></span>
                         <% } %>
+                    </td>
+                    <td>
+                        <div style="display:flex;gap:6px;flex-wrap:wrap">
+                            <a href="/super-admin/tenants/<%= t.id %>" class="action-btn view"><i class="bi bi-eye"></i> View</a>
+                            <% if (t.status === 'pending_approval') { %>
+                                <button class="action-btn activate" onclick="approveTenant(<%= t.id %>)" title="Approve this account request"><i class="bi bi-check-circle"></i> Approve</button>
+                                <button class="action-btn suspend" style="background:#fee2e2;color:#dc2626;border-color:#fca5a5;" onclick="rejectTenant(<%= t.id %>)" title="Reject and delete this account request"><i class="bi bi-x-circle"></i> Reject</button>
+                            <% } else if (t.status === 'suspended') { %>
+                                <button class="action-btn activate" onclick="activateTenant(<%= t.id %>)"><i class="bi bi-check-circle"></i> Activate</button>
+                                <button class="action-btn suspend" style="background:#fee2e2;color:#dc2626;border-color:#fca5a5;" onclick="deleteTenant(<%= t.id %>)" title="Delete this partner permanently"><i class="bi bi-trash3"></i> Delete</button>
+                            <% } else if (t.status === 'active') { %>
+                                <button class="action-btn suspend" onclick="suspendTenant(<%= t.id %>)"><i class="bi bi-ban"></i> Suspend</button>
+                                <button class="action-btn suspend" style="background:#fee2e2;color:#dc2626;border-color:#fca5a5;" onclick="deleteTenant(<%= t.id %>)" title="Delete this partner permanently"><i class="bi bi-trash3"></i> Delete</button>
+                            <% } %>
+                        </div>
                     </td>
                 </tr>
                 <% }) %>
-
-                <% if (tenants.length === 0) { %>
-                <tr><td colspan="8" style="text-align:center;padding:40px;color:rgba(255,255,255,0.3)">No tenants found</td></tr>
-                <% } %>
             </tbody>
         </table>
+        </div>
+        <% } %>
+
+        <% if (pagination.totalPages > 1) { %>
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 20px; border-top:1px solid var(--border); flex-wrap:wrap; gap:12px;">
+            <small style="color:var(--text-3);">
+                Showing <%= pagination.offset + 1 %>–<%= Math.min(pagination.offset + pagination.limit, pagination.totalRecords) %>
+                of <%= pagination.totalRecords %> partners
+            </small>
+            <div style="display:flex; gap:4px; align-items:center;">
+                <% const buildUrl = (p) => {
+                    const q = new URLSearchParams();
+                    if (filters.status && filters.status !== 'all') q.set('status', filters.status);
+                    if (filters.plan_id && filters.plan_id !== 'all') q.set('plan_id', filters.plan_id);
+                    if (filters.search) q.set('search', filters.search);
+                    q.set('page', p);
+                    return '/super-admin/tenants?' + q.toString();
+                } %>
+                <a href="<%= buildUrl(1) %>" class="page-btn <%= pagination.currentPage === 1 ? 'disabled' : '' %>"><i class="bi bi-chevron-double-left"></i></a>
+                <a href="<%= buildUrl(pagination.currentPage - 1) %>" class="page-btn <%= pagination.currentPage === 1 ? 'disabled' : '' %>"><i class="bi bi-chevron-left"></i></a>
+                <% for (let p = Math.max(1, pagination.currentPage - 2); p <= Math.min(pagination.totalPages, pagination.currentPage + 2); p++) { %>
+                    <a href="<%= buildUrl(p) %>" class="page-btn <%= p === pagination.currentPage ? 'active' : '' %>"><%= p %></a>
+                <% } %>
+                <a href="<%= buildUrl(pagination.currentPage + 1) %>" class="page-btn <%= pagination.currentPage === pagination.totalPages ? 'disabled' : '' %>"><i class="bi bi-chevron-right"></i></a>
+                <a href="<%= buildUrl(pagination.totalPages) %>" class="page-btn <%= pagination.currentPage === pagination.totalPages ? 'disabled' : '' %>"><i class="bi bi-chevron-double-right"></i></a>
+            </div>
+        </div>
+        <% } %>
+    </div>
+</main>
+
+<!-- ── Create Tenant Drawer ────────────────────────────────── -->
+<div class="drawer-overlay" id="createDrawerOverlay">
+    <div class="drawer">
+        <div class="drawer-header">
+            <div class="drawer-header-left">
+                <div class="drawer-icon"><i class="bi bi-building-add"></i></div>
+                <div>
+                    <h2>Create New Partner</h2>
+                    <p style="font-size:11.5px;color:var(--text-3);margin-top:2px">Add a partner directly from super admin</p>
+                </div>
+            </div>
+            <button class="drawer-close" onclick="closeCreateDrawer()"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <div class="drawer-body">
+            <div class="drawer-section">
+                <div class="drawer-section-title">Business Info</div>
+                <div class="form-group">
+                    <label class="form-label">Business Name</label>
+                    <input type="text" class="form-input" id="cBusinessName" placeholder="e.g. City Sports Arena">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">City</label>
+                    <input type="text" class="form-input" id="cCity" placeholder="City">
+                </div>
+            </div>
+            <div class="drawer-section">
+                <div class="drawer-section-title">Owner Info</div>
+                <div class="form-group">
+                    <label class="form-label">Owner Name</label>
+                    <input type="text" class="form-input" id="cName" placeholder="Full name">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Phone</label>
+                    <input type="text" class="form-input" id="cPhone" placeholder="10-digit number">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-input" id="cEmail" placeholder="owner@example.com">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" class="form-input" id="cPassword" placeholder="Min 8 characters">
+                </div>
+            </div>
+            <div class="drawer-section">
+                <div class="drawer-section-title">Subscription</div>
+                <div class="form-group">
+                    <label class="form-label">Plan</label>
+                    <select class="form-select" id="cPlanId">
+                        <% plans.forEach(p => { %>
+                        <option value="<%= p.id %>"><%= p.name %> — ₹<%= p.price_monthly %>/mo</option>
+                        <% }) %>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="drawer-footer">
+            <button class="btn btn-ghost" onclick="closeCreateDrawer()">Cancel</button>
+            <button class="btn btn-primary" id="createBtn" onclick="createTenant()">
+                <i class="bi bi-plus-lg"></i> Create Partner
+            </button>
+        </div>
     </div>
 </div>
 
-<div class="toast-msg" id="toast"></div>
+<div id="toast" style="display:none"><i class="bi bi-check-circle-fill" id="toastIcon"></i><span id="toastMessage"></span></div>
 
 <script>
-function applyFilters() {
-    const search  = document.getElementById('searchInput').value;
-    const status  = document.getElementById('statusFilter').value;
-    const plan_id = document.getElementById('planFilter').value;
-    const params  = new URLSearchParams({ search, status, plan_id });
-    window.location.href = '/super-admin/tenants?' + params.toString();
+function getCsrfToken(){const m=document.cookie.match(/(?:^|; )csrf_token=([^;]*)/);return m?decodeURIComponent(m[1]):'';}
+function showToast(msg,isError=false){
+    const t=document.getElementById('toast');document.getElementById('toastMessage').textContent=msg;document.getElementById('toastIcon').className=isError?'bi bi-x-circle-fill':'bi bi-check-circle-fill';
+    t.style.display='flex';t.style.borderColor=isError?'rgba(231,76,60,.4)':'rgba(46,204,113,.4)';t.style.color=isError?'#e74c3c':'#2ecc71';
+    clearTimeout(t._t);t._t=setTimeout(()=>t.style.display='none',3500);
+}
+document.getElementById('toast').addEventListener('click',function(){this.style.display='none';});
+
+async function doAction(url,successMsg,body=null){
+    try{const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':getCsrfToken()},body:body?JSON.stringify(body):null});const data=await res.json();if(data.success){showToast(successMsg);setTimeout(()=>location.reload(),1200);}else showToast(data.message,true);}catch{showToast('Something went wrong',true);}
 }
 
-function showToast(msg, isError = false) {
-    const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.style.display = 'block';
-    t.style.borderColor = isError ? 'rgba(231,76,60,0.4)' : 'rgba(46,204,113,0.4)';
-    t.style.color = isError ? '#e74c3c' : '#2ecc71';
-    setTimeout(() => t.style.display = 'none', 3000);
+function openCreateDrawer(){
+    document.getElementById('createDrawerOverlay').classList.add('open');
+    document.body.style.overflow='hidden';
 }
-
-async function doAction(url, successMsg) {
-    try {
-        const res  = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' } });
-        const data = await res.json();
-        if (data.success) { showToast(successMsg); setTimeout(() => location.reload(), 1200); }
-        else showToast(data.message, true);
-    } catch { showToast('Something went wrong', true); }
+function closeCreateDrawer(){
+    document.getElementById('createDrawerOverlay').classList.remove('open');
+    document.body.style.overflow='';
 }
-
-function activateTenant(id) { doAction(`/super-admin/tenants/${id}/activate`, 'Tenant activated'); }
-function suspendTenant(id)  { if (confirm('Suspend this tenant?')) doAction(`/super-admin/tenants/${id}/suspend`, 'Tenant suspended'); }
-
-async function doLogout(e) {
-    e.preventDefault();
-    await fetch('/auth/logout', { method: 'POST' });
-    window.location.href = '/auth/login';
-}
-
-document.getElementById('searchInput').addEventListener('keydown', e => {
-    if (e.key === 'Enter') applyFilters();
+document.getElementById('createDrawerOverlay').addEventListener('click',e=>{
+    if(e.target===document.getElementById('createDrawerOverlay'))closeCreateDrawer();
 });
+
+function activateTenant(id){doAction(`/super-admin/tenants/${id}/activate`,'Partner activated successfully');}
+function approveTenant(id){
+    if(!confirm('Approve this account request? The admin will be able to log in immediately.')) return;
+    doAction(`/super-admin/tenants/${id}/approve`,'Account approved successfully');
+}
+function rejectTenant(id){
+    const reason=prompt('Reason for rejection (optional):');
+    if(reason===null) return; // cancelled
+    doAction(`/super-admin/tenants/${id}/reject`,'Account request rejected',{reason:reason.trim()||null});
+}
+function suspendTenant(id){
+    showInputModal({title:'Suspend Partner',message:'Partner will be logged out immediately and lose access.',placeholder:'Reason for suspension (shown to support team)...',confirmText:'Suspend Partner',cancelText:'Cancel',icon:'bi bi-slash-circle-fill',iconClass:'del-modal__icon--warn',required:false,rows:2},(reason)=>{
+        doAction(`/super-admin/tenants/${id}/suspend`,'Partner suspended',{reason:reason.trim()||null});
+    });
+}
+
+async function createTenant(){
+    const btn=document.getElementById('createBtn');btn.disabled=true;
+    const payload={
+        business_name:document.getElementById('cBusinessName').value.trim(),
+        name:document.getElementById('cName').value.trim(),
+        email:document.getElementById('cEmail').value.trim(),
+        phone:document.getElementById('cPhone').value.trim(),
+        city:document.getElementById('cCity').value.trim(),
+        password:document.getElementById('cPassword').value,
+        plan_id:document.getElementById('cPlanId').value
+    };
+    if(!payload.business_name||!payload.name||!payload.email||!payload.password){showToast('Please fill all required fields',true);btn.disabled=false;return;}
+    try{
+        const res=await fetch('/super-admin/tenants/create',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':getCsrfToken()},body:JSON.stringify(payload)});
+        const data=await res.json();
+        if(data.success){closeCreateDrawer();showToast('Partner created successfully');setTimeout(()=>window.location.href='/super-admin/tenants',1200);}
+        else showToast(data.message,true);
+    }catch{showToast('Network error',true);document.body.style.overflow='hidden';}
+    finally{
+        btn.disabled=false;
+    }
+}
+
+function applyFilters(){
+    const params=new URLSearchParams();
+    const s=document.getElementById('statusFilter').value,p=document.getElementById('planFilter').value,q=document.getElementById('searchInput').value.trim();
+    if(s&&s!=='all')params.set('status',s);if(p&&p!=='all')params.set('plan_id',p);if(q)params.set('search',q);
+    params.set('page','1');
+    window.location.href='/super-admin/tenants?'+params.toString();
+}
+document.getElementById('searchInput').addEventListener('keydown',e=>{if(e.key==='Enter')applyFilters();});
+</script>
+
+
+<!-- ── Input/Confirm Modal ─────────────────────────────────── -->
+<div id="inputModalOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;">
+    <div style="background:#fff;border-radius:16px;padding:28px 28px 24px;max-width:420px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.2);position:relative;">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+            <div id="inputModalIconWrap" style="width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;"></div>
+            <h5 id="inputModalTitle" style="margin:0;font-size:16px;font-weight:700;color:#1e293b;"></h5>
+        </div>
+        <p id="inputModalMessage" style="font-size:13px;color:#64748b;margin-bottom:14px;line-height:1.5;"></p>
+        <textarea id="inputModalTextarea" rows="2" placeholder=""
+            style="width:100%;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;padding:9px 12px;font-size:13px;font-family:inherit;resize:none;outline:none;color:#1e293b;transition:border-color 0.2s;"
+            onfocus="this.style.borderColor='#2563eb'" onblur="this.style.borderColor='#e2e8f0'"></textarea>
+        <div style="display:flex;gap:10px;margin-top:16px;justify-content:flex-end;">
+            <button id="inputModalCancel" style="background:transparent;border:1.5px solid #e2e8f0;color:#64748b;border-radius:9px;padding:8px 18px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;" onmouseover="this.style.borderColor='#94a3b8'" onmouseout="this.style.borderColor='#e2e8f0'"></button>
+            <button id="inputModalConfirm" style="border:none;color:#fff;border-radius:9px;padding:8px 20px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:opacity 0.2s;" onmouseover="this.style.opacity='0.88'" onmouseout="this.style.opacity='1'"></button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ── showInputModal ─────────────────────────────────────────────
+// Used by suspendTenant and deleteTenant
+function showInputModal({ title, message, placeholder, confirmText, cancelText, icon, iconClass, required, rows, confirmBg }, callback) {
+    const overlay   = document.getElementById('inputModalOverlay');
+    const iconWrap  = document.getElementById('inputModalIconWrap');
+    const titleEl   = document.getElementById('inputModalTitle');
+    const msgEl     = document.getElementById('inputModalMessage');
+    const textarea  = document.getElementById('inputModalTextarea');
+    const cancelBtn = document.getElementById('inputModalCancel');
+    const confirmBtn= document.getElementById('inputModalConfirm');
+
+    // Colours
+    const isDanger = iconClass && iconClass.includes('danger');
+    const bg = confirmBg || (isDanger ? '#dc2626' : '#f39c12');
+    iconWrap.style.background  = isDanger ? 'rgba(220,38,38,0.1)' : 'rgba(243,156,18,0.1)';
+    iconWrap.style.color       = isDanger ? '#dc2626' : '#f39c12';
+    confirmBtn.style.background = bg;
+
+    titleEl.textContent   = title || '';
+    msgEl.textContent     = message || '';
+    textarea.placeholder  = placeholder || '';
+    textarea.rows         = rows || 2;
+    textarea.value        = '';
+    cancelBtn.textContent = cancelText || 'Cancel';
+    confirmBtn.textContent= confirmText || 'Confirm';
+    iconWrap.innerHTML    = `<i class="bi ${icon || 'bi-question-circle'}"></i>`;
+
+    overlay.style.display = 'flex';
+    setTimeout(() => textarea.focus(), 50);
+
+    // Clone buttons to remove old listeners
+    const newCancel  = cancelBtn.cloneNode(true);
+    const newConfirm = confirmBtn.cloneNode(true);
+    cancelBtn.parentNode.replaceChild(newCancel, cancelBtn);
+    confirmBtn.parentNode.replaceChild(newConfirm, confirmBtn);
+
+    newConfirm.style.background = bg;
+    newConfirm.onmouseover = function(){ this.style.opacity='0.88'; };
+    newConfirm.onmouseout  = function(){ this.style.opacity='1'; };
+
+    newCancel.onclick = function() { overlay.style.display='none'; };
+    newConfirm.onclick = function() {
+        const val = document.getElementById('inputModalTextarea').value;
+        if (required && !val.trim()) {
+            document.getElementById('inputModalTextarea').style.borderColor = '#dc2626';
+            return;
+        }
+        overlay.style.display = 'none';
+        callback(val);
+    };
+
+    overlay.onclick = function(e) { if (e.target === overlay) overlay.style.display = 'none'; };
+}
+
+// ── deleteTenant ───────────────────────────────────────────────
+function deleteTenant(id) {
+    showInputModal({
+        title:       'Delete Partner',
+        message:     'This will permanently delete the partner and all their data. This action cannot be undone.',
+        placeholder: 'Reason for deletion (optional)...',
+        confirmText: 'Delete Partner',
+        cancelText:  'Cancel',
+        icon:        'bi-trash3-fill',
+        iconClass:   'del-modal__icon--danger',
+        confirmBg:   '#dc2626',
+        required:    false,
+        rows:        2
+    }, (reason) => {
+        doAction(`/super-admin/tenants/${id}/delete`, 'Partner deleted', { reason: reason.trim() || null });
+    });
+}
+</script>
+
+<script>
+(function() {
+    function ping() {
+        fetch('/super-admin/keepalive', { method: 'GET', credentials: 'same-origin' })
+            .catch(function() {});
+    }
+    ping();
+    setInterval(ping, 10 * 60 * 1000);
+})();
 </script>
 </body>
 </html>

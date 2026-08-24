@@ -1,0 +1,184 @@
+<%- include('../../partials/header') %>
+
+<div class="row settings-page-header">
+
+    <!-- Page Header - Blue Theme -->
+    <div class="col-12 mb-4">
+        <div class="student-header">
+            <div class="student-header__left">
+                <div class="student-header__icon">
+                    <i class="bi bi-mortarboard"></i>
+                </div>
+                <div>
+                    <h4 class="student-header__title">Manage Students</h4>
+                    <span class="student-header__sub">Enrol and manage academy students</span>
+                </div>
+            </div>
+            <a href="/academy/students/new" class="student-add-btn">
+                <i class="bi bi-plus-lg"></i> Add Student
+            </a>
+        </div>
+    </div>
+
+    <!-- Toast triggers -->
+    <% if (success) { %>
+    <script>document.addEventListener('DOMContentLoaded',()=>xToast('<%= success.replace(/'/g,"\'") %>','success'));</script>
+    <% } %>
+    <% if (error) { %>
+    <script>document.addEventListener('DOMContentLoaded',()=>xToast('<%= error.replace(/'/g,"\'") %>','error'));</script>
+    <% } %>
+
+    <!-- Search + Filter bar -->
+    <div class="col-12 mb-3">
+        <div class="student-search-bar">
+            <form method="GET" action="/academy/students" class="student-search-form">
+                <input type="text" name="search" class="student-search-input"
+                       placeholder="Search name, phone..."
+                       value="<%= search || '' %>">
+                <select name="status" class="student-search-select">
+                    <option value="">All Status</option>
+                    <option value="1" <%= status === '1' ? 'selected' : '' %>>Active</option>
+                    <option value="0" <%= status === '0' ? 'selected' : '' %>>Inactive</option>
+                </select>
+                <button type="submit" class="student-search-btn">
+                    <i class="bi bi-search"></i> Search
+                </button>
+                <% if (search || status) { %>
+                <a href="/academy/students" class="student-clear-btn">
+                    <i class="bi bi-x-lg"></i> Clear
+                </a>
+                <% } %>
+            </form>
+        </div>
+    </div>
+
+    <!-- Students Table -->
+    <div class="col-12">
+        <% if (students.length === 0) { %>
+        <div class="student-empty">
+            <div class="student-empty__icon">
+                <i class="bi bi-mortarboard"></i>
+            </div>
+            <p class="student-empty__title">No students found</p>
+            <small class="student-empty__sub"><%= search ? 'Try a different search term' : 'Click "Add Student" to enrol your first student' %></small>
+        </div>
+        <% } else { %>
+        <div class="student-table-card">
+            <div class="table-responsive">
+                <table class="student-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Student</th>
+                            <th>Parent / WhatsApp</th>
+                            <th>Batch</th>
+                            <th>Enrolled</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% students.forEach((student, index) => { %>
+                        <tr>
+                            <td class="student-row-num"><%= index + 1 %></td>
+
+                            <!-- Student name + photo -->
+                            <td>
+                                <div class="student-info">
+                                    <% if (student.photo) { %>
+                                        <img src="/uploads/students/<%= student.photo %>"
+                                             alt="<%= student.name %>"
+                                             class="student-avatar">
+                                    <% } else { %>
+                                        <div class="student-avatar-placeholder">
+                                            <%= student.name.charAt(0).toUpperCase() %>
+                                        </div>
+                                    <% } %>
+                                    <div>
+                                        <div class="student-name"><%= student.name %></div>
+                                        <% if (student.phone) { %>
+                                            <div class="student-phone"><%= student.phone %></div>
+                                        <% } %>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <!-- Parent info -->
+                            <td>
+                                <div class="student-parent-name"><%= student.parent_name || '—' %></div>
+                                <div class="student-whatsapp">
+                                    <i class="bi bi-whatsapp"></i> <%= student.parent_phone %>
+                                </div>
+                            </td>
+
+                            <!-- Batch -->
+                            <td>
+                                <% if (student.batch_name) { %>
+                                    <span class="student-batch-badge">
+                                        <%= student.batch_name %>
+                                    </span>
+                                    <% if (student.batch_sport) { %>
+                                        <div class="student-batch-sport"><%= student.batch_sport %></div>
+                                    <% } %>
+                                <% } else { %>
+                                    <span style="color:#94a3b8;">Not assigned</span>
+                                <% } %>
+                            </td>
+
+                            <!-- Enrolled date -->
+                            <td class="student-enrolled-date">
+                                <%= student.enrolled_at ? new Date(student.enrolled_at).toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'}) : '—' %>
+                            </td>
+
+                            <!-- Status -->
+                            <td>
+                                <% if (student.status === 1) { %>
+                                    <span class="student-status-badge student-status-active">Active</span>
+                                <% } else { %>
+                                    <span class="student-status-badge student-status-inactive">Inactive</span>
+                                <% } %>
+                            </td>
+
+                            <!-- Actions -->
+                            <td>
+                                <div class="student-actions">
+                                    <a href="/academy/students/<%= student.id %>/profile"
+                                       class="student-action-btn student-action-profile">
+                                        <i class="bi bi-person-lines-fill"></i> Profile
+                                    </a>
+                                    <a href="/academy/students/<%= student.id %>/edit"
+                                       class="student-action-btn student-action-edit">
+                                        <i class="bi bi-pencil"></i> Edit
+                                    </a>
+
+                                    <form method="POST" action="/academy/students/<%= student.id %>/toggle" style="margin:0;">
+                                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                        <button type="submit" class="student-action-btn student-action-toggle">
+                                            <%= student.status === 1 ? 'Deactivate' : 'Activate' %>
+                                        </button>
+                                    </form>
+
+                                    <form method="POST" action="/academy/students/<%= student.id %>/delete" style="margin:0;"
+                                          onsubmit="return confirm('Delete <%= student.name %>? This cannot be undone.')">
+                                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                        <button type="submit" class="student-action-btn student-action-delete">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+            <div class="student-table-footer">
+                Showing <%= students.length %> student<%= students.length !== 1 ? 's' : '' %>
+            </div>
+        </div>
+        <% } %>
+    </div>
+
+</div>
+
+<%- include('../../partials/footer') %>

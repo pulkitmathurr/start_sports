@@ -1,9 +1,532 @@
 <%- include('../partials/header') %>
 
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   GROUND CARDS - Premium Modern UI with Animations
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Page Container Animation */
+.settings-page-header {
+    animation: pageFadeIn 0.5s ease-out;
+}
+
+@keyframes pageFadeIn {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Page Header - Premium with BLUE theme */
+.hx-page-header {
+    background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 45%, #1e40af 100%);
+    border-radius: 20px;
+    padding: 18px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.2);
+}
+
+.hx-page-header::before {
+    content: '';
+    position: absolute;
+    top: -30%;
+    right: -5%;
+    width: 250px;
+    height: 250px;
+    background: radial-gradient(circle, rgba(96, 165, 250, 0.15) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.hx-page-header::after {
+    content: '';
+    position: absolute;
+    bottom: -20%;
+    left: -5%;
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, rgba(96, 165, 250, 0.1) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.hx-page-header__left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    position: relative;
+    z-index: 2;
+}
+
+.hx-page-header__icon {
+    width: 46px;
+    height: 46px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.hx-page-header__title {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 3px;
+    letter-spacing: -0.3px;
+}
+
+.hx-page-header__sub {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.hx-page-header__meta {
+    position: relative;
+    z-index: 2;
+}
+
+.hx-ground-count {
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(8px);
+    padding: 6px 16px;
+    border-radius: 30px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Empty State */
+.hx-empty {
+    text-align: center;
+    padding: 60px 30px;
+    background: #f8fafc;
+    border-radius: 24px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.03);
+}
+
+.hx-empty__icon {
+    width: 70px;
+    height: 70px;
+    background: #e0f2fe;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+}
+
+.hx-empty__icon i {
+    font-size: 2rem;
+    color: #2563eb;
+}
+
+.hx-empty__title {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 6px;
+}
+
+.hx-empty__sub {
+    color: #64748b;
+    font-size: 0.8rem;
+}
+
+/* ============================================
+   PREMIUM GROUND CARD - OFF-WHITE BG, BLUE ICONS, BLACK TEXT
+   ============================================ */
+
+.hx-card {
+    background: #f8fafc;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+    transition: all 0.35s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+    border: 1px solid #e2e8f0;
+    position: relative;
+    animation: cardReveal 0.5s ease-out backwards;
+    cursor: pointer;
+}
+
+@keyframes cardReveal {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.hx-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 28px rgba(37, 99, 235, 0.12);
+    border-color: rgba(37, 99, 235, 0.25);
+}
+
+/* Stagger Animation */
+.hx-card:nth-child(1) { animation-delay: 0.02s; }
+.hx-card:nth-child(2) { animation-delay: 0.05s; }
+.hx-card:nth-child(3) { animation-delay: 0.08s; }
+.hx-card:nth-child(4) { animation-delay: 0.11s; }
+.hx-card:nth-child(5) { animation-delay: 0.14s; }
+.hx-card:nth-child(6) { animation-delay: 0.17s; }
+
+/* Image Panel - Blue gradient */
+.hx-card__img-panel {
+    position: relative;
+    height: 160px;
+    overflow: hidden;
+    background: linear-gradient(135deg, #1e3a5f, #1e40af);
+}
+
+.hx-card__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.hx-card:hover .hx-card__img {
+    transform: scale(1.05);
+}
+
+.hx-card__img-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #1e3a5f, #1e40af);
+}
+
+.hx-card__img-placeholder i {
+    font-size: 2.5rem;
+    color: rgba(255, 255, 255, 0.3);
+}
+
+.hx-card__img-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 50%;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.5), transparent);
+    pointer-events: none;
+}
+
+/* Sport Badge - Blueish */
+.hx-card__sport {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(8px);
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: #fff;
+    letter-spacing: 0.5px;
+    z-index: 2;
+}
+
+.hx-card__sport i {
+    margin-right: 4px;
+    font-size: 0.6rem;
+    color: #60a5fa;
+}
+
+/* Status Dot - Blue */
+.hx-card__status-dot {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    z-index: 2;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3);
+}
+
+.hx-card__status-dot--active {
+    background: #22c55e;
+    animation: pulseGreen 2s infinite;
+}
+
+.hx-card__status-dot--inactive {
+    background: #f87171;
+}
+
+@keyframes pulseGreen {
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+    50% { opacity: 0.8; box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.2); }
+}
+
+/* Card Body */
+.hx-card__body {
+    padding: 14px 16px 16px;
+}
+
+/* Top Section - Black Text */
+.hx-card__top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.hx-card__name {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1rem;
+    font-weight: 800;
+    color: #1e293b;
+    line-height: 1.3;
+    margin-bottom: 3px;
+}
+
+.hx-card__address {
+    font-size: 0.65rem;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.hx-card__address i {
+    font-size: 0.6rem;
+    color: #3b82f6;
+}
+
+/* Status Badge - Blueish */
+.hx-card__status-badge {
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.6rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+.hx-card__status-badge--active {
+    background: #dbeafe;
+    color: #1e40af;
+    border: 1px solid #bfdbfe;
+}
+
+.hx-card__status-badge--inactive {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
+/* Divider */
+.hx-card__divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #e2e8f0, transparent);
+    margin: 10px 0;
+}
+
+/* Stats Row - Black Text, Blueish Highlights */
+.hx-card__stats {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+}
+
+.hx-card__stat {
+    flex: 1;
+    text-align: center;
+    min-width: 55px;
+}
+
+.hx-card__stat-val {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #1e293b;
+    display: block;
+    line-height: 1.2;
+}
+
+.hx-card__stat-val--green {
+    color: #2563eb;
+}
+
+.hx-card__stat-val--amber {
+    color: #2563eb;
+}
+
+.hx-card__stat-label {
+    font-size: 0.55rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #94a3b8;
+}
+
+.hx-card__stat-sep {
+    width: 1px;
+    height: 20px;
+    background: #e2e8f0;
+}
+
+/* Footer - Blueish text */
+.hx-card__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 10px;
+    border-top: 1px solid #e2e8f0;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.hx-card__last-booking {
+    font-size: 0.65rem;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+}
+
+.hx-card__last-booking i {
+    font-size: 0.65rem;
+    color: #3b82f6;
+}
+
+.hx-card__cta {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #2563eb;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.2s ease;
+}
+
+.hx-card__cta i {
+    font-size: 0.65rem;
+    transition: transform 0.2s ease;
+}
+
+.hx-card:hover .hx-card__cta i {
+    transform: translateX(4px);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .hx-page-header {
+        padding: 14px 18px;
+    }
+    
+    .hx-page-header__icon {
+        width: 38px;
+        height: 38px;
+        font-size: 1.2rem;
+    }
+    
+    .hx-page-header__title {
+        font-size: 1.1rem;
+    }
+    
+    .hx-page-header__sub {
+        font-size: 0.68rem;
+    }
+    
+    .hx-card__img-panel {
+        height: 140px;
+    }
+    
+    .hx-card__stats {
+        gap: 4px;
+    }
+    
+    .hx-card__stat-val {
+        font-size: 0.85rem;
+    }
+    
+    .hx-card__stat-label {
+        font-size: 0.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .hx-card__top {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .hx-card__stats {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    .hx-card__stat {
+        min-width: 60px;
+    }
+    
+    .hx-card__footer {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+/* Hover Effects for Links */
+a.text-decoration-none {
+    text-decoration: none;
+}
+
+/* Additional Polish */
+.hx-card__stat-val {
+    transition: color 0.2s ease;
+}
+
+.hx-card:hover .hx-card__stat-val--green {
+    color: #1d4ed8;
+}
+
+.hx-card__status-badge {
+    transition: all 0.2s ease;
+}
+
+/* Empty state button */
+.hx-empty a.btn {
+    background: #2563eb;
+    border: none;
+    border-radius: 10px;
+    padding: 8px 20px;
+    transition: all 0.2s ease;
+}
+
+.hx-empty a.btn:hover {
+    background: #1d4ed8;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(37, 99, 235, 0.25);
+}
+</style>
+
 <div class="row settings-page-header">
 
-    <!-- Page Header -->
-    <div class="col-12 mb-4">
+    <!-- Page Header - Compact Blue -->
+    <div class="col-12 mb-3">
         <div class="hx-page-header">
             <div class="hx-page-header__left">
                 <div class="hx-page-header__icon">
@@ -29,16 +552,16 @@
             <small class="hx-empty__sub">Add a ground first to start viewing booking history</small>
         </div>
         <% } else { %>
-        <div class="row g-4">
-            <% grounds.forEach(ground => { %>
+        <div class="row g-3">
+            <% grounds.forEach((ground, index) => { %>
             <div class="col-12 col-sm-6 col-lg-4 col-xl-4">
                 <a href="/history/<%= ground.id %>" class="text-decoration-none">
-                    <div class="hx-card">
+                    <div class="hx-card" data-ground-id="<%= ground.id %>">
 
-                        <!-- Left: Image Panel -->
+                        <!-- Image Panel -->
                         <div class="hx-card__img-panel">
                             <% if (ground.primary_image) { %>
-                                <img src="/uploads/grounds/<%= ground.primary_image %>" class="hx-card__img" alt="<%= ground.name %>">
+                                <img src="/uploads/grounds/<%= ground.primary_image %>" class="hx-card__img" alt="<%= ground.name %>" onerror="this.src='https://placehold.co/600x400/1e3a5f/white?text=No+Image'">
                             <% } else { %>
                                 <div class="hx-card__img-placeholder">
                                     <i class="bi bi-geo-alt-fill"></i>
@@ -49,24 +572,25 @@
                             <!-- Sport badge -->
                             <span class="hx-card__sport">
                                 <i class="bi bi-dribbble"></i>
-                                <%= ground.sport_type %>
+                                <%= ground.sport_type || 'Cricket' %>
                             </span>
 
                             <!-- Status dot -->
-                            <span class="hx-card__status-dot hx-card__status-dot--<%= ground.status %>"></span>
+                            <span class="hx-card__status-dot hx-card__status-dot--<%= ground.status %>" title="Ground is <%= ground.status %>"></span>
                         </div>
 
-                        <!-- Right: Info Panel -->
+                        <!-- Info Panel -->
                         <div class="hx-card__body">
 
                             <div class="hx-card__top">
                                 <div>
                                     <div class="hx-card__name"><%= ground.name %></div>
                                     <div class="hx-card__address">
-                                        <i class="bi bi-geo-alt me-1"></i><%= ground.address %>
+                                        <i class="bi bi-geo-alt me-1"></i><%= ground.address || 'Address not specified' %>
                                     </div>
                                 </div>
                                 <span class="hx-card__status-badge hx-card__status-badge--<%= ground.status %>">
+                                    <i class="bi bi-<%= ground.status === 'active' ? 'check-circle' : 'x-circle' %> me-1"></i>
                                     <%= ground.status %>
                                 </span>
                             </div>
@@ -74,7 +598,7 @@
                             <!-- Divider -->
                             <div class="hx-card__divider"></div>
 
-                            <!-- Stats Row -->
+                            <!-- Stats Row - Blueish text -->
                             <div class="hx-card__stats">
                                 <div class="hx-card__stat">
                                     <span class="hx-card__stat-val"><%= ground.total_bookings || 0 %></span>
@@ -97,7 +621,7 @@
                                 </div>
                             </div>
 
-                            <!-- Footer -->
+                            <!-- Footer - Blueish -->
                             <div class="hx-card__footer">
                                 <span class="hx-card__last-booking">
                                     <% if (ground.last_booking_date) { %>
@@ -121,5 +645,24 @@
     </div>
 
 </div>
+
+<script>
+// Optional: Add hover sound or additional animations
+document.addEventListener('DOMContentLoaded', function() {
+    const cards = document.querySelectorAll('.hx-card');
+    
+    // Add subtle entry animation for cards
+    cards.forEach((card, idx) => {
+        card.style.animationDelay = `${0.02 * (idx + 1)}s`;
+    });
+    
+    // Optional: Add tooltip for status dot
+    const statusDots = document.querySelectorAll('.hx-card__status-dot');
+    statusDots.forEach(dot => {
+        const status = dot.classList.contains('hx-card__status-dot--active') ? 'Active' : 'Inactive';
+        dot.setAttribute('title', `Ground is ${status}`);
+    });
+});
+</script>
 
 <%- include('../partials/footer') %>

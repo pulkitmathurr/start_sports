@@ -10,8 +10,18 @@
                     <i class="bi bi-calendar2-check"></i>
                 </div>
                 <div>
-                    <h4 class="bk-page-header__title">Today's Bookings</h4>
-                    <span class="bk-page-header__sub">Manage and monitor all ground bookings</span>
+                    <h4 class="bk-page-header__title"> Bookings</h4>
+                    <span class="bk-page-header__sub">
+                        <% if (isToday) { %>
+                            Manage and monitor all ground bookings
+                        <% } else { %>
+                            Showing bookings for <strong><%= displayDate %></strong>
+                            &nbsp;·&nbsp;
+                            <a href="/bookings" style="color:#1B4332; font-weight:600; font-size:0.75rem;">
+                                <i class="bi bi-arrow-left me-1"></i>Back to Today
+                            </a>
+                        <% } %>
+                    </span>
                 </div>
             </div>
             <div class="bk-page-header__actions">
@@ -23,6 +33,9 @@
                 <button onclick="openQuickBook()" class="bk-quickbook-btn">
                     <i class="bi bi-lightning-charge-fill me-2"></i>QUICK BOOK
                 </button>
+                <a href="/bookings/bulk" class="bk-quickbook-btn" style="background:#0f4c81; text-decoration:none; display:inline-flex; align-items:center;">
+                    <i class="bi bi-calendar2-range-fill me-2"></i>BULK BOOK
+                </a>
             </div>
         </div>
     </div>
@@ -136,7 +149,7 @@
             </div>
         </div>
     <% } %>
-
+<% if (isToday) { %>
     <!-- Stats Cards -->
     <div class="col-6 col-md-3 mb-4">
         <div class="bk-stat-card bk-stat-card--total">
@@ -147,6 +160,7 @@
             </div>
         </div>
     </div>
+    
     <div class="col-6 col-md-3 mb-4">
         <div class="bk-stat-card bk-stat-card--confirmed">
             <div class="bk-stat-card__icon"><i class="bi bi-check-circle"></i></div>
@@ -174,13 +188,13 @@
             </div>
         </div>
     </div>
-
+<% } %>
     <!-- Bookings Table -->
     <div class="col-12">
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <span style="font-family:'Rajdhani',sans-serif; letter-spacing:1px; font-weight:600; color:#0f1b0f;">BOOKINGS</span>
-                <small style="color:#7a8c7a;">
+                <small style="color:#7a8c7a;" id="bk-count-label">
                     <%= pagination.totalRecords %> records | Page <%= pagination.currentPage %> of <%= pagination.totalPages %>
                 </small>
             </div>
@@ -206,13 +220,22 @@
                                     <th class="bk-th">Action</th>
                                  </tr>
                             </thead>
-                            <tbody>
+                            <tbody id="bk-tbody">
                                 <% bookings.forEach(b=> { %>
                                     <tr style="border-bottom:1px solid #f3f4f6;">
                                         <td style="padding:10px 14px;">
+                                            <% if (b.is_bulk) { %>
+                                            <span style="color:#0f4c81; font-weight:700; font-size:0.78rem; font-family:'Rajdhani',sans-serif; letter-spacing:0.5px; white-space:nowrap;">
+                                                <%= b.bulk_booking_id %>
+                                            </span>
+                                            <span style="display:block; margin-top:3px; background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; border-radius:20px; font-size:0.62rem; font-weight:700; padding:1px 7px; width:fit-content;">
+                                                <i class="bi bi-calendar2-range me-1"></i><%= b.slot_count %> slots
+                                            </span>
+                                            <% } else { %>
                                             <span style="color:#1B4332; font-weight:700; font-size:0.78rem; font-family:'Rajdhani',sans-serif; letter-spacing:0.5px; white-space:nowrap;">
                                                 <%= b.booking_no %>
                                             </span>
+                                            <% } %>
                                         </td>
                                         <td style="padding:10px 10px;">
                                             <% if (b.ground_name) { %>
@@ -228,15 +251,28 @@
                                             <div style="color:#9CA3AF; font-size:0.7rem; margin-top:1px;"><%= b.customer_phone %></div>
                                         </td>
                                         <td style="padding:10px 10px; white-space:nowrap;">
+                                            <% if (b.is_bulk) { %>
+                                            <div style="color:#374151; font-weight:500; font-size:0.78rem;"><%= b.date_range %></div>
+                                            <div style="color:#9CA3AF; font-size:0.7rem; margin-top:1px;"><%= b.slot_count %> slot<%= b.slot_count > 1 ? 's' : '' %></div>
+                                            <% } else { %>
                                             <div style="color:#374151; font-weight:500; font-size:0.78rem;"><%= new Date(b.slot_date).toLocaleDateString('en-IN', {day:'2-digit', month:'short'}) %></div>
                                             <div style="color:#9CA3AF; font-size:0.7rem; margin-top:1px;"><%= b.start_time.slice(0,5) %> – <%= b.end_time.slice(0,5) %></div>
+                                            <% } %>
                                         </td>
                                         <td style="padding:10px 10px; white-space:nowrap;">
+                                            <% if (b.is_bulk) { %>
+                                            <div style="color:#111827; font-weight:700; font-size:0.8rem;">₹<%= Number(b.grand_total).toLocaleString('en-IN') %> <span style="font-size:0.65rem; color:#6b7280; font-weight:400;">total</span></div>
+                                            <div style="font-size:0.68rem; margin-top:1px;">
+                                                <span style="color:#1B4332;">↑₹<%= Number(b.total_advance).toLocaleString('en-IN') %></span>
+                                                <span style="color:<%= (b.total_balance > 0) ? '#b45309' : '#1B4332' %>; margin-left:4px;">Bal:₹<%= Number(b.total_balance).toLocaleString('en-IN') %></span>
+                                            </div>
+                                            <% } else { %>
                                             <div style="color:#111827; font-weight:700; font-size:0.8rem;">₹<%= b.total_amount %> <span style="font-size:0.65rem; color:#6b7280; font-weight:400;">total</span></div>
                                             <div style="font-size:0.68rem; margin-top:1px;">
                                                 <span style="color:#1B4332;">↑₹<%= b.advance_amount || 0 %></span>
                                                 <span style="color:<%= (b.balance_amount > 0) ? '#b45309' : '#1B4332' %>; margin-left:4px;">Bal:₹ <%= b.balance_amount || 0 %></span>
                                             </div>
+                                            <% } %>
                                         </td>
                                         <td style="padding:10px 10px;">
                                             <% if (b.payment_status === 'paid') { %>
@@ -248,7 +284,9 @@
                                             <% } %>
                                         </td>
                                         <td style="padding:10px 10px;">
-                                            <% if (b.booking_status === 'confirmed') { %>
+                                            <% if (b.is_bulk) { %>
+                                                <span class="bk-badge bk-badge--blue">Bulk</span>
+                                            <% } else if (b.booking_status === 'confirmed') { %>
                                                 <span class="bk-badge bk-badge--green">Confirmed</span>
                                             <% } else if (b.booking_status === 'pending') { %>
                                                 <span class="bk-badge bk-badge--amber">Pending</span>
@@ -274,6 +312,11 @@
                                             <% } %>
                                         </td>
                                         <td style="padding:10px 10px;">
+                                            <% if (b.is_bulk) { %>
+                                            <a href="/bookings/bulk/<%= b.bulk_booking_id %>" class="dropdown-item bk-action-item" style="display:inline-flex; align-items:center; padding:5px 10px; border:1px solid #e5e7eb; border-radius:7px; font-size:0.75rem; font-weight:600; color:#0f4c81; text-decoration:none; white-space:nowrap;">
+                                                <i class="bi bi-eye me-1"></i> View All Slots
+                                            </a>
+                                            <% } else { %>
                                             <div class="dropdown">
                                                 <button class="bk-dots-btn" data-bs-toggle="dropdown" aria-expanded="false">
                                                     <i class="bi bi-three-dots"></i>
@@ -285,7 +328,7 @@
                                                         </a>
                                                     </li>
                                                     <li>
-                                                        <button class="dropdown-item bk-action-item" onclick="openEditBooking(<%= JSON.stringify(b) %>)">
+                                                        <button class="dropdown-item bk-action-item" onclick='openEditBooking(<%- JSON.stringify(b).replace(/'/g, "&#39;") %>)'>
                                                             <i class="bi bi-pencil me-2" style="color:#0066ff;"></i>Edit
                                                         </button>
                                                     </li>
@@ -297,8 +340,14 @@
                                                             <i class="bi bi-x-circle me-2"></i>Cancel
                                                         </button>
                                                     </li>
+                                                    <li>
+                                                        <button class="dropdown-item bk-action-item bk-action-item--danger" onclick="confirmDelete(<%= b.id %>, '<%= b.booking_no %>')">
+                                                            <i class="bi bi-trash me-2"></i>Delete
+                                                        </button>
+                                                    </li>
                                                 </ul>
                                             </div>
+                                            <% } %>
                                         </td>
                                     </tr>
                                 <% }) %>
@@ -310,7 +359,7 @@
 
             <!-- Pagination Section -->
             <% if (pagination.totalPages > 1) { %>
-                <div class="card-footer pagination-footer">
+                <div class="card-footer pagination-footer" id="bk-pager">
                     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
                         <div class="text-muted small">
                             Showing <%= (pagination.currentPage - 1) * pagination.limit + 1 %>
@@ -417,39 +466,181 @@
         }
     });
     
-    // Live search with debounce
+    // Live search with debounce — real-time fetch (no page reload)
     (function () {
         const searchInput = document.getElementById('search-input');
-        if (!searchInput) return;
-        
-        let debounceTimer = null;
-        
+        const tbody       = document.getElementById('bk-tbody');
+        const pager       = document.getElementById('bk-pager');
+        const countLabel  = document.getElementById('bk-count-label');
+        if (!searchInput || !tbody) return;
+
+        function debounce(fn, ms) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; }
+
+        function paymentBadge(ps) {
+            if (ps === 'paid')    return '<span class="bk-badge bk-badge--green">Paid</span>';
+            if (ps === 'partial') return '<span class="bk-badge bk-badge--amber">Partial</span>';
+            return '<span class="bk-badge bk-badge--red">Unpaid</span>';
+        }
+        function statusBadge(bs) {
+            if (bs === 'confirmed') return '<span class="bk-badge bk-badge--green">Confirmed</span>';
+            if (bs === 'pending')   return '<span class="bk-badge bk-badge--amber">Pending</span>';
+            if (bs === 'approved')  return '<span class="bk-badge bk-badge--blue">Approved</span>';
+            if (bs === 'completed') return '<span class="bk-badge bk-badge--grey">Completed</span>';
+            if (bs === 'cancelled') return '<span class="bk-badge bk-badge--red">Cancelled</span>';
+            if (bs === 'rejected')  return '<span class="bk-badge bk-badge--red">Rejected</span>';
+            return '<span class="bk-badge bk-badge--grey">Expired</span>';
+        }
+        function typIcon(bt) {
+            if (bt === 'phone')  return '<i class="bi bi-telephone" style="color:#6b7280;font-size:0.85rem;" title="Phone"></i>';
+            if (bt === 'walkin') return '<i class="bi bi-person-walking" style="color:#6b7280;font-size:0.85rem;" title="Walk-in"></i>';
+            return '<i class="bi bi-globe" style="color:#6b7280;font-size:0.85rem;" title="Online"></i>';
+        }
+        function fmtDate(d) {
+            return new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
+        }
+
+        function renderRows(bookings) {
+            if (!bookings.length) {
+                tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:40px;color:#9ca3af;">
+                    <i class="bi bi-calendar-x" style="font-size:2rem;color:#d1d5db;display:block;margin-bottom:8px;"></i>
+                    No bookings found</td></tr>`;
+                return;
+            }
+            tbody.innerHTML = bookings.map(b => {
+                const isBulk = !!b.is_bulk;
+
+                // Booking No cell
+                const noCell = isBulk
+                    ? `<span style="color:#0f4c81;font-weight:700;font-size:0.78rem;font-family:'Rajdhani',sans-serif;letter-spacing:0.5px;white-space:nowrap;">${b.bulk_booking_id}</span>
+                       <span style="display:block;margin-top:3px;background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;border-radius:20px;font-size:0.62rem;font-weight:700;padding:1px 7px;width:fit-content;">
+                         <i class="bi bi-calendar2-range me-1"></i>${b.slot_count} slots
+                       </span>`
+                    : `<span style="color:#1B4332;font-weight:700;font-size:0.78rem;font-family:'Rajdhani',sans-serif;letter-spacing:0.5px;white-space:nowrap;">${b.booking_no}</span>`;
+
+                // Date cell
+                const dateCell = isBulk
+                    ? `<div style="color:#374151;font-weight:500;font-size:0.78rem;">${b.date_range || ''}</div>
+                       <div style="color:#9CA3AF;font-size:0.7rem;margin-top:1px;">${b.slot_count} slot${b.slot_count > 1 ? 's' : ''}</div>`
+                    : `<div style="color:#374151;font-weight:500;font-size:0.78rem;">${fmtDate(b.slot_date)}</div>
+                       <div style="color:#9CA3AF;font-size:0.7rem;margin-top:1px;">${b.start_time ? b.start_time.slice(0,5) : ''} – ${b.end_time ? b.end_time.slice(0,5) : ''}</div>`;
+
+                // Amount cell
+                const amt    = isBulk ? b.grand_total    : b.total_amount;
+                const adv    = isBulk ? b.total_advance  : (b.advance_amount || 0);
+                const bal    = isBulk ? b.total_balance  : (b.balance_amount || 0);
+                const amtCell = `<div style="color:#111827;font-weight:700;font-size:0.8rem;">₹${Number(amt).toLocaleString('en-IN')} <span style="font-size:0.65rem;color:#6b7280;font-weight:400;">total</span></div>
+                    <div style="font-size:0.68rem;margin-top:1px;">
+                        <span style="color:#1B4332;">↑₹${Number(adv).toLocaleString('en-IN')}</span>
+                        <span style="color:${bal > 0 ? '#b45309' : '#1B4332'};margin-left:4px;">Bal:₹${Number(bal).toLocaleString('en-IN')}</span>
+                    </div>`;
+
+                // Status cell
+                const statusCell = isBulk
+                    ? `<span class="bk-badge bk-badge--blue">Bulk</span>`
+                    : statusBadge(b.booking_status);
+
+                // Action cell
+                const actionCell = isBulk
+                    ? `<a href="/bookings/bulk/${b.bulk_booking_id}" style="display:inline-flex;align-items:center;padding:5px 10px;border:1px solid #e5e7eb;border-radius:7px;font-size:0.75rem;font-weight:600;color:#0f4c81;text-decoration:none;white-space:nowrap;">
+                         <i class="bi bi-eye me-1"></i> View All Slots
+                       </a>`
+                    : `<div class="dropdown">
+                         <button class="bk-dots-btn" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-three-dots"></i></button>
+                         <ul class="dropdown-menu dropdown-menu-end bk-action-menu">
+                           <li><a class="dropdown-item bk-action-item" href="/bookings/${b.id}"><i class="bi bi-eye me-2" style="color:#1B4332;"></i>View</a></li>
+                           <li><hr class="dropdown-divider" style="margin:4px 0;"></li>
+                           <li><button class="dropdown-item bk-action-item bk-action-item--danger" onclick="confirmCancel(${b.id},'${b.booking_no}')"><i class="bi bi-x-circle me-2"></i>Cancel</button></li>
+                           <li><button class="dropdown-item bk-action-item bk-action-item--danger" onclick="confirmDelete(${b.id},'${b.booking_no}')"><i class="bi bi-trash me-2"></i>Delete</button></li>
+                         </ul>
+                       </div>`;
+
+                return `<tr style="border-bottom:1px solid #f3f4f6;">
+                    <td style="padding:10px 14px;">${noCell}</td>
+                    <td style="padding:10px 10px;">
+                        ${b.ground_name
+                            ? `<span style="background:#F0FDF4;color:#1B4332;padding:3px 9px;border-radius:20px;font-size:0.68rem;font-weight:600;border:1px solid #BBF7D0;white-space:nowrap;display:inline-block;max-width:110px;overflow:hidden;text-overflow:ellipsis;"><i class="bi bi-geo-alt"></i> ${b.ground_name}</span>`
+                            : `<span style="color:#ADB5BD;font-size:0.72rem;">—</span>`}
+                    </td>
+                    <td style="padding:10px 10px;">
+                        <div style="color:#111827;font-weight:600;font-size:0.8rem;white-space:nowrap;">${b.customer_name}</div>
+                        <div style="color:#9CA3AF;font-size:0.7rem;margin-top:1px;">${b.customer_phone}</div>
+                    </td>
+                    <td style="padding:10px 10px;white-space:nowrap;">${dateCell}</td>
+                    <td style="padding:10px 10px;white-space:nowrap;">${amtCell}</td>
+                    <td style="padding:10px 10px;">${paymentBadge(b.payment_status)}</td>
+                    <td style="padding:10px 10px;">${statusCell}</td>
+                    <td style="padding:10px 10px;text-align:center;">${typIcon(b.booking_type)}</td>
+                    <td style="padding:10px 10px;">${actionCell}</td>
+                </tr>`;
+            }).join('');
+        }
+
+        const doSearch = debounce(async (q) => {
+            try {
+                const existing = new URLSearchParams(window.location.search);
+                const params = new URLSearchParams();
+                params.set('search', q);
+                params.set('limit', existing.get('limit') || '10');
+                if (existing.get('status'))         params.set('status', existing.get('status'));
+                if (existing.get('payment_status')) params.set('payment_status', existing.get('payment_status'));
+                if (existing.get('date'))           params.set('date', existing.get('date'));
+
+                const res  = await fetch('/bookings?' + params, { headers: { 'Accept': 'application/json' } });
+                const data = await res.json();
+
+                renderRows(data.bookings);
+
+                const total = data.pagination.totalRecords;
+                if (countLabel) countLabel.textContent = total + ' record' + (total !== 1 ? 's' : '') + ' found';
+                if (pager) pager.style.display = 'none';
+            } catch (e) {
+                console.error('Search error:', e);
+            }
+        }, 350);
+
         searchInput.addEventListener('input', function () {
-            clearTimeout(debounceTimer);
-            searchInput.style.opacity = '0.6';
-            
-            debounceTimer = setTimeout(() => {
-                const pageInput = document.querySelector('input[name="page"]');
-                if (pageInput) pageInput.value = 1;
-                document.getElementById('filter-form').submit();
-            }, 400);
+            const q = this.value.trim();
+            if (!q) {
+                const params = new URLSearchParams(window.location.search);
+                params.delete('search');
+                params.set('page', '1');
+                window.location.href = '/bookings?' + params;
+                return;
+            }
+            doSearch(q);
         });
     })();
     
     async function confirmCancel(id, bookingNo) {
-        if (!confirm(`Cancel booking ${bookingNo}? This cannot be undone.`)) return;
-        try {
-            const res = await fetch('/bookings/cancel', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ booking_id: id })
-            });
-            const data = await res.json();
-            if (data.success) window.location.reload();
-            else alert(data.message || 'Failed to cancel booking');
-        } catch (e) {
-            alert('Connection error. Please try again.');
-        }
+        showDelModal({
+            title: 'Cancel Booking',
+            message: `Cancel booking <strong>${bookingNo}</strong>? This cannot be undone.`,
+            confirmText: 'Yes, Cancel', cancelText: 'Keep Booking',
+            icon: 'bi bi-x-circle-fill', iconClass: 'del-modal__icon--warn', confirmClass: 'warn'
+        }, async () => {
+            try {
+                const res = await fetch('/bookings/cancel', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({booking_id:id}) });
+                const data = await res.json();
+                if (data.success) window.location.reload();
+                else xToast(data.message || 'Failed to cancel booking', 'error');
+            } catch(e) { xToast('Connection error. Please try again.', 'error'); }
+        });
+    }
+
+    async function confirmDelete(id, bookingNo) {
+        showDelModal({
+            title: 'Delete Booking',
+            message: `Delete booking <strong>${bookingNo}</strong>?<br><small style="color:#9ca3af;">Booking must be cancelled before it can be deleted.</small>`,
+            confirmText: 'Delete', cancelText: 'Cancel',
+            icon: 'bi bi-trash3-fill', iconClass: 'del-modal__icon--danger', confirmClass: ''
+        }, async () => {
+            try {
+                const res = await fetch('/bookings/delete', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({booking_id:id}) });
+                const data = await res.json();
+                if (data.success) window.location.reload();
+                else xToast(data.message || 'Failed to delete booking', 'error');
+            } catch(e) { xToast('Connection error. Please try again.', 'error'); }
+        });
     }
     
     updateFilterDot();

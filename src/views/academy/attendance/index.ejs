@@ -1,0 +1,167 @@
+<%- include('../../partials/header') %>
+
+<div class="row settings-page-header">
+
+    <!-- Page Header - Blue Theme -->
+    <div class="col-12 mb-4">
+        <div class="attendance-header">
+            <div class="attendance-header__left">
+                <div class="attendance-header__icon">
+                    <i class="bi bi-calendar-check"></i>
+                </div>
+                <div>
+                    <h4 class="attendance-header__title">Attendance History</h4>
+                    <span class="attendance-header__sub">View and filter past attendance records</span>
+                </div>
+            </div>
+            <a href="/academy/attendance/mark" class="attendance-mark-btn">
+                <i class="bi bi-pencil-square"></i> Mark Attendance
+            </a>
+        </div>
+    </div>
+
+    <% if (success) { %>
+    <script>document.addEventListener('DOMContentLoaded',()=>xToast('<%= success.replace(/'/g,"\'") %>','success'));</script>
+    <% } %>
+    <% if (error) { %>
+    <script>document.addEventListener('DOMContentLoaded',()=>xToast('<%= error.replace(/'/g,"\'") %>','error'));</script>
+    <% } %>
+
+    <!-- Filters -->
+    <div class="col-12 mb-4">
+        <div class="attendance-filter-card">
+            <div class="attendance-filter-card__body">
+                <form method="GET" action="/academy/attendance" class="attendance-filter-form">
+                    <div class="attendance-filter-group">
+                        <label class="attendance-filter-label">Batch</label>
+                        <select name="batch_id" class="attendance-filter-select">
+                            <option value="">All Batches</option>
+                            <% batches.forEach(b => { %>
+                            <option value="<%= b.id %>" <%= filters.batch_id == b.id ? 'selected' : '' %>>
+                                <%= b.batch_name %><% if (b.sport) { %> — <%= b.sport %><% } %>
+                            </option>
+                            <% }) %>
+                        </select>
+                    </div>
+                    <div class="attendance-filter-group">
+                        <label class="attendance-filter-label">Student</label>
+                        <select name="student_id" class="attendance-filter-select">
+                            <option value="">All Students</option>
+                            <% students.forEach(s => { %>
+                            <option value="<%= s.id %>" <%= filters.student_id == s.id ? 'selected' : '' %>>
+                                <%= s.name %>
+                            </option>
+                            <% }) %>
+                        </select>
+                    </div>
+                    <div class="attendance-filter-group">
+                        <label class="attendance-filter-label">From Date</label>
+                        <input type="date" name="date_from" class="attendance-filter-input"
+                               value="<%= filters.date_from || '' %>">
+                    </div>
+                    <div class="attendance-filter-group">
+                        <label class="attendance-filter-label">To Date</label>
+                        <input type="date" name="date_to" class="attendance-filter-input"
+                               value="<%= filters.date_to || '' %>">
+                    </div>
+                    <div class="attendance-filter-actions">
+                        <button type="submit" class="attendance-filter-btn">Apply Filter</button>
+                        <a href="/academy/attendance" class="attendance-clear-btn">Clear</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Records -->
+    <div class="col-12">
+        <% if (records.length === 0) { %>
+        <div class="attendance-empty">
+            <div class="attendance-empty__icon">
+                <i class="bi bi-journal-bookmark"></i>
+            </div>
+            <p class="attendance-empty__title">No attendance records found</p>
+            <small class="attendance-empty__sub">
+                <a href="/academy/attendance/mark" class="attendance-empty__link">Mark attendance</a> for a batch to see records here
+            </small>
+        </div>
+        <% } else { %>
+
+        <%
+            const totalPresent = records.filter(r => r.status === 'present').length;
+            const totalAbsent  = records.filter(r => r.status === 'absent').length;
+            const totalLate    = records.filter(r => r.status === 'late').length;
+        %>
+        <div class="attendance-stats">
+            <div class="attendance-stat-badge attendance-stat-present">
+                <i class="bi bi-check-circle-fill"></i> Present: <%= totalPresent %>
+            </div>
+            <div class="attendance-stat-badge attendance-stat-absent">
+                <i class="bi bi-x-circle-fill"></i> Absent: <%= totalAbsent %>
+            </div>
+            <div class="attendance-stat-badge attendance-stat-late">
+                <i class="bi bi-clock-fill"></i> Late: <%= totalLate %>
+            </div>
+            <div class="attendance-stat-badge attendance-stat-total">
+                <i class="bi bi-people-fill"></i> Total: <%= records.length %>
+            </div>
+        </div>
+
+        <div class="attendance-table-card">
+            <div class="table-responsive">
+                <table class="attendance-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Date</th>
+                            <th>Student</th>
+                            <th>Batch</th>
+                            <th class="text-center">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% records.forEach((record, index) => { %>
+                        <tr>
+                            <td class="attendance-row-num"><%= index + 1 %></td>
+                            <td class="attendance-date">
+                                <%= new Date(record.date).toLocaleDateString('en-IN', {weekday:'short', day:'2-digit', month:'short', year:'numeric'}) %>
+                            </td>
+                            <td>
+                                <div class="attendance-student-info">
+                                    <% if (record.student_photo) { %>
+                                        <img src="/uploads/students/<%= record.student_photo %>" class="attendance-student-avatar">
+                                    <% } else { %>
+                                        <div class="attendance-student-avatar-placeholder">
+                                            <%= record.student_name ? record.student_name.charAt(0).toUpperCase() : '?' %>
+                                        </div>
+                                    <% } %>
+                                    <span class="attendance-student-name"><%= record.student_name || 'Deleted Student' %></span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="attendance-batch-badge"><%= record.batch_name || 'Deleted Batch' %></span>
+                            </td>
+                            <td>
+                                <% if (record.status === 'present') { %>
+                                    <span class="attendance-status-badge attendance-status-present">Present</span>
+                                <% } else if (record.status === 'absent') { %>
+                                    <span class="attendance-status-badge attendance-status-absent">Absent</span>
+                                <% } else { %>
+                                    <span class="attendance-status-badge attendance-status-late">Late</span>
+                                <% } %>
+                            </td>
+                        </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+            <div class="attendance-table-footer">
+                Showing <%= records.length %> record<%= records.length !== 1 ? 's' : '' %>
+            </div>
+        </div>
+        <% } %>
+    </div>
+
+</div>
+
+<%- include('../../partials/footer') %>

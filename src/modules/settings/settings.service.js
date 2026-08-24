@@ -2,16 +2,39 @@ const db     = require('../../config/db.config');
 const logger = require('../../utils/logger');
 
 // ── Get Ground Settings ───────────────────────────
-const getSettings = async () => {
+const getSettings = async (tenant_id = null, user_role = 'admin') => {
     try {
-        const [rows] = await db.promise().query(
-            'SELECT * FROM tbl_ground_settings LIMIT 1'
-        );
+        let query = 'SELECT * FROM tbl_ground_settings';
+        let params = [];
+
+        // ADD TENANT FILTER
+        if (user_role === 'admin' && tenant_id) {
+            query += ' WHERE tenant_id = ?';
+            params.push(tenant_id);
+        }
+        
+        query += ' LIMIT 1';
+
+        const [rows] = await db.promise().query(query, params);
 
         if (rows.length === 0) {
-            const err = new Error('Ground settings not found');
-            err.statusCode = 404;
-            throw err;
+            // Return default settings if none exist for this tenant
+            return {
+                id: null,
+                ground_name: '',
+                ground_address: '',
+                ground_phone: '',
+                open_time: '06:00:00',
+                close_time: '22:00:00',
+                min_slot_minutes: 30,
+                normal_rate_per_30: 100,
+                peak_rate_per_30: 150,
+                peak_start_time: '17:00:00',
+                peak_end_time: '20:00:00',
+                advance_booking_days: 7,
+                advance_payment_hours: 2,
+                tenant_id: tenant_id
+            };
         }
 
         return rows[0];
@@ -27,38 +50,88 @@ const updateSettings = async ({
     ground_phone,
     open_time,
     close_time,
-    slot_duration,
+    min_slot_minutes,
+    normal_rate_per_30,
+    peak_rate_per_30,
     peak_start_time,
     peak_end_time,
-    peak_price,
-    off_peak_price,
     advance_booking_days,
     advance_payment_hours
-}) => {
+}, tenant_id = null, user_role = 'admin') => {
     try {
-        await db.promise().query(
-            `UPDATE tbl_ground_settings SET
-                ground_name           = ?,
-                ground_address        = ?,
-                ground_phone          = ?,
-                open_time             = ?,
-                close_time            = ?,
-                slot_duration         = ?,
-                peak_start_time       = ?,
-                peak_end_time         = ?,
-                peak_price            = ?,
-                off_peak_price        = ?,
-                advance_booking_days  = ?,
-                advance_payment_hours = ?
-             WHERE id = 1`,
-            [
+        // Check if settings exist for this tenant
+        let checkQuery = 'SELECT id FROM tbl_ground_settings';
+        let checkParams = [];
+
+        if (user_role === 'admin' && tenant_id) {
+            checkQuery += ' WHERE tenant_id = ?';
+            checkParams.push(tenant_id);
+        }
+        checkQuery += ' LIMIT 1';
+
+        const [existing] = await db.promise().query(checkQuery, checkParams);
+
+        if (existing.length === 0) {
+            // Insert new settings
+            await db.promise().query(
+                `INSERT INTO tbl_ground_settings 
+                    (ground_name, ground_address, ground_phone, open_time, close_time, 
+                     min_slot_minutes, normal_rate_per_30, peak_rate_per_30,
+                     peak_start_time, peak_end_time,
+                     advance_booking_days, advance_payment_hours, tenant_id)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                [
+                    ground_name || '',
+                    ground_address || '',
+                    ground_phone || '',
+                    open_time,
+                    close_time,
+                    min_slot_minutes,
+                    normal_rate_per_30,
+                    peak_rate_per_30,
+                    peak_start_time,
+                    peak_end_time,
+                    advance_booking_days,
+                    advance_payment_hours,
+                    tenant_id
+                ]
+            );
+        } else {
+            // Update existing settings
+            let query = `
+                UPDATE tbl_ground_settings SET
+                    ground_name           = ?,
+                    ground_address        = ?,
+                    ground_phone          = ?,
+                    open_time             = ?,
+                    close_time            = ?,
+                    min_slot_minutes      = ?,
+                    normal_rate_per_30    = ?,
+                    peak_rate_per_30      = ?,
+                    peak_start_time       = ?,
+                    peak_end_time         = ?,
+                    advance_booking_days  = ?,
+                    advance_payment_hours = ?
+            `;
+            let params = [
                 ground_name, ground_address, ground_phone,
-                open_time, close_time, slot_duration,
+                open_time, close_time,
+                min_slot_minutes, normal_rate_per_30, peak_rate_per_30,
                 peak_start_time, peak_end_time,
-                peak_price, off_peak_price,
                 advance_booking_days, advance_payment_hours
-            ]
-        );
+            ];
+
+            // ADD TENANT FILTER
+            if (user_role === 'admin' && tenant_id) {
+                query += ' WHERE tenant_id = ?';
+                params.push(tenant_id);
+            } else {
+                query += ' WHERE id = 1';
+            }
+
+            await db.promise().query(query, params);
+        }
+
         return true;
     } catch (err) {
         throw err;
@@ -66,9 +139,23 @@ const updateSettings = async ({
 };
 
 // ── Delete Future Slots ───────────────────────────
-const deleteFutureSlots = async () => {
+const deleteFutureSlots = async (tenant_id = null, user_role = 'admin') => {
     try {
-        await db.promise().query('DELETE FROM tbl_slots WHERE date >= CURDATE()');
+        let query = `DELETE FROM tbl_slots WHERE date >= CURDATE()
+            AND id NOT IN (
+                SELECT slot_id FROM tbl_bookings
+                WHERE booking_status IN ('pending','approved','confirmed')
+                AND slot_date >= CURDATE()
+            )`;
+        let params = [];
+
+        // ADD TENANT FILTER
+        if (user_role === 'admin' && tenant_id) {
+            query += ' AND tenant_id = ?';
+            params.push(tenant_id);
+        }
+
+        await db.promise().query(query, params);
         return true;
     } catch (err) {
         throw err;
@@ -76,15 +163,24 @@ const deleteFutureSlots = async () => {
 };
 
 // ── Get ALL Pending Peak Suggestions (all grounds) ─
-const getPendingSuggestion = async () => {
+const getPendingSuggestion = async (tenant_id = null, user_role = 'admin') => {
     try {
-        const [rows] = await db.promise().query(
-            `SELECT id, name,
+        let query = `
+            SELECT id, name,
                     peak_suggestion_start, peak_suggestion_end,
                     peak_suggestion_count, peak_suggestion_runner
              FROM tbl_grounds
-             WHERE peak_suggestion_status = 'pending'`
-        );
+             WHERE peak_suggestion_status = 'pending'
+        `;
+        let params = [];
+
+        // ADD TENANT FILTER
+        if (user_role === 'admin' && tenant_id) {
+            query += ' AND tenant_id = ?';
+            params.push(tenant_id);
+        }
+
+        const [rows] = await db.promise().query(query, params);
 
         if (rows.length === 0) return null;
 
@@ -102,8 +198,17 @@ const getPendingSuggestion = async () => {
 };
 
 // ── Check and Raise Peak Suggestion (per ground) ──
-const checkAndRaiseSuggestion = async (ground_id) => {
+const checkAndRaiseSuggestion = async (ground_id, tenant_id = null, user_role = 'admin') => {
     try {
+        // First verify ground belongs to this tenant if admin
+        if (user_role === 'admin' && tenant_id) {
+            const [check] = await db.promise().query(
+                'SELECT id FROM tbl_grounds WHERE id = ? AND tenant_id = ?',
+                [ground_id, tenant_id]
+            );
+            if (check.length === 0) return;
+        }
+
         const [topSlotsResult, groundResult] = await Promise.all([
             db.promise().query(
                 `SELECT start_time, end_time, COUNT(*) AS booking_count
@@ -171,13 +276,21 @@ const checkAndRaiseSuggestion = async (ground_id) => {
 };
 
 // ── Accept Peak Suggestion for a ground ───────────
-const acceptSuggestion = async (ground_id) => {
+const acceptSuggestion = async (ground_id, tenant_id = null, user_role = 'admin') => {
     try {
-        const [rows] = await db.promise().query(
-            `SELECT peak_suggestion_start, peak_suggestion_end, peak_suggestion_status
-             FROM tbl_grounds WHERE id = ?`,
-            [ground_id]
-        );
+        let query = `
+            SELECT peak_suggestion_start, peak_suggestion_end, peak_suggestion_status
+            FROM tbl_grounds WHERE id = ?
+        `;
+        let params = [ground_id];
+
+        // ADD TENANT FILTER
+        if (user_role === 'admin' && tenant_id) {
+            query += ' AND tenant_id = ?';
+            params.push(tenant_id);
+        }
+
+        const [rows] = await db.promise().query(query, params);
 
         if (!rows[0] || rows[0].peak_suggestion_status !== 'pending') {
             const err = new Error('No pending suggestion found');
@@ -187,21 +300,34 @@ const acceptSuggestion = async (ground_id) => {
 
         const s = rows[0];
 
+        let updateQuery = `
+            UPDATE tbl_grounds
+            SET peak_start_time        = ?,
+                peak_end_time          = ?,
+                peak_suggestion_start  = NULL,
+                peak_suggestion_end    = NULL,
+                peak_suggestion_count  = NULL,
+                peak_suggestion_runner = NULL,
+                peak_suggestion_status = NULL
+            WHERE id = ?
+        `;
+        let updateParams = [s.peak_suggestion_start, s.peak_suggestion_end, ground_id];
+
+        // ADD TENANT FILTER
+        if (user_role === 'admin' && tenant_id) {
+            updateQuery += ' AND tenant_id = ?';
+            updateParams.push(tenant_id);
+        }
+
         await Promise.all([
+            db.promise().query(updateQuery, updateParams),
             db.promise().query(
-                `UPDATE tbl_grounds
-                 SET peak_start_time        = ?,
-                     peak_end_time          = ?,
-                     peak_suggestion_start  = NULL,
-                     peak_suggestion_end    = NULL,
-                     peak_suggestion_count  = NULL,
-                     peak_suggestion_runner = NULL,
-                     peak_suggestion_status = NULL
-                 WHERE id = ?`,
-                [s.peak_suggestion_start, s.peak_suggestion_end, ground_id]
-            ),
-            db.promise().query(
-                `DELETE FROM tbl_slots WHERE ground_id = ? AND date >= CURDATE()`,
+                `DELETE FROM tbl_slots WHERE ground_id = ? AND date >= CURDATE()
+                 AND id NOT IN (
+                     SELECT slot_id FROM tbl_bookings
+                     WHERE booking_status IN ('pending','approved','confirmed')
+                     AND slot_date >= CURDATE()
+                 )`,
                 [ground_id]
             )
         ]);
@@ -214,18 +340,32 @@ const acceptSuggestion = async (ground_id) => {
 };
 
 // ── Dismiss Peak Suggestion for a ground ──────────
-const dismissSuggestion = async (ground_id) => {
+const dismissSuggestion = async (ground_id, tenant_id = null, user_role = 'admin') => {
     try {
-        await db.promise().query(
-            `UPDATE tbl_grounds
-             SET peak_suggestion_start  = NULL,
-                 peak_suggestion_end    = NULL,
-                 peak_suggestion_count  = NULL,
-                 peak_suggestion_runner = NULL,
-                 peak_suggestion_status = NULL
-             WHERE id = ?`,
-            [ground_id]
-        );
+        let query = `
+            UPDATE tbl_grounds
+            SET peak_suggestion_start  = NULL,
+                peak_suggestion_end    = NULL,
+                peak_suggestion_count  = NULL,
+                peak_suggestion_runner = NULL,
+                peak_suggestion_status = NULL
+            WHERE id = ?
+        `;
+        let params = [ground_id];
+
+        // ADD TENANT FILTER
+        if (user_role === 'admin' && tenant_id) {
+            query += ' AND tenant_id = ?';
+            params.push(tenant_id);
+        }
+
+        const [result] = await db.promise().query(query, params);
+
+        if (result.affectedRows === 0) {
+            const err = new Error('Ground not found or unauthorized');
+            err.statusCode = 404;
+            throw err;
+        }
 
         logger.info('Peak suggestion dismissed', { ground_id });
         return true;

@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> - Start Sports</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="/css/super-admin.css">
+</head>
+<body>
+<%- include('../partials/sidebar', {
+    adminType: 'SUPER ADMIN',
+    currentPage: 'profile',
+    logoutUrl: '/auth/logout',
+    loginUrl: '/auth/login'
+}) %>
+
+<main class="sa-main">
+    <div class="sa-topbar">
+        <div class="page-title">
+            <h1>My Profile</h1>
+            <p>Manage your account and password</p>
+        </div>
+        <div class="topbar-right">
+            <div class="admin-badge"><i class="bi bi-shield-lock-fill"></i><span>Super Admin</span></div>
+        </div>
+    </div>
+
+    <div class="sap-wrap">
+
+        <!-- ── Top: Avatar + Info ── -->
+        <div class="sap-card">
+            <div class="sap-card-header">
+                <div class="sap-card-icon sap-icon-blue"><i class="bi bi-person"></i></div>
+                <div>
+                    <div class="sap-card-title">Account Information</div>
+                    <div class="sap-card-sub">Your identity on the platform</div>
+                </div>
+            </div>
+            <div class="sap-card-body">
+
+                <div class="sap-avatar-row">
+                    <div class="sap-avatar">
+                        <%= profileData.user.name.charAt(0).toUpperCase() %>
+                    </div>
+                    <div class="sap-avatar-meta">
+                        <div class="sap-avatar-name"><%= profileData.user.name %></div>
+                        <div class="sap-avatar-role"><i class="bi bi-shield-fill"></i> Super Administrator</div>
+                        <div class="sap-avatar-email"><i class="bi bi-envelope"></i> <%= profileData.user.email %></div>
+                    </div>
+                    <div class="sap-avatar-joined">
+                        <div class="sap-joined-label">Member since</div>
+                        <div class="sap-joined-value">
+                            <%= new Date(profileData.user.created_at).toLocaleDateString('en-IN', { day:'numeric', month:'long', year:'numeric' }) %>
+                        </div>
+                    </div>
+                </div>
+
+                <% if (profileData.lastSession) { %>
+                <div class="sap-last-session">
+                    <div class="sap-last-session-label"><i class="bi bi-clock-history"></i> Last Sign In</div>
+                    <div class="sap-last-session-info">
+                        <span><i class="bi bi-calendar3"></i>
+                            <%= new Date(profileData.lastSession.logged_in_at).toLocaleString('en-IN', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) %>
+                        </span>
+                        <span><i class="bi bi-geo-alt"></i> <%= profileData.lastSession.ip_address %></span>
+                        <span><i class="bi bi-display"></i> <%= profileData.lastSession.browser %> on <%= profileData.lastSession.os %></span>
+                    </div>
+                </div>
+                <% } %>
+
+            </div>
+        </div>
+
+        <!-- ── Bottom: Two columns — Password + Security tips ── -->
+        <div class="sap-bottom-grid">
+
+            <!-- Change Password -->
+            <div class="sap-card">
+                <div class="sap-card-header">
+                    <div class="sap-card-icon sap-icon-orange"><i class="bi bi-key"></i></div>
+                    <div>
+                        <div class="sap-card-title">Change Password</div>
+                        <div class="sap-card-sub">All sessions signed out after change</div>
+                    </div>
+                </div>
+                <div class="sap-card-body">
+                    <div class="sap-field">
+                        <label class="sap-label">Current Password</label>
+                        <div class="sap-pwd-wrap">
+                            <input type="password" class="sap-input" id="currentPwd" placeholder="Enter current password">
+                            <button type="button" class="sap-pwd-toggle" onclick="togglePwd('currentPwd', this)"><i class="bi bi-eye"></i></button>
+                        </div>
+                    </div>
+                    <div class="sap-field">
+                        <label class="sap-label">New Password</label>
+                        <div class="sap-pwd-wrap">
+                            <input type="password" class="sap-input" id="newPwd" placeholder="Min 8 characters">
+                            <button type="button" class="sap-pwd-toggle" onclick="togglePwd('newPwd', this)"><i class="bi bi-eye"></i></button>
+                        </div>
+                    </div>
+                    <div class="sap-field">
+                        <label class="sap-label">Confirm New Password</label>
+                        <div class="sap-pwd-wrap">
+                            <input type="password" class="sap-input" id="confirmPwd" placeholder="Repeat new password">
+                            <button type="button" class="sap-pwd-toggle" onclick="togglePwd('confirmPwd', this)"><i class="bi bi-eye"></i></button>
+                        </div>
+                        <div class="sap-pwd-match" id="pwdMatchMsg"></div>
+                    </div>
+                    <button class="sap-btn sap-btn-primary" onclick="changePassword()">
+                        <i class="bi bi-shield-check"></i> Update Password
+                    </button>
+                </div>
+            </div>
+
+            <!-- Security Tips -->
+            <div class="sap-card sap-security-card">
+                <div class="sap-card-header">
+                    <div class="sap-card-icon sap-icon-green"><i class="bi bi-shield-check"></i></div>
+                    <div>
+                        <div class="sap-card-title">Security Tips</div>
+                        <div class="sap-card-sub">Keep your account safe</div>
+                    </div>
+                </div>
+                <div class="sap-card-body">
+                    <ul class="sap-tip-list">
+                        <li>
+                            <div class="sap-tip-icon"><i class="bi bi-lock"></i></div>
+                            <div>Use a strong password with letters, numbers and symbols — not used on other sites</div>
+                        </li>
+                        <li>
+                            <div class="sap-tip-icon"><i class="bi bi-person-x"></i></div>
+                            <div>Never share your super admin credentials with anyone, including team members</div>
+                        </li>
+                        <li>
+                            <div class="sap-tip-icon"><i class="bi bi-geo-alt"></i></div>
+                            <div>Check the last sign-in IP above — if it looks unfamiliar, change your password immediately</div>
+                        </li>
+                        <li>
+                            <div class="sap-tip-icon"><i class="bi bi-arrow-repeat"></i></div>
+                            <div>Change your password periodically, at least once every 3 months</div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</main>
+
+<div id="toast" style="display:none"><i class="bi bi-check-circle-fill" id="toastIcon"></i><span id="toastMessage"></span></div>
+
+<script>
+function getCsrfToken() { const m = document.cookie.match(/(?:^|; )csrf_token=([^;]*)/); return m ? decodeURIComponent(m[1]) : ''; }
+function showToast(msg, isError=false) {
+    const t = document.getElementById('toast');
+    document.getElementById('toastMessage').textContent = msg;
+    document.getElementById('toastIcon').className = isError ? 'bi bi-x-circle-fill' : 'bi bi-check-circle-fill';
+    t.style.display='flex'; t.style.borderColor=isError?'rgba(231,76,60,.4)':'rgba(46,204,113,.4)'; t.style.color=isError?'#e74c3c':'#2ecc71';
+    clearTimeout(t._t); t._t=setTimeout(()=>t.style.display='none',3500);
+}
+document.getElementById('toast').addEventListener('click', function(){ this.style.display='none'; });
+
+function togglePwd(id, btn) {
+    const el = document.getElementById(id);
+    const isText = el.type === 'text';
+    el.type = isText ? 'password' : 'text';
+    btn.innerHTML = isText ? '<i class="bi bi-eye"></i>' : '<i class="bi bi-eye-slash"></i>';
+}
+
+document.getElementById('confirmPwd').addEventListener('input', function() {
+    const msg = document.getElementById('pwdMatchMsg');
+    const newVal = document.getElementById('newPwd').value;
+    if (!this.value) { msg.textContent = ''; return; }
+    if (this.value === newVal) {
+        msg.textContent = '✓ Passwords match';
+        msg.style.color = '#2ecc71';
+    } else {
+        msg.textContent = '✗ Passwords do not match';
+        msg.style.color = '#e74c3c';
+    }
+});
+
+async function changePassword() {
+    const current_password = document.getElementById('currentPwd').value.trim();
+    const new_password     = document.getElementById('newPwd').value.trim();
+    const confirm_password = document.getElementById('confirmPwd').value.trim();
+
+    if (!current_password || !new_password || !confirm_password)
+        return showToast('All fields are required', true);
+    if (new_password !== confirm_password)
+        return showToast('Passwords do not match', true);
+    if (new_password.length < 8)
+        return showToast('New password must be at least 8 characters', true);
+
+    try {
+        const res  = await fetch('/super-admin/profile/change-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCsrfToken() },
+            body: JSON.stringify({ current_password, new_password, confirm_password })
+        });
+        const data = await res.json();
+        if (data.success) {
+            showToast('Password updated! Redirecting to login...');
+            setTimeout(() => window.location.href = '/auth/login', 2000);
+        } else {
+            showToast(data.message, true);
+        }
+    } catch { showToast('Network error', true); }
+}
+</script>
+<script>
+(function() {
+    function ping() { fetch('/super-admin/keepalive',{method:'GET',credentials:'same-origin'}).catch(function(){}); }
+    ping(); setInterval(ping, 10*60*1000);
+})();
+</script>
+</body>
+</html>

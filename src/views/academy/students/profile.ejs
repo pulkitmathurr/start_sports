@@ -1,0 +1,261 @@
+<%- include('../../partials/header') %>
+
+<div class="row settings-page-header">
+
+    <!-- Page Header -->
+    <div class="col-12 mb-4">
+        <div class="student-profile-header">
+            <div class="student-profile-header__left">
+                <div class="student-profile-header__icon">
+                    <i class="bi bi-mortarboard"></i>
+                </div>
+                <div>
+                    <h4 class="student-profile-header__title">Student Profile</h4>
+                    <span class="student-profile-header__sub">
+                        <a href="/academy/students" class="student-profile-breadcrumb">Students</a>
+                        &rsaquo; <%= student.name %>
+                    </span>
+                </div>
+            </div>
+            <div class="student-profile-header__actions">
+                <a href="/academy/students/<%= student.id %>/edit" class="student-profile-edit-btn">
+                    <i class="bi bi-pencil"></i> Edit
+                </a>
+                <a href="/academy/students" class="student-profile-back-btn">
+                    <i class="bi bi-arrow-left"></i> Back
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Card -->
+    <div class="col-12 col-lg-4 mb-4">
+        <div class="student-profile-card h-100">
+            <div class="student-profile-card__body text-center py-4">
+
+                <!-- Photo -->
+                <% if (student.photo) { %>
+                    <img src="/uploads/students/<%= student.photo %>" class="student-profile-avatar">
+                <% } else { %>
+                    <div class="student-profile-avatar-placeholder">
+                        <%= student.name.charAt(0).toUpperCase() %>
+                    </div>
+                <% } %>
+
+                <h5 class="student-profile-name"><%= student.name %></h5>
+
+                <% if (student.batch_name) { %>
+                    <span class="student-profile-batch-badge">
+                        <%= student.batch_name %>
+                    </span>
+                <% } else { %>
+                    <span class="student-profile-batch-badge student-profile-batch-badge--empty">
+                        No batch assigned
+                    </span>
+                <% } %>
+
+                <!-- Status badge -->
+                <div class="mt-2">
+                    <% if (student.status === 1) { %>
+                        <span class="student-profile-status-badge student-profile-status-active">Active</span>
+                    <% } else { %>
+                        <span class="student-profile-status-badge student-profile-status-inactive">Inactive</span>
+                    <% } %>
+                </div>
+
+                <hr class="student-profile-divider">
+
+                <!-- Details -->
+                <div class="student-profile-details">
+                    <% if (student.phone) { %>
+                    <div class="student-profile-detail-row">
+                        <i class="bi bi-phone"></i>
+                        <span><%= student.phone %></span>
+                    </div>
+                    <% } %>
+                    <% if (student.email) { %>
+                    <div class="student-profile-detail-row">
+                        <i class="bi bi-envelope"></i>
+                        <span><%= student.email %></span>
+                    </div>
+                    <% } %>
+                    <% if (student.dob) { %>
+                    <div class="student-profile-detail-row">
+                        <i class="bi bi-cake"></i>
+                        <span><%= new Date(student.dob).toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'}) %></span>
+                    </div>
+                    <% } %>
+                    <% if (student.enrolled_at) { %>
+                    <div class="student-profile-detail-row">
+                        <i class="bi bi-calendar-check"></i>
+                        <span>Enrolled <%= new Date(student.enrolled_at).toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'}) %></span>
+                    </div>
+                    <% } %>
+
+                    <hr class="student-profile-divider-light">
+
+                    <div class="student-profile-section-title">Parent / Guardian</div>
+
+                    <div class="student-profile-detail-row">
+                        <i class="bi bi-person"></i>
+                        <span><%= student.parent_name || '—' %></span>
+                    </div>
+                    <div class="student-profile-detail-row">
+                        <i class="bi bi-whatsapp"></i>
+                        <span class="student-profile-whatsapp"><%= student.parent_phone %></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right column: Attendance + Fees -->
+    <div class="col-12 col-lg-8">
+
+        <!-- Attendance History -->
+        <div class="student-profile-card mb-4">
+            <div class="student-profile-card__header">
+                <i class="bi bi-calendar-check"></i>
+                Recent Attendance
+                <% if (attendance && attendance.length > 0) { %>
+                <%
+                    const total   = attendance.length;
+                    const present = attendance.filter(r => r.status === 'present').length;
+                    const pct     = Math.round((present / total) * 100);
+                %>
+                <span class="ms-auto badge bg-<%= pct >= 75 ? 'success' : pct >= 50 ? 'warning' : 'danger' %>">
+                    <%= pct %>% Attendance
+                </span>
+                <% } %>
+            </div>
+            <div class="student-profile-card__body">
+
+                <% if (!attendance || attendance.length === 0) { %>
+                <div class="student-profile-empty">
+                    <div class="student-profile-empty__icon">
+                        <i class="bi bi-journal-bookmark"></i>
+                    </div>
+                    <p>No attendance records yet</p>
+                    <small>Will appear here after attendance is marked</small>
+                </div>
+                <% } else { %>
+                <div class="table-responsive">
+                    <table class="student-profile-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Batch</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% attendance.forEach(record => { %>
+                            <tr>
+                                <td class="student-profile-date">
+                                    <%= new Date(record.date).toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'}) %>
+                                </td>
+                                <td class="student-profile-batch"><%= record.batch_name || '—' %></td>
+                                <td>
+                                    <% if (record.status === 'present') { %>
+                                        <span class="student-profile-attendance-badge student-profile-attendance-present">Present</span>
+                                    <% } else if (record.status === 'absent') { %>
+                                        <span class="student-profile-attendance-badge student-profile-attendance-absent">Absent</span>
+                                    <% } else { %>
+                                        <span class="student-profile-attendance-badge student-profile-attendance-late">Late</span>
+                                    <% } %>
+                                </td>
+                            </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                </div>
+                <% } %>
+            </div>
+        </div>
+
+        <!-- Fee Records -->
+        <div class="student-profile-card mb-4">
+            <div class="student-profile-card__header">
+                <i class="bi bi-cash-stack"></i>
+                Fee Records
+                <% if (fees && fees.length > 0) { %>
+                <%
+                    const totalDue  = fees.reduce((s, f) => s + parseFloat(f.balance || 0), 0);
+                %>
+                <% if (totalDue > 0) { %>
+                <span class="ms-auto badge bg-danger">₹<%= totalDue.toFixed(0) %> pending</span>
+                <% } else { %>
+                <span class="ms-auto badge bg-success">All Paid</span>
+                <% } %>
+                <% } %>
+                <a href="/academy/fees?student_id=<%= student.id %>" class="btn btn-sm btn-outline-primary ms-2">
+                    <i class="bi bi-plus"></i> Assign Fee
+                </a>
+            </div>
+            <div class="student-profile-card__body">
+
+                <% if (!fees || fees.length === 0) { %>
+                <div class="student-profile-empty">
+                    <div class="student-profile-empty__icon">
+                        <i class="bi bi-receipt"></i>
+                    </div>
+                    <p>No fee records</p>
+                    <small>Assign a fee from the Fees module</small>
+                </div>
+                <% } else { %>
+                <div class="table-responsive">
+                    <table class="student-profile-table">
+                        <thead>
+                            <tr>
+                                <th>Plan</th>
+                                <th>Batch</th>
+                                <th>Amount</th>
+                                <th>Paid</th>
+                                <th>Balance</th>
+                                <th>Due Date</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% fees.forEach(fee => { %>
+                            <tr>
+                                <td>
+                                    <a href="/academy/fees/<%= fee.id %>" class="text-decoration-none fw-semibold">
+                                        <%= fee.plan_name || 'Custom' %>
+                                    </a>
+                                    <% if (fee.frequency) { %>
+                                    <br><small class="text-muted"><%= fee.frequency %></small>
+                                    <% } %>
+                                </td>
+                                <td><%= fee.batch_name || '—' %></td>
+                                <td>₹<%= parseFloat(fee.amount).toFixed(0) %></td>
+                                <td class="text-success">₹<%= parseFloat(fee.paid_amount || 0).toFixed(0) %></td>
+                                <td class="<%= parseFloat(fee.balance) > 0 ? 'text-danger fw-semibold' : '' %>">
+                                    ₹<%= parseFloat(fee.balance || 0).toFixed(0) %>
+                                </td>
+                                <td class="text-nowrap">
+                                    <%= new Date(fee.due_date).toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'}) %>
+                                </td>
+                                <td>
+                                    <% const statusMap = { paid: 'success', partial: 'warning', due: 'secondary', overdue: 'danger', cancelled: 'dark' }; %>
+                                    <span class="badge bg-<%= statusMap[fee.status] || 'secondary' %>">
+                                        <%= fee.status.charAt(0).toUpperCase() + fee.status.slice(1) %>
+                                    </span>
+                                </td>
+                            </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                </div>
+                <% } %>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<style>
+</style>
+
+<%- include('../../partials/footer') %>

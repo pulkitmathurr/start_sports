@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> - Start Sports</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="/css/super-admin.css">
+</head>
+<body>
+
+<%- include('../partials/sidebar', {
+    adminType: 'SUPER ADMIN',
+    currentPage: 'plans',
+    logoutUrl: '/auth/logout',
+    loginUrl: '/auth/login'
+}) %>
+
+<main class="sa-main">
+    <div class="sa-topbar">
+        <div class="page-title">
+            <h1>Subscription Plans</h1>
+            <p>Create and manage pricing plans — changes take effect for new subscriptions immediately</p>
+        </div>
+        <div class="topbar-right">
+            <div class="admin-badge"><i class="bi bi-shield-lock-fill"></i><span>Super Admin</span></div>
+            
+        </div>
+    </div>
+
+    <div class="plans-grid">
+        <% plans.forEach((plan) => {
+            const colorClass = plan.name.toLowerCase().includes('free') ? 'free'
+                             : plan.name.toLowerCase().includes('basic') ? 'basic'
+                             : plan.name.toLowerCase().includes('pro') ? 'pro'
+                             : 'other';
+            const isFree = plan.price_monthly === 0 || plan.price_monthly === '0.00';
+        %>
+        <div class="plan-card <%= colorClass %>">
+            <div class="plan-card-header">
+                <div class="plan-name-wrap">
+                    <div class="plan-name"><%= plan.name %></div>
+                    <div class="plan-type">
+                        <% if (isFree) { %>Trial Plan<% } else if (plan.price_yearly > 0) { %>Monthly &amp; Yearly<% } else { %>Monthly Only<% } %>
+                    </div>
+                </div>
+                <span class="plan-status-badge <%= plan.is_active ? 'active' : 'inactive' %>">
+                    <%= plan.is_active ? 'Active' : 'Inactive' %>
+                </span>
+            </div>
+
+            <div class="plan-price">
+                <% if (isFree) { %>
+                    <div class="free-tag">Free</div>
+                    <div class="yearly" style="color:rgba(52,152,219,.7)">
+                        <% if (plan.trial_days > 0) { %><%= plan.trial_days %>-day trial, then upgrade required<% } else { %>No charge<% } %>
+                    </div>
+                <% } else { %>
+                    <div class="monthly">₹<%= Number(plan.price_monthly).toLocaleString('en-IN') %><span>/ month</span></div>
+                    <% if (plan.price_yearly > 0) { %>
+                        <div class="yearly">
+                            ₹<%= Number(plan.price_yearly).toLocaleString('en-IN') %> / year
+                            <% const saving = Math.round(100 - (plan.price_yearly / (plan.price_monthly * 12) * 100)); %>
+                            <% if (saving > 0) { %>&nbsp;·&nbsp;<span style="color:var(--green)">Save <%= saving %>%</span><% } %>
+                        </div>
+                    <% } %>
+                <% } %>
+            </div>
+
+            <div class="plan-features">
+                <div class="plan-feature">
+                    <i class="bi bi-building fi-blue"></i>
+                    <span><strong><%= plan.max_grounds %></strong> ground<%= plan.max_grounds !== 1 ? 's' : '' %> allowed</span>
+                </div>
+                <div class="plan-feature">
+                    <i class="bi bi-calendar-check fi-green"></i>
+                    <span>
+                        <% if (plan.max_bookings === 0) { %><strong>Unlimited</strong> bookings<% } else { %>Up to <strong><%= plan.max_bookings %></strong> bookings<% } %>
+                    </span>
+                </div>
+                <div class="plan-feature">
+                    <i class="bi bi-clock-history fi-amber"></i>
+                    <span>
+                        <% if (plan.history_days >= 9999) { %><strong>Full</strong> booking history<% } else { %><strong><%= plan.history_days %></strong>-day booking history<% } %>
+                    </span>
+                </div>
+                <% if (plan.trial_days > 0) { %>
+                <div class="plan-feature">
+                    <i class="bi bi-gift fi-purple"></i>
+                    <span><strong><%= plan.trial_days %>-day</strong> trial period</span>
+                </div>
+                <% } %>
+            </div>
+
+            <div class="plan-footer">
+                <div class="subscriber-pill">
+                    <i class="bi bi-people"></i>
+                    <span><%= plan.active_subscribers %></span>
+                    active subscriber<%= plan.active_subscribers !== 1 ? 's' : '' %>
+                </div>
+                <div class="plan-actions">
+                    <button class="btn-icon" title="Edit plan" onclick="openEditDrawer(<%= JSON.stringify(plan) %>)">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                    <button class="btn-icon danger" title="Delete plan"
+                            onclick="openDeleteModal(<%= plan.id %>, '<%= plan.name.replace(/'/g, "\\'") %>', <%= plan.active_subscribers %>)">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <% }); %>
+
+        <div class="plan-card add-new" onclick="openCreateDrawer()">
+            <div class="add-new-icon"><i class="bi bi-plus-lg"></i></div>
+            <div class="add-new-label">Create New Plan</div>
+            <div class="add-new-sub">Click to add a pricing tier</div>
+        </div>
+    </div>
+</main>
+
+<!-- ── Create / Edit Plan Drawer ───────────────────────────── -->
+<div class="drawer-overlay" id="planDrawerOverlay">
+    <div class="drawer">
+        <div class="drawer-header">
+            <div class="drawer-header-left">
+                <div class="drawer-icon"><i class="bi bi-layers"></i></div>
+                <div>
+                    <h2 id="drawerTitle">Create Plan</h2>
+                    <p id="drawerSub" style="font-size:11.5px;color:var(--text-3);margin-top:2px">Fill in the plan details below</p>
+                </div>
+            </div>
+            <button class="drawer-close" onclick="closeDrawer()"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <div class="drawer-body">
+            <div class="drawer-section">
+                <div class="drawer-section-title">Basic Info</div>
+                <div class="form-group">
+                    <label class="form-label">Plan Name</label>
+                    <input type="text" class="form-input" id="fieldName" placeholder="e.g. Pro, Basic, Enterprise" maxlength="80">
+                </div>
+                <div class="form-group">
+                    <div class="toggle-group">
+                        <span class="toggle-label">Plan is active (visible to partners)</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="fieldIsActive" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="drawer-section">
+                <div class="drawer-section-title">Pricing</div>
+                <div class="form-group">
+                    <label class="form-label">Monthly Price <span class="hint">(₹ — 0 for free)</span></label>
+                    <input type="number" class="form-input" id="fieldPriceMonthly" placeholder="999" min="0" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Yearly Price <span class="hint">(₹ — 0 to disable)</span></label>
+                    <input type="number" class="form-input" id="fieldPriceYearly" placeholder="9990" min="0" step="0.01">
+                </div>
+            </div>
+
+            <div class="drawer-section">
+                <div class="drawer-section-title">Limits & Features</div>
+                <div class="form-group">
+                    <label class="form-label">Max Grounds</label>
+                    <input type="number" class="form-input" id="fieldMaxGrounds" placeholder="1" min="1">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Max Bookings <span class="hint">(0 = unlimited)</span></label>
+                    <input type="number" class="form-input" id="fieldMaxBookings" placeholder="0" min="0">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">History Days <span class="hint">(9999 = full)</span></label>
+                    <input type="number" class="form-input" id="fieldHistoryDays" placeholder="30" min="1">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Trial Days <span class="hint">(0 = no trial)</span></label>
+                    <input type="number" class="form-input" id="fieldTrialDays" placeholder="0" min="0">
+                </div>
+            </div>
+        </div>
+        <div class="drawer-footer">
+            <button class="btn btn-ghost" onclick="closeDrawer()">Cancel</button>
+            <button class="btn btn-primary" id="drawerSaveBtn" onclick="savePlan()">
+                <i class="bi bi-check-lg"></i>
+                <span id="drawerSaveBtnText">Create Plan</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirm Modal (centered — small confirm dialog) -->
+<div class="modal-overlay" id="deleteModal">
+    <div class="modal" style="width:420px">
+        <div class="modal-header">
+            <h2 style="color:var(--red)">Delete Plan</h2>
+            <button class="modal-close" onclick="closeDeleteModal()"><i class="bi bi-x"></i></button>
+        </div>
+        <div class="delete-warning">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <div>You are about to delete <strong id="deletePlanName"></strong>. Plans with active subscribers cannot be deleted.</div>
+        </div>
+        <p id="deleteBlockMsg" style="display:none;color:var(--red);font-size:13px;margin-top:14px;padding:10px 14px;background:rgba(231,76,60,.06);border-radius:var(--radius);border:1px solid rgba(231,76,60,.2)">
+            <i class="bi bi-shield-exclamation"></i>
+            This plan has active subscribers. Move them to another plan first.
+        </p>
+        <div class="modal-footer">
+            <button class="btn btn-ghost" onclick="closeDeleteModal()">Cancel</button>
+            <button class="btn" id="confirmDeleteBtn" style="background:var(--red);color:#fff" onclick="confirmDelete()">
+                <i class="bi bi-trash"></i> Delete
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="toast-msg" id="toast" style="display:none">
+    <i class="bi bi-check-circle-fill" id="toastIcon"></i>
+    <span id="toastMessage">Done</span>
+</div>
+
+<script>
+let editingPlanId = null, deletingPlanId = null;
+
+function getCsrfToken(){const m=document.cookie.match(/(?:^|; )csrf_token=([^;]*)/);return m?decodeURIComponent(m[1]):'';}
+function showToast(msg,isError=false){
+    const t=document.getElementById('toast'),msg_el=document.getElementById('toastMessage'),icon=document.getElementById('toastIcon');
+    msg_el.textContent=msg;t.style.display='flex';t.style.borderColor=isError?'rgba(231,76,60,.4)':'rgba(46,204,113,.4)';t.style.color=isError?'#e74c3c':'#2ecc71';icon.className=isError?'bi bi-x-circle-fill':'bi bi-check-circle-fill';
+    clearTimeout(t._timer);t._timer=setTimeout(()=>t.style.display='none',3000);
+}
+document.getElementById('toast').addEventListener('click',function(){this.style.display='none';});
+
+function openCreateDrawer(){
+    editingPlanId=null;
+    document.getElementById('drawerTitle').textContent='Create Plan';
+    document.getElementById('drawerSaveBtnText').textContent='Create Plan';
+    document.getElementById('drawerSub').textContent='Fill in the plan details below';
+    document.getElementById('fieldName').value='';
+    document.getElementById('fieldPriceMonthly').value='';
+    document.getElementById('fieldPriceYearly').value='';
+    document.getElementById('fieldMaxGrounds').value='1';
+    document.getElementById('fieldMaxBookings').value='0';
+    document.getElementById('fieldHistoryDays').value='30';
+    document.getElementById('fieldTrialDays').value='0';
+    document.getElementById('fieldIsActive').checked=true;
+    document.getElementById('planDrawerOverlay').classList.add('open');
+    document.body.style.overflow='hidden';
+}
+
+function openEditDrawer(plan){
+    editingPlanId=plan.id;
+    document.getElementById('drawerTitle').textContent='Edit Plan';
+    document.getElementById('drawerSaveBtnText').textContent='Save Changes';
+    document.getElementById('drawerSub').textContent=plan.name;
+    document.getElementById('fieldName').value=plan.name;
+    document.getElementById('fieldPriceMonthly').value=plan.price_monthly;
+    document.getElementById('fieldPriceYearly').value=plan.price_yearly;
+    document.getElementById('fieldMaxGrounds').value=plan.max_grounds;
+    document.getElementById('fieldMaxBookings').value=plan.max_bookings;
+    document.getElementById('fieldHistoryDays').value=plan.history_days;
+    document.getElementById('fieldTrialDays').value=plan.trial_days;
+    document.getElementById('fieldIsActive').checked=!!plan.is_active;
+    document.getElementById('planDrawerOverlay').classList.add('open');
+    document.body.style.overflow='hidden';
+}
+
+function closeDrawer(){
+    document.getElementById('planDrawerOverlay').classList.remove('open');
+    document.body.style.overflow='';
+}
+
+document.getElementById('planDrawerOverlay').addEventListener('click',e=>{
+    if(e.target===document.getElementById('planDrawerOverlay'))closeDrawer();
+});
+
+async function savePlan(){
+    const name=document.getElementById('fieldName').value.trim();
+    if(!name){showToast('Plan name is required',true);return;}
+    const btn=document.getElementById('drawerSaveBtn');btn.disabled=true;
+    const payload={name,price_monthly:parseFloat(document.getElementById('fieldPriceMonthly').value)||0,price_yearly:parseFloat(document.getElementById('fieldPriceYearly').value)||0,max_grounds:parseInt(document.getElementById('fieldMaxGrounds').value)||1,max_bookings:parseInt(document.getElementById('fieldMaxBookings').value)||0,history_days:parseInt(document.getElementById('fieldHistoryDays').value)||30,trial_days:parseInt(document.getElementById('fieldTrialDays').value)||0,is_active:document.getElementById('fieldIsActive').checked?1:0};
+    const url=editingPlanId?`/super-admin/plans/${editingPlanId}/update`:'/super-admin/plans/create';
+    try{
+        const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':getCsrfToken()},body:JSON.stringify(payload)});
+        const data=await res.json();
+        if(data.success){closeDrawer();showToast(data.message||'Plan saved');setTimeout(()=>location.reload(),1200);}
+        else showToast(data.message||'Failed to save',true);
+    }catch{showToast('Network error',true);}
+    finally{btn.disabled=false;}
+}
+
+function openDeleteModal(id,name,activeSubs){
+    deletingPlanId=id;
+    document.getElementById('deletePlanName').textContent=name;
+    const block=document.getElementById('deleteBlockMsg'),btn=document.getElementById('confirmDeleteBtn');
+    if(activeSubs>0){block.style.display='block';btn.disabled=true;btn.style.opacity='.4';}
+    else{block.style.display='none';btn.disabled=false;btn.style.opacity='1';}
+    document.getElementById('deleteModal').classList.add('open');
+    document.body.style.overflow='hidden';
+}
+function closeDeleteModal(){document.getElementById('deleteModal').classList.remove('open');document.body.style.overflow='';deletingPlanId=null;}
+
+document.getElementById('deleteModal').addEventListener('click',e=>{
+    if(e.target===document.getElementById('deleteModal'))closeDeleteModal();
+});
+
+async function confirmDelete(){
+    if(!deletingPlanId)return;
+    try{
+        const res=await fetch(`/super-admin/plans/${deletingPlanId}/delete`,{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':getCsrfToken()}});
+        const data=await res.json();
+        if(data.success){closeDeleteModal();showToast('Plan deleted');setTimeout(()=>location.reload(),1200);}
+        else showToast(data.message||'Could not delete',true);
+    }catch{showToast('Network error',true);}
+}
+
+function getCsrfToken(){const m=document.cookie.match(/(?:^|; )csrf_token=([^;]*)/);return m?decodeURIComponent(m[1]):'';}
+</script>
+
+<script>
+// ── Super Admin Keep-Alive ──────────────────────────────────────
+// Pings /super-admin/keepalive every 10 minutes so the sa_access_token
+// cookie keeps sliding and the session doesn't expire while you are
+// working in another browser tab (e.g. the normal admin panel).
+(function() {
+    function ping() {
+        fetch('/super-admin/keepalive', { method: 'GET', credentials: 'same-origin' })
+            .catch(function() {}); // silent fail — just a background heartbeat
+    }
+    ping(); // ping immediately on page load
+    setInterval(ping, 10 * 60 * 1000); // then every 10 minutes
+})();
+</script>
+</body>
+</html>

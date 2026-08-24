@@ -67,7 +67,9 @@ const generateSlotsForDate = async (date, settings) => {
         };
 
         const openMins      = toMins(open);
-        const closeMins     = toMins(close);
+        let   closeMins     = toMins(close);
+        // Overnight support: if close ≤ open, closing is next day
+        if (closeMins <= openMins) closeMins += 24 * 60;
         const peakStartMins = toMins(peakStart);
         const peakEndMins   = toMins(peakEnd);
         let current         = openMins;
@@ -180,10 +182,11 @@ const submitBooking = async ({ slot_id, slot_date, customer_name, customer_phone
         const prefix = `SS-${yy}${mm}${dd}`;
 
         const [countRows] = await db.promise().query(
-            'SELECT COUNT(*) as count FROM tbl_bookings WHERE booking_no LIKE ?', [`${prefix}%`]
+            'SELECT MAX(CAST(SUBSTRING_INDEX(booking_no, \'-\', -1) AS UNSIGNED)) as max_serial FROM tbl_bookings WHERE booking_no LIKE ?', [`${prefix}%`]
         );
-        const booking_no   = `${prefix}-${String(countRows[0].count + 1).padStart(3, '0')}`;
+        const booking_no   = `${prefix}-${String((countRows[0].max_serial || 0) + 1).padStart(3, '0')}`;
         const total_amount = slot.price;
+        const tenant_id    = slot.tenant_id || 0;
 
         const [result] = await db.promise().query(
             `INSERT INTO tbl_bookings (
@@ -191,9 +194,9 @@ const submitBooking = async ({ slot_id, slot_date, customer_name, customer_phone
                 slot_date, start_time, end_time,
                 customer_name, customer_phone, customer_email,
                 total_amount, advance_amount, balance_amount,
-                payment_status, booking_status, notes
-            ) VALUES (?, 'online', ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, 'pending', 'pending', ?)`,
-            [booking_no, slot_id, slot_date, slot.start_time, slot.end_time, customer_name, customer_phone, customer_email || null, total_amount, total_amount, notes || null]
+                payment_status, booking_status, notes, tenant_id
+            ) VALUES (?, 'online', ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, 'pending', 'pending', ?, ?)`,
+            [booking_no, slot_id, slot_date, slot.start_time, slot.end_time, customer_name, customer_phone, customer_email || null, total_amount, total_amount, notes || null, tenant_id]
         );
 
         return {
@@ -271,12 +274,32 @@ const getBookingStatus = async ({ booking_no, customer_phone }) => {
 };
 
 
-// ══════════════════════════════════════════════════
+// ── Get Tenant Info by Slug (public) ─────────────
+const getTenantInfo = async (slug) => {
+    try {
+        const [rows] = await db.promise().query(
+            `SELECT t.id, t.business_name, t.slug, t.city, t.status,
+                    u.email, u.phone
+             FROM tbl_tenants t
+             LEFT JOIN tbl_users u ON u.id = t.user_id
+             WHERE t.slug = ? LIMIT 1`,
+            [slug]
+        );
+        if (rows.length === 0) {
+            const err = new Error('Tenant not found'); err.statusCode = 404; throw err;
+        }
+        return rows[0];
+    } catch (err) { 
+        throw err;
+    }
+};
+
+// ══════════════════════
 // NEW MULTI-GROUND APIs
-// ══════════════════════════════════════════════════
+// ══════════════════════
 
 // ── Get All Active Grounds (with images) ─────────
-const getAllActiveGrounds = async () => {
+const getAllActiveGrounds = async (tenant_id) => {
     try {
         const [grounds] = await db.promise().query(
             `SELECT
@@ -285,26 +308,40 @@ const getAllActiveGrounds = async () => {
                 g.peak_start_time, g.peak_end_time,
                 g.peak_price, g.off_peak_price,
                 g.advance_booking_days, g.advance_payment_hours,
+                g.maps_link,
                 g.status,
                 (SELECT filename FROM tbl_ground_images
                  WHERE ground_id = g.id AND is_primary = 1 LIMIT 1) AS primary_image
              FROM tbl_grounds g
-             WHERE g.status = 'active'
-             ORDER BY g.created_at ASC`
+             WHERE g.status = 'active' AND g.flag = 0 AND g.tenant_id = ?
+             ORDER BY g.created_at ASC`,
+            [tenant_id]
         );
 
-        for (const ground of grounds) {
-            const [images] = await db.promise().query(
-                `SELECT id, filename, is_primary
-                 FROM tbl_ground_images
-                 WHERE ground_id = ? ORDER BY is_primary DESC, id ASC`,
-                [ground.id]
-            );
-            ground.images = images.map(img => ({
+        if (grounds.length === 0) return grounds;
+
+        // Batch-fetch all images in a single query instead of N+1 per ground
+        const groundIds = grounds.map(g => g.id);
+        const [allImages] = await db.promise().query(
+            `SELECT id, ground_id, filename, is_primary
+             FROM tbl_ground_images
+             WHERE ground_id IN (?)
+             ORDER BY is_primary DESC, id ASC`,
+            [groundIds]
+        );
+
+        const imagesByGround = {};
+        for (const img of allImages) {
+            if (!imagesByGround[img.ground_id]) imagesByGround[img.ground_id] = [];
+            imagesByGround[img.ground_id].push({
                 id:         img.id,
                 url:        `/uploads/grounds/${img.filename}`,
                 is_primary: img.is_primary === 1
-            }));
+            });
+        }
+
+        for (const ground of grounds) {
+            ground.images = imagesByGround[ground.id] || [];
         }
 
         return grounds;
@@ -314,11 +351,11 @@ const getAllActiveGrounds = async () => {
 };
 
 // ── Get Available Dates for a Ground ─────────────
-const getAvailableDatesForGround = async (groundId) => {
+const getAvailableDatesForGround = async (groundId, tenant_id) => {
     try {
         const [rows] = await db.promise().query(
-            'SELECT advance_booking_days FROM tbl_grounds WHERE id = ? AND status = ?',
-            [groundId, 'active']
+            'SELECT advance_booking_days FROM tbl_grounds WHERE id = ? AND status = ? AND tenant_id = ?',
+            [groundId, 'active', tenant_id]
         );
         if (rows.length === 0) {
             const err = new Error('Ground not found or inactive'); err.statusCode = 404; throw err;
@@ -355,7 +392,9 @@ const generateSlotsForGroundDate = async (groundId, date, settings) => {
         };
 
         const openMins      = toMins(open);
-        const closeMins     = toMins(close);
+        let   closeMins     = toMins(close);
+        // Overnight support: if close ≤ open, closing is next day
+        if (closeMins <= openMins) closeMins += 24 * 60;
         const peakStartMins = toMins(peakStart);
         const peakEndMins   = toMins(peakEnd);
         let current         = openMins;
@@ -381,18 +420,18 @@ const generateSlotsForGroundDate = async (groundId, date, settings) => {
 };
 
 // ── Get Slots for Ground + Date ───────────────────
-const getSlotsForGroundDate = async (groundId, date) => {
+const getSlotsForGroundDate = async (groundId, date, tenant_id) => {
     try {
         const gId = parseInt(groundId);
 
         const [groundRows] = await db.promise().query(
-            'SELECT * FROM tbl_grounds WHERE id = ? AND status = ?', [gId, 'active']
+            'SELECT * FROM tbl_grounds WHERE id = ? AND status = ? AND tenant_id = ?', [gId, 'active', tenant_id]
         );
         if (groundRows.length === 0) {
             const err = new Error('Ground not found or inactive'); err.statusCode = 404; throw err;
         }
 
-        await generateSlotsForGroundDate(gId, date, groundRows[0]);
+        await generateSlotsForGroundDate(gId, date, groundRows[0], tenant_id);
 
         const [slots] = await db.promise().query(
             `SELECT
@@ -464,12 +503,12 @@ const getSlotsForGroundDate = async (groundId, date) => {
 
 // ── Submit Booking for Specific Ground ───────────
 // Fixed: removed duplicate 'online' from params array (was shifting all columns by 1)
-const submitGroundBooking = async ({ ground_id, slot_id, slot_date, customer_name, customer_phone, customer_email, notes }) => {
+const submitGroundBooking = async ({ ground_id, slot_id, slot_date, customer_name, customer_phone, customer_email, notes, tenant_id }) => {
     try {
         const gId = parseInt(ground_id);
 
         const [groundRows] = await db.promise().query(
-            'SELECT * FROM tbl_grounds WHERE id = ? AND status = ?', [gId, 'active']
+            'SELECT * FROM tbl_grounds WHERE id = ? AND status = ? AND tenant_id = ?', [gId, 'active', tenant_id]
         );
         if (groundRows.length === 0) {
             const err = new Error('Ground not found or inactive'); err.statusCode = 404; throw err;
@@ -497,7 +536,7 @@ const submitGroundBooking = async ({ ground_id, slot_id, slot_date, customer_nam
             const err = new Error('This slot is already taken'); err.statusCode = 409; throw err;
         }
 
-        const availableDates = await getAvailableDatesForGround(gId);
+        const availableDates = await getAvailableDatesForGround(gId, ground.tenant_id);
         if (!availableDates.includes(slot_date)) {
             const err = new Error('Booking is not allowed for this date'); err.statusCode = 400; throw err;
         }
@@ -509,10 +548,11 @@ const submitGroundBooking = async ({ ground_id, slot_id, slot_date, customer_nam
         const prefix = `SS-${yy}${mm}${dd}`;
 
         const [countRows] = await db.promise().query(
-            'SELECT COUNT(*) as count FROM tbl_bookings WHERE booking_no LIKE ?', [`${prefix}%`]
+            'SELECT MAX(CAST(SUBSTRING_INDEX(booking_no, \'-\', -1) AS UNSIGNED)) as max_serial FROM tbl_bookings WHERE booking_no LIKE ?', [`${prefix}%`]
         );
-        const booking_no   = `${prefix}-${String(countRows[0].count + 1).padStart(3, '0')}`;
+        const booking_no   = `${prefix}-${String((countRows[0].max_serial || 0) + 1).padStart(3, '0')}`;
         const total_amount = slot.price;
+        const tenant_id    = ground.tenant_id || 0;
 
         const [result] = await db.promise().query(
             `INSERT INTO tbl_bookings (
@@ -520,13 +560,13 @@ const submitGroundBooking = async ({ ground_id, slot_id, slot_date, customer_nam
                 slot_date, start_time, end_time,
                 customer_name, customer_phone, customer_email,
                 total_amount, advance_amount, balance_amount,
-                payment_status, booking_status, notes
-            ) VALUES (?, 'online', ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, 'pending', 'pending', ?)`,
+                payment_status, booking_status, notes, tenant_id
+            ) VALUES (?, 'online', ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, 'pending', 'pending', ?, ?)`,
             [
                 booking_no, gId, slot_id, slot_date,
                 slot.start_time, slot.end_time,
                 customer_name, customer_phone, customer_email || null,
-                total_amount, total_amount, notes || null
+                total_amount, total_amount, notes || null, tenant_id
             ]
         );
 
@@ -554,6 +594,8 @@ module.exports = {
     getSlotsForDate,
     submitBooking,
     getBookingStatus,
+    // Tenant info
+    getTenantInfo,
     // Multi-ground
     getAllActiveGrounds,
     getAvailableDatesForGround,

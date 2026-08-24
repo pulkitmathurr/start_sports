@@ -2,46 +2,52 @@
 
 <div class="row settings-page-header">
 
-    <!-- Page Header -->
+    <!-- Page Header - Blue Theme -->
     <div class="col-12 mb-4">
-        <div class="d-flex align-items-center justify-content-between">
-            <div>
-                <h4 class="fw-bold mb-1" style="font-family:'Rajdhani',sans-serif; letter-spacing:1px; color:#1B4332;">
-                    <%= ground ? 'Edit Ground' : 'Add New Ground' %>
-                </h4>
-                <small style="color:#ADB5BD;">
-                    <%= ground ? 'Update ground details, timings and pricing' : 'Fill in details to add a new ground' %>
-                </small>
+        <div class="gf-header">
+            <div class="gf-header__left">
+                <div class="gf-header__icon">
+                    <i class="bi bi-building"></i>
+                </div>
+                <div>
+                    <h4 class="gf-header__title">
+                        <%= ground ? 'Edit Ground' : 'Add New Ground' %>
+                    </h4>
+                    <span class="gf-header__sub">
+                        <%= ground ? 'Update ground details, timings and pricing' : 'Fill in details to add a new ground' %>
+                    </span>
+                </div>
             </div>
-            <a href="/grounds" style="font-size:0.8rem; color:#6B7280; text-decoration:none;">
-                <i class="bi bi-arrow-left me-1"></i> Back 
+            <a href="/grounds" class="gf-back-btn">
+                <i class="bi bi-arrow-left me-1"></i> Back to Grounds
             </a>
         </div>
     </div>
 
-    <!-- Error Banner -->
-    <% if (error) { %>
-    <div class="col-12">
-        <div class="settings-warning">
-            <i class="bi bi-exclamation-triangle-fill"></i> <%= error %>
-        </div>
-    </div>
+    <!-- Toast for error/success -->
+    <% if (typeof error !== 'undefined' && error) { %>
+    <script>document.addEventListener('DOMContentLoaded',()=>xToast('<%= error.replace(/'/g,"\'") %>','error'));</script>
+    <% } %>
+    <% if (typeof success !== 'undefined' && success) { %>
+    <script>document.addEventListener('DOMContentLoaded',()=>xToast('<%= success.replace(/'/g,"\'") %>','success'));</script>
     <% } %>
 
     <!-- ══ IMAGE ACTION FORMS — MAIN FORM SE BILKUL BAHAR ══ -->
     <% if (ground && ground.images && ground.images.length > 0) { %>
         <% ground.images.forEach(img => { %>
         <form id="form-primary-<%= img.id %>" method="POST"
-              action="/grounds/<%= ground.id %>/image/<%= img.id %>/primary" style="display:none;"></form>
+              action="/grounds/<%= ground.id %>/image/<%= img.id %>/primary" style="display:none;"><input type="hidden" name="_csrf" value="<%= csrfToken %>"></form>
         <form id="form-delete-<%= img.id %>" method="POST"
-              action="/grounds/<%= ground.id %>/image/<%= img.id %>/delete" style="display:none;"></form>
+              action="/grounds/<%= ground.id %>/image/<%= img.id %>/delete" style="display:none;"><input type="hidden" name="_csrf" value="<%= csrfToken %>"></form>
         <% }) %>
     <% } %>
 
     <!-- ══ MAIN FORM ══ -->
-    <form method="POST"
+    <form id="ground-main-form" method="POST"
           action="<%= ground ? '/grounds/' + ground.id + '/update' : '/grounds/create' %>"
-          enctype="multipart/form-data">
+          enctype="multipart/form-data"
+          novalidate>
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
 
         <!-- ── Section 1: Ground Info ─────────────── -->
         <div class="col-12">
@@ -54,38 +60,61 @@
 
                         <div class="col-12 col-md-4">
                             <label class="s-label">Ground Name *</label>
-                            <input type="text" name="name"
+                            <input type="text" name="name" id="field-name"
                                 value="<%= ground ? ground.name : '' %>"
                                 placeholder="e.g. Start Sports Arena"
-                                class="s-input" required>
+                                class="s-input">
                             <small class="s-hint">Shown to customers on booking site</small>
                         </div>
 
                         <div class="col-12 col-md-4">
                             <label class="s-label">Contact Number *</label>
-                            <input type="tel" name="phone"
+                            <input type="tel" name="phone" id="field-phone"
                                 value="<%= ground ? ground.phone : '' %>"
                                 placeholder="e.g. 9876543210"
-                                class="s-input" required>
+                                class="s-input">
                         </div>
 
                         <div class="col-12 col-md-4">
                             <label class="s-label">Address *</label>
-                            <input type="text" name="address"
+                            <input type="text" name="address" id="field-address"
                                 value="<%= ground ? ground.address : '' %>"
                                 placeholder="e.g. Sector 12, Jaipur"
-                                class="s-input" required>
+                                class="s-input">
                         </div>
 
-                        <div class="col-12 col-md-4">
+                        <!-- Sport Type + Google Maps Link in ONE ROW -->
+                        <div class="col-12 col-md-6">
                             <label class="s-label">Sport Type</label>
                             <select name="sport_type" class="s-input">
-                                <% ['cricket','football','badminton','basketball','tennis','volleyball','other'].forEach(s => { %>
+                                <% [
+                                    'cricket','football','futsal','basketball','tennis',
+                                    'badminton','volleyball','hockey','kabaddi','handball',
+                                    'box-cricket','throwball','pickleball','squash','swimming',
+                                    'skating','archery','yoga','gym','other'
+                                ].forEach(s => { %>
                                 <option value="<%= s %>" <%= ground && ground.sport_type === s ? 'selected' : '' %>>
-                                    <%= s.charAt(0).toUpperCase() + s.slice(1) %>
+                                    <%= s.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join('-') %>
                                 </option>
                                 <% }) %>
                             </select>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="s-label">
+                                Google Maps Link
+                                <span style="font-weight:400; text-transform:none; letter-spacing:0; font-size:0.65rem; color:#94a3b8;">(optional)</span>
+                            </label>
+                            <div style="position:relative;">
+                                <i class="bi bi-geo-alt-fill" style="position:absolute; left:12px; top:50%; transform:translateY(-50%); color:#2563eb; font-size:0.9rem;"></i>
+                                <input type="url" name="maps_link"
+                                    value="<%= ground && ground.maps_link ? ground.maps_link : '' %>"
+                                    placeholder="Paste Google Maps link — e.g. https://maps.app.goo.gl/..."
+                                    class="s-input" style="padding-left: 36px;">
+                            </div>
+                            <small class="s-hint">
+                                Open Google Maps → find your ground → tap Share → Copy link → paste here.
+                            </small>
                         </div>
 
                     </div>
@@ -93,7 +122,104 @@
             </div>
         </div>
 
-        <!-- ── Section 2: Ground Images ──────────── -->
+        <!-- ── Section 2: Amenities ───────────────── -->
+        <div class="col-12">
+            <div class="settings-card">
+                <div class="settings-card-header">
+                    <i class="bi bi-stars"></i> Amenities
+                </div>
+                <div class="settings-card-body">
+
+                    <!-- Hidden field that gets submitted -->
+                    <input type="hidden" name="amenities" id="amenities-hidden" value="">
+                    <script>
+                    document.getElementById('amenities-hidden').value = <%-
+                        (ground && ground.amenities)
+                            ? (typeof ground.amenities === 'string' ? ground.amenities : JSON.stringify(ground.amenities))
+                            : '[]'
+                    %>;
+                    </script>
+
+                    <% const AMENITY_GROUPS = [
+                        { label: 'Facilities', items: [
+                            { val: 'Parking',          icon: 'bi-p-square-fill' },
+                            { val: 'Washrooms',        icon: 'bi-door-open-fill' },
+                            { val: 'Changing Rooms',   icon: 'bi-person-badge' },
+                            { val: 'Locker Room',      icon: 'bi-lock-fill' },
+                            { val: 'First Aid',        icon: 'bi-heart-pulse-fill' },
+                            { val: 'Seating Area',     icon: 'bi-person-video3' },
+                            { val: 'Cafeteria',        icon: 'bi-cup-hot-fill' },
+                            { val: 'Drinking Water',   icon: 'bi-droplet-fill' },
+                            { val: 'WiFi',             icon: 'bi-wifi' },
+                        ]},
+                        { label: 'Ground Features', items: [
+                            { val: 'Floodlights',      icon: 'bi-lightbulb-fill' },
+                            { val: 'Covered / Indoor', icon: 'bi-house-fill' },
+                            { val: 'Natural Grass',    icon: 'bi-flower1' },
+                            { val: 'Turf / Artificial',icon: 'bi-grid-3x3-gap-fill' },
+                            { val: 'Concrete Surface', icon: 'bi-square-fill' },
+                            { val: 'Scoreboard',       icon: 'bi-clipboard2-data-fill' },
+                            { val: 'Pitch Covers',     icon: 'bi-shield-fill' },
+                            { val: 'Dressing Room',    icon: 'bi-building' },
+                        ]},
+                        { label: 'Equipment & Services', items: [
+                            { val: 'Equipment Rental', icon: 'bi-bag-fill' },
+                            { val: 'Coaching',         icon: 'bi-person-workspace' },
+                            { val: 'Security Guard',   icon: 'bi-shield-lock-fill' },
+                            { val: 'CCTV',             icon: 'bi-camera-video-fill' },
+                            { val: 'Live Streaming',   icon: 'bi-broadcast' },
+                            { val: 'Umpire Available', icon: 'bi-person-check-fill' },
+                        ]},
+                    ]; %>
+
+                    <% AMENITY_GROUPS.forEach(group => { %>
+                    <div style="margin-bottom: 1rem;">
+                        <div style="font-size:0.7rem; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:#64748b; margin-bottom:8px;">
+                            <%= group.label %>
+                        </div>
+                        <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                            <% group.items.forEach(item => { %>
+                            <div class="amenity-chip" data-val="<%= item.val %>"
+                                 onclick="toggleAmenity(this, '<%= item.val %>')">
+                                <i class="bi <%= item.icon %>" style="font-size:13px;"></i>
+                                <%= item.val %>
+                            </div>
+                            <% }) %>
+                        </div>
+                    </div>
+                    <% }) %>
+
+                    <!-- Custom amenity input -->
+                    <div style="margin-top:4px;">
+                        <div style="font-size:0.7rem; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:#64748b; margin-bottom:8px;">
+                            Custom Amenity
+                        </div>
+                        <div style="display:flex; gap:8px; max-width:400px;">
+                            <input type="text" id="custom-amenity-input"
+                                   placeholder="e.g. Solar Lighting, Prayer Room..."
+                                   class="s-input" style="flex:1; margin:0;"
+                                   onkeydown="if(event.key==='Enter'){event.preventDefault();addCustomAmenity();}">
+                            <button type="button" onclick="addCustomAmenity()" class="gf-add-btn">
+                                + Add
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Selected amenities display -->
+                    <div style="margin-top:14px;">
+                        <div style="font-size:0.7rem; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:#64748b; margin-bottom:8px;">
+                            Selected Amenities
+                        </div>
+                        <div id="selected-amenities-display" style="display:flex; flex-wrap:wrap; gap:6px; min-height:30px;">
+                            <span id="amenities-empty-hint" style="font-size:0.78rem; color:#94a3b8; padding:4px 0;">None selected</span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Section 3: Ground Images ──────────── -->
         <div class="col-12">
             <div class="settings-card">
                 <div class="settings-card-header">
@@ -108,29 +234,26 @@
                         <div style="position:relative; width:130px;">
                             <img src="/uploads/grounds/<%= img.filename %>"
                                  style="width:130px; height:100px; object-fit:cover; border-radius:8px;
-                                        border: 2px solid <%= img.is_primary ? '#1B4332' : '#E5E7EB' %>;">
+                                        border: 2px solid <%= img.is_primary ? '#2563eb' : '#E5E7EB' %>;">
 
                             <% if (img.is_primary) { %>
-                            <span style="position:absolute; top:5px; left:5px; background:#1B4332; color:#fff;
+                            <span style="position:absolute; top:5px; left:5px; background:#2563eb; color:#fff;
                                          font-size:0.6rem; padding:2px 6px; border-radius:10px; font-weight:700;">
                                 PRIMARY
                             </span>
                             <% } %>
 
-                            <!-- type="button" — main form submit nahi hoga -->
                             <div style="display:flex; gap:4px; margin-top:5px;">
                                 <% if (!img.is_primary) { %>
                                 <button type="button"
                                     onclick="document.getElementById('form-primary-<%= img.id %>').submit()"
-                                    style="flex:1; font-size:0.65rem; padding:3px 0; border:1px solid #1B4332;
-                                           color:#1B4332; background:transparent; border-radius:4px; cursor:pointer;">
+                                    class="gf-img-btn-primary">
                                     Set Primary
                                 </button>
                                 <% } %>
                                 <button type="button"
-                                    onclick="if(confirm('Delete this image?')) document.getElementById('form-delete-<%= img.id %>').submit()"
-                                    style="flex:1; font-size:0.65rem; padding:3px 0; border:1px solid #D90429;
-                                           color:#D90429; background:transparent; border-radius:4px; cursor:pointer;">
+                                    onclick="showDelModal({title:'Delete Image',message:'Delete this image? This cannot be undone.',confirmText:'Delete',icon:'bi bi-trash3-fill',iconClass:'del-modal__icon--danger'},()=>document.getElementById('form-delete-<%= img.id %>').submit())"
+                                    class="gf-img-btn-delete">
                                     <i class="bi bi-trash"></i>
                                 </button>
                             </div>
@@ -140,18 +263,14 @@
                     <p class="s-divider">Upload More Images</p>
                     <% } %>
 
-                    <div id="drop-area"
-                         style="border:2px dashed #D1D5DB; border-radius:10px; padding:2rem;
-                                text-align:center; cursor:pointer; transition:border-color 0.2s;"
+                    <div id="drop-area" class="gf-drop-area"
                          onclick="document.getElementById('ground-images').click()"
-                         ondragover="event.preventDefault(); this.style.borderColor='#1B4332';"
-                         ondragleave="this.style.borderColor='#D1D5DB';"
+                         ondragover="event.preventDefault(); this.style.borderColor='#2563eb';"
+                         ondragleave="this.style.borderColor='#cbd5e1';"
                          ondrop="handleDrop(event)">
-                        <i class="bi bi-cloud-arrow-up" style="font-size:2rem; color:#ADB5BD;"></i>
-                        <p style="margin:0.5rem 0 0; color:#6B7280; font-size:0.85rem;">
-                            Click to upload or drag & drop images here
-                        </p>
-                        <small style="color:#ADB5BD;">JPG, PNG, WEBP — max 5MB each, up to 10 images</small>
+                        <i class="bi bi-cloud-arrow-up"></i>
+                        <p>Click to upload or drag & drop images here</p>
+                        <small>JPG, PNG, WEBP — max 5MB each, up to 10 images</small>
                     </div>
 
                     <input type="file" id="ground-images" name="images"
@@ -164,11 +283,11 @@
             </div>
         </div>
 
-        <!-- ── Section 3: Operating Hours ────────── -->
+        <!-- ── Section 4: Operating Hours ────────── -->
         <div class="col-12">
             <div class="settings-card">
                 <div class="settings-card-header">
-                    <i class="bi bi-clock"></i> Operating Hours & Slot Duration
+                    <i class="bi bi-clock"></i> Operating Hours & Booking Rules
                 </div>
                 <div class="settings-card-body">
                     <div class="row g-3">
@@ -184,18 +303,19 @@
                         </div>
 
                         <div class="col-6 col-md-3">
-                            <label class="s-label">Slot Duration (minutes) *</label>
-                            <input type="number" name="slot_duration"
-                                value="<%= ground ? ground.slot_duration : '' %>"
-                                placeholder="e.g. 60" min="30" max="480"
-                                class="s-input" required>
+                            <label class="s-label">Min Slot Duration (minutes)</label>
+                            <input type="number" name="min_slot_minutes"
+                                value="<%= ground ? (ground.min_slot_minutes || 30) : 30 %>"
+                                placeholder="e.g. 30" min="15" max="120"
+                                class="s-input">
+                            <small class="s-hint">Shortest bookable slot</small>
                         </div>
 
                         <div class="col-6 col-md-3">
                             <label class="s-label">Advance Booking (days) *</label>
                             <input type="number" name="advance_booking_days"
                                 value="<%= ground ? ground.advance_booking_days : '7' %>"
-                                placeholder="e.g. 7" min="0" max="30"
+                                placeholder="e.g. 7" min="0" max="365"
                                 class="s-input" required>
                         </div>
 
@@ -204,7 +324,7 @@
             </div>
         </div>
 
-        <!-- ── Section 4: Peak Hours & Pricing ───── -->
+        <!-- ── Section 5: Peak Hours & Pricing ───── -->
         <div class="col-12">
             <div class="settings-card">
                 <div class="settings-card-header">
@@ -224,21 +344,23 @@
                         </div>
                     </div>
 
-                    <p class="s-divider">Slot Pricing</p>
+                    <p class="s-divider">Dynamic Pricing (per 30 minutes)</p>
                     <div class="row g-3">
                         <div class="col-6 col-md-3">
-                            <label class="s-label">Off-Peak Price (₹) *</label>
-                            <input type="number" name="off_peak_price"
-                                value="<%= ground ? ground.off_peak_price : '' %>"
-                                placeholder="e.g. 800" min="0"
-                                class="s-input" required>
+                            <label class="s-label">Normal Rate per 30 min (₹)</label>
+                            <input type="number" name="normal_rate_per_30" id="field-normal-rate"
+                                value="<%= ground ? (ground.normal_rate_per_30 || 100) : 100 %>"
+                                placeholder="e.g. 100" min="0" step="0.01"
+                                class="s-input">
+                            <small class="s-hint">Normal hours rate</small>
                         </div>
                         <div class="col-6 col-md-3">
-                            <label class="s-label">Peak Price (₹) *</label>
-                            <input type="number" name="peak_price"
-                                value="<%= ground ? ground.peak_price : '' %>"
-                                placeholder="e.g. 1200" min="0"
-                                class="s-input" required>
+                            <label class="s-label">Peak Rate per 30 min (₹)</label>
+                            <input type="number" name="peak_rate_per_30" id="field-peak-rate"
+                                value="<%= ground ? (ground.peak_rate_per_30 || 150) : 150 %>"
+                                placeholder="e.g. 150" min="0" step="0.01"
+                                class="s-input">
+                            <small class="s-hint">Peak hours rate</small>
                         </div>
                     </div>
 
@@ -246,7 +368,7 @@
             </div>
         </div>
 
-        <!-- ── Section 5: Payment ─────────────────── -->
+        <!-- ── Section 6: Payment ─────────────────── -->
         <div class="col-12">
             <div class="settings-card">
                 <div class="settings-card-header">
@@ -267,21 +389,43 @@
             </div>
         </div>
 
-        <!-- ── Section 6: Live Slot Preview ──────── -->
-        <div class="col-12">
+        <!-- ── Section 7: Slot Manager ────────────── -->
+        <% if (ground) { %>
+        <div class="col-12" id="slot-manager-section">
             <div class="settings-card">
-                <div class="settings-card-header">
-                    <i class="bi bi-calendar3"></i> Live Slot Preview
+                <div class="settings-card-header" style="display:flex; justify-content:space-between; align-items:center;">
+                    <span><i class="bi bi-clock-history"></i> Manage Time Slots</span>
+                    <button type="button" onclick="smAddRow()" class="s-btn-add-slot">
+                        <i class="bi bi-plus-circle me-1"></i> Add Slot
+                    </button>
                 </div>
                 <div class="settings-card-body">
-                    <p class="s-divider">Slots generated from current values</p>
-                    <div id="slot-preview-list" style="display:flex; flex-wrap:wrap; gap:10px;"></div>
-                    <div id="slot-preview-empty" style="display:none; font-size:0.8rem; color:#ADB5BD;">
-                        Fill in open time, close time and slot duration to see preview
+                    <p class="s-hint" style="margin-bottom:14px;">
+                        Define your ground's time slots here. The price for each slot will be automatically calculated based on the duration and rates.
+                    </p>
+                    <div id="sm-slot-rows"></div>
+                    <div id="sm-empty" style="color:#94a3b8; font-size:0.82rem; padding:12px 0;">
+                        There are no slots yet — use the "Add Slot" button to add one.
+                    </div>
+                    <div style="margin-top:14px;">
+                        <button type="button" onclick="smSaveSlots()" id="sm-save-btn" class="gf-save-slots-btn">
+                            <i class="bi bi-floppy"></i> Save Slots
+                        </button>
+                        <small id="sm-save-msg" style="display:none; margin-top:8px; font-size:0.78rem;"></small>
                     </div>
                 </div>
             </div>
         </div>
+        <% } else { %>
+        <div class="col-12">
+            <div class="settings-card">
+                <div class="settings-card-header"><i class="bi bi-clock-history"></i> Time Slots</div>
+                <div class="settings-card-body" style="color:#94a3b8; font-size:0.82rem;">
+                    <i class="bi bi-info-circle me-1"></i> After saving the ground, you can define the slots here.
+                </div>
+            </div>
+        </div>
+        <% } %>
 
         <!-- ── Warning (edit mode) ───────────────── -->
         <% if (ground) { %>
@@ -295,7 +439,7 @@
 
         <!-- ── Save Button ────────────────────────── -->
         <div class="col-12 mb-4">
-            <button type="submit" class="settings-save-btn">
+            <button type="button" class="settings-save-btn" onclick="validateAndSubmit()">
                 <i class="bi bi-floppy me-2"></i>
                 <%= ground ? 'SAVE CHANGES' : 'ADD GROUND' %>
             </button>
@@ -307,23 +451,24 @@
 <%
 // ── EJS helper: generates AM/PM time picker HTML ─
 function timePickerHTML(name, val) {
-    // Parse existing HH:MM value
     let h24 = 0, m = 0;
     if (val) {
-        const parts = val.split(':');
-        h24 = parseInt(parts[0]) || 0;
-        m   = parseInt(parts[1]) || 0;
+        // 24:00 means midnight end-of-day — display as 12:00 AM
+        if (val === '24:00' || val === '24:00:00') { h24 = 0; m = 0; }
+        else {
+            const parts = val.split(':');
+            h24 = parseInt(parts[0]) || 0;
+            m   = parseInt(parts[1]) || 0;
+        }
     }
     const ampm  = h24 >= 12 ? 'PM' : 'AM';
     const h12   = h24 % 12 === 0 ? 12 : h24 % 12;
 
-    // Generate hour options 1-12
     let hourOpts = '';
     for (let i = 1; i <= 12; i++) {
         hourOpts += `<option value="${i}" ${i === h12 ? 'selected' : ''}>${String(i).padStart(2,'0')}</option>`;
     }
 
-    // Minute options: 00, 15, 30, 45
     const mins = [0, 15, 30, 45];
     let minOpts = '';
     mins.forEach(min => {
@@ -350,51 +495,169 @@ function timePickerHTML(name, val) {
 %>
 
 <style>
-.tp-wrap {
+/* Additional styles for the updated UI */
+.gf-header {
+    background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 45%, #1e40af 100%);
+    border-radius: 20px;
+    padding: 16px 24px;
     display: flex;
     align-items: center;
-    gap: 4px;
-    background: #F8F9FA;
-    border: 1.5px solid #DEE2E6;
-    border-radius: 8px;
-    padding: 6px 10px;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    justify-content: space-between;
+    gap: 16px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.2);
 }
-.tp-wrap:focus-within {
-    border-color: #1B4332;
-    box-shadow: 0 0 0 3px rgba(27,67,50,0.1);
-    background: #fff;
+
+.gf-header__left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    position: relative;
+    z-index: 2;
 }
-.tp-select {
-    background: transparent;
-    border: none;
-    outline: none;
-    font-size: 0.88rem;
-    font-family: 'Inter', sans-serif;
+
+.gf-header__icon {
+    width: 46px;
+    height: 46px;
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.gf-header__title {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #fff;
+    margin: 0;
+    line-height: 1.3;
+}
+
+.gf-header__sub {
+    font-size: 0.68rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin-top: 2px;
+    display: block;
+}
+
+.gf-back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    color: #fff;
+    font-size: 0.75rem;
     font-weight: 600;
-    color: #1A1A2E;
+    padding: 8px 18px;
+    border-radius: 10px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.gf-back-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
+    color: #fff;
+}
+
+.gf-add-btn {
+    padding: 0 18px;
+    background: #2563eb;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
     cursor: pointer;
-    padding: 0;
-    -webkit-appearance: none;
-    appearance: none;
+    white-space: nowrap;
+    transition: all 0.2s;
+}
+
+.gf-add-btn:hover {
+    background: #1d4ed8;
+    transform: translateY(-1px);
+}
+
+.gf-img-btn-primary {
+    flex: 1;
+    font-size: 0.65rem;
+    padding: 3px 0;
+    border: 1px solid #2563eb;
+    color: #2563eb;
+    background: transparent;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.gf-img-btn-primary:hover {
+    background: #2563eb;
+    color: #fff;
+}
+
+.gf-img-btn-delete {
+    flex: 1;
+    font-size: 0.65rem;
+    padding: 3px 0;
+    border: 1px solid #dc2626;
+    color: #dc2626;
+    background: transparent;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.gf-img-btn-delete:hover {
+    background: #dc2626;
+    color: #fff;
+}
+
+.gf-drop-area {
+    border: 2px dashed #cbd5e1;
+    border-radius: 12px;
+    padding: 2rem;
     text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: #f8fafc;
 }
-.tp-hour { width: 36px; }
-.tp-min  { width: 36px; }
-.tp-ampm {
-    width: 44px;
-    color: #1B4332;
-    font-weight: 700;
-    font-size: 0.78rem;
-    letter-spacing: 0.5px;
-    margin-left: 2px;
+
+.gf-drop-area:hover {
+    border-color: #2563eb;
+    background: #eff6ff;
 }
-.tp-colon {
+
+.gf-drop-area i {
+    font-size: 2rem;
+    color: #94a3b8;
+}
+
+.gf-save-slots-btn {
+    background: #2563eb;
+    color: #fff;
+    border: none;
+    border-radius: 9px;
+    padding: 10px 24px;
+    font-size: 0.85rem;
     font-weight: 700;
-    color: #6b7280;
-    font-size: 0.95rem;
-    line-height: 1;
-    margin: 0 1px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+}
+
+.gf-save-slots-btn:hover {
+    background: #1d4ed8;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
 }
 </style>
 
@@ -406,91 +669,488 @@ function tpSync(uid) {
     const ampm   = wrap.querySelector('.tp-ampm').value;
     let h24 = hour % 12;
     if (ampm === 'PM') h24 += 12;
-    const val = String(h24).padStart(2,'0') + ':' + String(min).padStart(2,'0');
-    document.getElementById(uid + '-hidden').value = val;
-    // Trigger slot preview update
-    if (typeof updateSlotPreview === 'function') updateSlotPreview();
+
+    // Special case: 12 AM (midnight) on a close_time field means end-of-day (next day midnight)
+    // Store as 24:00 so the system knows it crosses midnight
+    const isCloseField = uid === 'close-time';
+    if (isCloseField && h24 === 0 && min === 0) {
+        document.getElementById(uid + '-hidden').value = '24:00';
+    } else {
+        const val = String(h24).padStart(2,'0') + ':' + String(min).padStart(2,'0');
+        document.getElementById(uid + '-hidden').value = val;
+    }
 }
-// Init all on load
+
 document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.tp-wrap').forEach(wrap => {
         tpSync(wrap.dataset.field);
     });
 });
 
+// Client-side image manager
+let imgFiles   = [];
+let imgPrimary = 0;
+
 function previewImages(files) {
+    const allowed = ['image/jpeg', 'image/png', 'image/webp'];
+    const allowedExts = ['.jpg', '.jpeg', '.png', '.webp'];
+    let rejected = [];
+    Array.from(files).forEach(f => {
+        const ext = '.' + f.name.split('.').pop().toLowerCase();
+        if (!allowed.includes(f.type) || !allowedExts.includes(ext)) {
+            rejected.push(f.name);
+        } else if (f.size > 5 * 1024 * 1024) {
+            xToast(`"${f.name}" is too large. Max 5MB per image.`, 'error');
+        } else {
+            imgFiles.push(f);
+        }
+    });
+    if (rejected.length > 0) {
+        xToast(`Invalid file type: ${rejected.join(', ')}. Only JPG, PNG and WEBP allowed.`, 'error');
+    }
+    if (imgPrimary >= imgFiles.length) imgPrimary = 0;
+    renderImagePreviews();
+    syncFileInput();
+}
+
+function renderImagePreviews() {
     const preview = document.getElementById('image-preview');
     preview.innerHTML = '';
-    Array.from(files).forEach((file, i) => {
+
+    imgFiles.forEach((file, i) => {
         const reader = new FileReader();
         reader.onload = e => {
-            preview.innerHTML += `
-                <div style="position:relative; width:130px;">
-                    <img src="${e.target.result}"
-                         style="width:130px; height:100px; object-fit:cover;
-                                border-radius:8px; border:2px solid #E5E7EB;">
-                    ${i === 0 ? '<span style="position:absolute;top:5px;left:5px;background:#1B4332;color:#fff;font-size:0.6rem;padding:2px 6px;border-radius:10px;font-weight:700;">PRIMARY</span>' : ''}
-                    <p style="font-size:0.65rem; color:#6B7280; margin:4px 0 0; text-align:center; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">
-                        ${file.name}
-                    </p>
+            const wrap = document.createElement('div');
+            wrap.id = 'img-wrap-' + i;
+            wrap.style.cssText = 'position:relative; width:130px;';
+
+            const isPrimary = (i === imgPrimary);
+
+            wrap.innerHTML = `
+                <img src="${e.target.result}"
+                     style="width:130px; height:100px; object-fit:cover; border-radius:8px;
+                            border:2px solid ${isPrimary ? '#2563eb' : '#E5E7EB'};">
+                ${isPrimary ? `<span style="position:absolute;top:5px;left:5px;
+                    background:#2563eb;color:#fff;font-size:0.6rem;
+                    padding:2px 6px;border-radius:10px;font-weight:700;">PRIMARY</span>` : ''}
+                <p style="font-size:0.65rem;color:#6B7280;margin:4px 0 3px;
+                          text-align:center;overflow:hidden;white-space:nowrap;
+                          text-overflow:ellipsis;">${file.name}</p>
+                <div style="display:flex;gap:4px;">
+                    ${!isPrimary ? `<button type="button" onclick="setImgPrimary(${i})"
+                        class="gf-img-btn-primary">Set Primary</button>` : ''}
+                    <button type="button" onclick="removeImg(${i})"
+                        class="gf-img-btn-delete">
+                        <i class="bi bi-trash"></i>
+                    </button>
                 </div>`;
+            preview.appendChild(wrap);
         };
         reader.readAsDataURL(file);
     });
 }
 
+function setImgPrimary(index) {
+    imgPrimary = index;
+    const chosen = imgFiles.splice(index, 1)[0];
+    imgFiles.unshift(chosen);
+    imgPrimary = 0;
+    renderImagePreviews();
+    syncFileInput();
+}
+
+function removeImg(index) {
+    imgFiles.splice(index, 1);
+    if (imgPrimary >= imgFiles.length) imgPrimary = 0;
+    renderImagePreviews();
+    syncFileInput();
+}
+
+function syncFileInput() {
+    const dt = new DataTransfer();
+    imgFiles.forEach(f => dt.items.add(f));
+    document.getElementById('ground-images').files = dt.files;
+}
+
 function handleDrop(e) {
     e.preventDefault();
-    document.getElementById('drop-area').style.borderColor = '#D1D5DB';
-    const input = document.getElementById('ground-images');
-    input.files = e.dataTransfer.files;
+    document.getElementById('drop-area').style.borderColor = '#cbd5e1';
     previewImages(e.dataTransfer.files);
 }
 
-function updateSlotPreview() {
-    const open      = document.querySelector('[name="open_time"]').value;
-    const close     = document.querySelector('[name="close_time"]').value;
-    const duration  = parseInt(document.querySelector('[name="slot_duration"]').value) || 0;
-    const peakStart = document.querySelector('[name="peak_start_time"]').value;
-    const peakEnd   = document.querySelector('[name="peak_end_time"]').value;
-    const offPrice  = document.querySelector('[name="off_peak_price"]').value  || '–';
-    const peakPrice = document.querySelector('[name="peak_price"]').value       || '–';
+// Amenities Manager
+(function() {
+    let selected = [];
+    try {
+        const raw = document.getElementById('amenities-hidden').value;
+        selected = JSON.parse(raw) || [];
+    } catch(e) { selected = []; }
 
-    const list  = document.getElementById('slot-preview-list');
-    const empty = document.getElementById('slot-preview-empty');
-
-    if (!open || !close || !duration) {
-        list.innerHTML = ''; empty.style.display = 'block'; return;
+    function syncHidden() {
+        document.getElementById('amenities-hidden').value = JSON.stringify(selected);
     }
-    empty.style.display = 'none';
 
-    const toMins = t => { const [h,m] = t.split(':').map(Number); return h*60+m; };
-    const toTime = m => String(Math.floor(m/60)).padStart(2,'0') + ':' + String(m%60).padStart(2,'0');
+    function renderSelectedTags() {
+        const display = document.getElementById('selected-amenities-display');
+        const hint    = document.getElementById('amenities-empty-hint');
+        display.querySelectorAll('.sel-amenity-tag').forEach(el => el.remove());
 
-    const openM=toMins(open), closeM=toMins(close);
-    const peakS=peakStart?toMins(peakStart):null, peakE=peakEnd?toMins(peakEnd):null;
-
-    let html='', cur=openM;
-    while (cur+duration<=closeM) {
-        const end=cur+duration;
-        const isPeak=peakS!==null&&peakE!==null&&cur>=peakS&&cur<peakE;
-        html+=`<div class="slot-preview-item ${isPeak?'peak':'off-peak'}">
-                <span class="slot-preview-time">${toTime(cur)} – ${toTime(end)}</span>
-                <span class="slot-preview-price">₹${isPeak?peakPrice:offPrice}</span>
-                <span class="slot-preview-tag">${isPeak?'Peak':'Off-peak'}</span>
-               </div>`;
-        cur+=duration;
+        if (!selected.length) {
+            hint.style.display = 'inline';
+            return;
+        }
+        hint.style.display = 'none';
+        selected.forEach(val => {
+            const tag = document.createElement('span');
+            tag.className = 'sel-amenity-tag';
+            tag.innerHTML = `${val}<button type="button" onclick="removeAmenity('${val.replace(/'/g,"\\'")}')">×</button>`;
+            display.appendChild(tag);
+        });
     }
-    list.innerHTML = html || '<span style="font-size:0.8rem;color:#D90429;">No slots — check open/close times</span>';
+
+    function applyChipStates() {
+        document.querySelectorAll('.amenity-chip').forEach(chip => {
+            const val = chip.dataset.val;
+            if (selected.includes(val)) {
+                chip.style.background    = '#2563eb';
+                chip.style.borderColor   = '#2563eb';
+                chip.style.color         = '#fff';
+            } else {
+                chip.style.background    = '#f8fafc';
+                chip.style.borderColor   = '#e2e8f0';
+                chip.style.color         = '#475569';
+            }
+        });
+    }
+
+    window.toggleAmenity = function(chip, val) {
+        const idx = selected.indexOf(val);
+        if (idx > -1) {
+            selected.splice(idx, 1);
+        } else {
+            selected.push(val);
+        }
+        applyChipStates();
+        renderSelectedTags();
+        syncHidden();
+    };
+
+    window.removeAmenity = function(val) {
+        selected = selected.filter(v => v !== val);
+        applyChipStates();
+        renderSelectedTags();
+        syncHidden();
+    };
+
+    window.addCustomAmenity = function() {
+        const input = document.getElementById('custom-amenity-input');
+        const val   = input.value.trim();
+        if (!val || selected.includes(val)) { input.value = ''; return; }
+        selected.push(val);
+        renderSelectedTags();
+        syncHidden();
+        input.value = '';
+    };
+
+    document.addEventListener('DOMContentLoaded', function() {
+        applyChipStates();
+        renderSelectedTags();
+    });
+})();
+
+// Slot Manager
+const GROUND_ID    = '<%= ground ? ground.id : "" %>';
+const NORMAL_RATE  = () => parseFloat(document.querySelector('[name="normal_rate_per_30"]')?.value) || 100;
+const PEAK_RATE    = () => parseFloat(document.querySelector('[name="peak_rate_per_30"]')?.value)   || 150;
+const PEAK_START   = () => document.querySelector('[name="peak_start_time"]')?.value || '';
+const PEAK_END     = () => document.querySelector('[name="peak_end_time"]')?.value   || '';
+
+let smRows = [];
+let smRowId = 0;
+
+function smToMins(t) { if(!t) return 0; if(t.slice(0,5)==='24:00') return 1440; const [h,m]=t.slice(0,5).split(':').map(Number); return h*60+m; }
+
+function smFormatAMPM(t) {
+    if (!t) return '';
+    const parts = t.slice(0,5).split(':');
+    const h = parseInt(parts[0]);
+    const m = parseInt(parts[1]);
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const h12  = h % 12 === 0 ? 12 : h % 12;
+    return h12 + ':' + String(m).padStart(2,'0') + ' ' + ampm;
 }
 
-['open_time','close_time','slot_duration','peak_start_time','peak_end_time','off_peak_price','peak_price']
-    .forEach(n => {
-        const el = document.querySelector(`[name="${n}"]`);
-        if (el) el.addEventListener('input', updateSlotPreview);
-    });
+function smCalcPrice(start, end) {
+    if (!start || !end) return { price: 0, dur: 0, label: '—' };
+    const s = smToMins(start), e = smToMins(end);
+    if (e <= s) return { price: 0, dur: 0, label: '❌ End time must be after start time' };
+    const dur = e - s;
+    const ps = smToMins(PEAK_START()), pe = smToMins(PEAK_END());
+    const nRate = NORMAL_RATE() / 30, pRate = PEAK_RATE() / 30;
+    let nMins = 0, pMins = 0;
+    for (let m = s; m < e; m++) {
+        (ps && pe && m >= ps && m < pe) ? pMins++ : nMins++;
+    }
+    const price = Math.round(nMins * nRate + pMins * pRate);
+    const hrs = Math.floor(dur/60), mins = dur%60;
+    const durStr = (hrs > 0 ? hrs + 'h' + (mins > 0 ? ' ' + mins + 'm' : '') : mins + 'm');
+    return { price, dur, label: durStr + ' · ₹' + price.toLocaleString('en-IN') };
+}
 
-document.addEventListener('DOMContentLoaded', updateSlotPreview);
+function smRender() {
+    const container = document.getElementById('sm-slot-rows');
+    const empty     = document.getElementById('sm-empty');
+    if (!smRows.length) { container.innerHTML = ''; empty.style.display = 'block'; return; }
+    empty.style.display = 'none';
+    container.innerHTML = smRows.map(function(row, i) {
+        const calc       = smCalcPrice(row.start, row.end);
+        const priceColor = calc.price > 0 ? '#2563eb' : '#dc2626';
+        return `<div class="sm-row" id="smrow-${row.id}">
+                    <div class="sm-row-num">${i+1}</div>
+                    <div>
+                        <small class="sm-time-lbl"><strong>Start</strong></small>
+                        <input type="time" class="s-input sm-time-input" value="${row.start}" step="900"
+                               onchange="smUpdateRow(${row.id},'start',this.value)">
+                    </div>
+                    <div>
+                        <small class="sm-time-lbl"><strong>End</strong></small>
+                        <input type="time" class="s-input sm-time-input" value="${row.end}" step="900"
+                               onchange="smUpdateRow(${row.id},'end',this.value)">
+                    </div>
+                    <div class="sm-price-badge" style="color:${priceColor};">${calc.label}</div>
+                    <button type="button" class="sm-remove-btn" onclick="smRemoveRow(${row.id})" title="Remove">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>`;
+    }).join('');
+}
+
+function smAddRow() {
+    const last    = smRows[smRows.length - 1];
+    const openEl  = document.querySelector('[name="open_time"]');
+    const minSlot = parseInt(document.querySelector('[name="min_slot_minutes"]')?.value) || 30;
+    let defStart  = last ? last.end : (openEl?.value?.slice(0,5) || '08:00');
+    if (!defStart) defStart = '08:00';
+    const parts   = defStart.split(':').map(Number);
+    const endMins = parts[0] * 60 + parts[1] + minSlot;
+    const endH    = Math.floor(endMins / 60) % 24;
+    const endM    = endMins % 60;
+    const defEnd  = String(endH).padStart(2,'0') + ':' + String(endM).padStart(2,'0');
+    smRows.push({ id: ++smRowId, start: defStart, end: defEnd });
+    smRender();
+}
+
+function smUpdateRow(id, field, val) {
+    const row = smRows.find(r => r.id === id);
+    if (row) { row[field] = val; smRender(); }
+}
+
+function smRemoveRow(id) {
+    smRows = smRows.filter(r => r.id !== id);
+    smRender();
+}
+
+async function smSaveSlots() {
+    if (!GROUND_ID) return;
+    const btn = document.getElementById('sm-save-btn');
+    const msg = document.getElementById('sm-save-msg');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Saving...';
+
+    const slots = smRows.map(row => {
+        const calc = smCalcPrice(row.start, row.end);
+        return { start_time: row.start + ':00', end_time: row.end + ':00', duration_minutes: calc.dur, price: calc.price };
+    }).filter(s => s.duration_minutes > 0);
+
+    try {
+        const csrf = (document.cookie.match(/(?:^|; )csrf_token=([^;]*)/) || [])[1] || '';
+        const res  = await fetch(`/grounds/${GROUND_ID}/slots`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': decodeURIComponent(csrf) },
+            body: JSON.stringify({ slots })
+        });
+        const data = await res.json();
+        msg.style.display = 'block';
+        if (data.success) {
+            msg.style.color = '#2563eb';
+            msg.textContent = '✓ Slots saved successfully!';
+            btn.innerHTML = '<i class="bi bi-check-lg"></i> Saved!';
+            btn.style.background = '#16a34a';
+        } else {
+            msg.style.color = '#dc2626';
+            msg.textContent = data.message || 'Failed to save';
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-floppy"></i> Save Slots';
+        }
+        setTimeout(() => { msg.style.display='none'; btn.style.background='#2563eb'; btn.innerHTML='<i class="bi bi-floppy"></i> Save Slots'; btn.disabled=false; }, 2500);
+    } catch(e) {
+        msg.style.color = '#dc2626'; msg.style.display = 'block';
+        msg.textContent = 'Connection error'; btn.disabled=false;
+        btn.innerHTML = '<i class="bi bi-floppy"></i> Save Slots';
+    }
+}
+
+// ── Field Validation ──────────────────────────────────────────
+const FIELD_ERRORS_CSS = `
+.gf-field-error {
+    font-size: 0.75rem;
+    color: #dc2626;
+    margin-top: 5px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    animation: gfErrSlide 0.2s ease;
+}
+@keyframes gfErrSlide {
+    from { opacity:0; transform:translateY(-4px); }
+    to   { opacity:1; transform:translateY(0); }
+}
+.s-input.gf-invalid, .tp-wrap.gf-invalid {
+    border-color: #dc2626 !important;
+    box-shadow: 0 0 0 3px rgba(220,38,38,0.1) !important;
+}
+`;
+const styleEl = document.createElement('style');
+styleEl.textContent = FIELD_ERRORS_CSS;
+document.head.appendChild(styleEl);
+
+function gfShowError(fieldEl, message) {
+    if (!fieldEl) return;
+    fieldEl.classList.add('gf-invalid');
+    // Remove old error if any
+    const old = fieldEl.parentElement.querySelector('.gf-field-error');
+    if (old) old.remove();
+    const err = document.createElement('div');
+    err.className = 'gf-field-error';
+    err.innerHTML = `<i class="bi bi-exclamation-circle-fill"></i> ${message}`;
+    fieldEl.parentElement.appendChild(err);
+    // Clear on input
+    fieldEl.addEventListener('input', () => {
+        fieldEl.classList.remove('gf-invalid');
+        err.remove();
+    }, { once: true });
+}
+
+function gfClearErrors() {
+    document.querySelectorAll('.gf-field-error').forEach(e => e.remove());
+    document.querySelectorAll('.gf-invalid').forEach(e => e.classList.remove('gf-invalid'));
+}
+
+function validateAndSubmit() {
+    gfClearErrors();
+    let isValid = true;
+    let firstError = null;
+
+    // Helper
+    function fail(el, msg) {
+        gfShowError(el, msg);
+        if (!firstError) firstError = el;
+        isValid = false;
+    }
+
+    // Ground Name
+    const nameEl = document.getElementById('field-name');
+    if (!nameEl || !nameEl.value.trim()) {
+        fail(nameEl, 'Ground Name is required');
+    }
+
+    // Phone
+    const phoneEl = document.getElementById('field-phone');
+    if (!phoneEl || !phoneEl.value.trim()) {
+        fail(phoneEl, 'Contact Number is required');
+    } else if (!/^[0-9]{10}$/.test(phoneEl.value.trim())) {
+        fail(phoneEl, 'Contact Number must be a valid 10-digit number');
+    }
+
+    // Address
+    const addrEl = document.getElementById('field-address');
+    if (!addrEl || !addrEl.value.trim()) {
+        fail(addrEl, 'Address is required');
+    }
+
+    // Opens At — check hidden input value
+    const openEl = document.querySelector('[name="open_time"]');
+    if (!openEl || !openEl.value || openEl.value === ':') {
+        const openWrap = document.querySelector('[data-field="open_time"]');
+        fail(openWrap || openEl, 'Opening Time is required');
+    }
+
+    // Closes At
+    const closeEl = document.querySelector('[name="close_time"]');
+    if (!closeEl || !closeEl.value || closeEl.value === ':') {
+        const closeWrap = document.querySelector('[data-field="close_time"]');
+        fail(closeWrap || closeEl, 'Closing Time is required');
+    }
+
+    // Validate open < close (handle 24:00 = next-day midnight = 1440 mins)
+    if (openEl && closeEl && openEl.value && closeEl.value && openEl.value !== ':' && closeEl.value !== ':') {
+        const toMins = t => {
+            if (t === '24:00') return 1440;
+            const [h, m] = t.split(':').map(Number);
+            return h * 60 + m;
+        };
+        if (toMins(openEl.value) >= toMins(closeEl.value)) {
+            const closeWrap = document.querySelector('[data-field="close-time"]');
+            fail(closeWrap || closeEl, 'Closing Time must be after Opening Time');
+        }
+    }
+
+    // Normal Rate
+    const normalRateEl = document.getElementById('field-normal-rate');
+    if (!normalRateEl || normalRateEl.value === '' || parseFloat(normalRateEl.value) < 0) {
+        fail(normalRateEl, 'Normal Rate per 30 min is required');
+    }
+
+    // Peak Rate
+    const peakRateEl = document.getElementById('field-peak-rate');
+    if (!peakRateEl || peakRateEl.value === '' || parseFloat(peakRateEl.value) < 0) {
+        fail(peakRateEl, 'Peak Rate per 30 min is required');
+    }
+
+    // Peak Start
+    const peakStartEl = document.querySelector('[name="peak_start_time"]');
+    if (!peakStartEl || !peakStartEl.value || peakStartEl.value === ':') {
+        const wrap = document.querySelector('[data-field="peak_start_time"]');
+        fail(wrap || peakStartEl, 'Peak Start Time is required');
+    }
+
+    // Peak End
+    const peakEndEl = document.querySelector('[name="peak_end_time"]');
+    if (!peakEndEl || !peakEndEl.value || peakEndEl.value === ':') {
+        const wrap = document.querySelector('[data-field="peak_end_time"]');
+        fail(wrap || peakEndEl, 'Peak End Time is required');
+    }
+
+    if (!isValid) {
+        // Scroll to first error
+        if (firstError) {
+            firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        xToast('Please fill in all required fields', 'error');
+        return;
+    }
+
+    // All good — submit
+    document.getElementById('ground-main-form').submit();
+}
+
+['normal_rate_per_30','peak_rate_per_30','peak_start_time','peak_end_time'].forEach(n => {
+    const el = document.querySelector(`[name="${n}"]`);
+    if (el) el.addEventListener('change', smRender);
+});
+
+<% if (ground) { %>
+(async () => {
+    try {
+        const res  = await fetch(`/grounds/${GROUND_ID}/slots`);
+        const data = await res.json();
+        if (data.success && data.slots.length) {
+            smRows = data.slots.map(s => ({ id: ++smRowId, start: s.start_time.slice(0,5), end: s.end_time.slice(0,5) }));
+            smRender();
+        }
+    } catch(e) {}
+})();
+<% } %>
 </script>
 
 <%- include('../partials/footer') %>

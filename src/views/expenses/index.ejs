@@ -1,565 +1,1023 @@
 <%- include('../partials/header') %>
 
-    <div class="exp-page">
+<style>
+/* ══════════════════════════════════════════════
+   EXPENSE PAGE — Premium Modal UI
+══════════════════════════════════════════════ */
+:root {
+  --eg: #1B4332; --eg2: #2D6A4F; --eg3: #40916C; --eg4: #74C69D;
+  --eg-lt: #D8F3DC; --eg-xlt: #F0FAF2;
+  --red: #EF4444; --gold: #F59E0B; --blue: #3B82F6; --purple: #7C3AED;
+  --teal: #0D9488; --orange: #EA580C;
+  --rad: 14px; --rad-sm: 8px;
+}
 
-        <!-- Header Section -->
-        <div class="exp-header">
-            <div class="exp-header__left">
-                <div class="exp-header__icon">
-                    <i class="bi bi-wallet2"></i>
-                </div>
-                <div>
-                    <h4 class="exp-header__title">Expense Tracker</h4>
-                    <span class="exp-header__sub">Track and manage all your expenses</span>
-                </div>
-            </div>
-            <button class="exp-add-btn" id="openExpenseDrawer">
-                <i class="bi bi-plus-lg me-2"></i>ADD EXPENSE
-            </button>
+/* ─ Backdrop ─ */
+.xbdrop {
+  position:fixed; inset:0; background:rgba(5,15,10,.6);
+  backdrop-filter:blur(7px); z-index:1050;
+  opacity:0; pointer-events:none; transition:opacity .25s;
+}
+.xbdrop.open { opacity:1; pointer-events:all; }
+
+/* ─ Modal ─ */
+.xmodal {
+  position:fixed; inset:0; z-index:1060;
+  display:flex; align-items:center; justify-content:center; padding:1rem;
+  opacity:0; pointer-events:none;
+  transform:translateY(20px) scale(.97);
+  transition:opacity .26s ease, transform .26s cubic-bezier(.22,.9,.36,1.08);
+}
+.xmodal.open { opacity:1; pointer-events:all; transform:none; }
+
+.xdialog {
+  background:#fff; border-radius:22px;
+  width:100%; max-width:660px; max-height:92vh;
+  display:flex; flex-direction:column;
+  box-shadow:0 28px 90px rgba(0,0,0,.22), 0 0 0 1px rgba(0,0,0,.04);
+  overflow:hidden;
+}
+
+/* ─ Header ─ */
+.xhdr {
+  padding:1.4rem 1.75rem;
+  display:flex; align-items:flex-start; gap:1rem;
+  position:relative; overflow:hidden; flex-shrink:0;
+  transition:background .4s;
+}
+.xhdr.type-direct   { background:linear-gradient(135deg,#78350F,#B45309); }
+.xhdr.type-indirect { background:linear-gradient(135deg,#1B4332,#2D6A4F); }
+.xhdr.type-additional_income { background:linear-gradient(135deg,#0F766E,#0D9488); }
+.xhdr.type-asset    { background:linear-gradient(135deg,#1D4ED8,#2563EB); }
+.xhdr.type-default  { background:linear-gradient(135deg,#1B4332,#2D6A4F); }
+
+.xhdr::before,.xhdr::after {
+  content:''; position:absolute; border-radius:50%;
+  background:rgba(255,255,255,.07);
+}
+.xhdr::before { width:180px;height:180px; top:-60px; right:-40px; }
+.xhdr::after  { width:100px;height:100px; bottom:-40px; right:120px; }
+
+.xhdr-icon {
+  width:48px; height:48px; flex-shrink:0;
+  background:rgba(255,255,255,.18); border:1px solid rgba(255,255,255,.25);
+  border-radius:13px; display:flex; align-items:center; justify-content:center;
+  font-size:1.35rem; color:#fff;
+}
+.xhdr-text { flex:1; }
+.xhdr-title  { color:#fff; font-size:1.1rem; font-weight:700; margin:0; }
+.xhdr-sub    { color:rgba(255,255,255,.7); font-size:.76rem; margin-top:.2rem; }
+.xhdr-close  {
+  width:34px;height:34px; flex-shrink:0;
+  background:rgba(255,255,255,.15); border:1px solid rgba(255,255,255,.2);
+  border-radius:9px; color:rgba(255,255,255,.9);
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; font-size:.95rem; transition:background .18s;
+  position:relative; z-index:10;
+}
+.xhdr-close:hover { background:rgba(255,255,255,.3); }
+
+/* ─ Step bar ─ */
+.xsteps {
+  display:flex; align-items:center;
+  padding:.9rem 1.75rem;
+  background:var(--eg-xlt); border-bottom:1px solid var(--eg-lt);
+  flex-shrink:0;
+}
+.xstep { display:flex; align-items:center; }
+.xstep-dot {
+  width:28px;height:28px; border-radius:50%;
+  background:#e5e7eb; color:#9ca3af;
+  font-size:.72rem; font-weight:700;
+  display:flex; align-items:center; justify-content:center;
+  transition:all .28s; border:2px solid transparent;
+}
+.xstep.active .xstep-dot { background:var(--eg); color:#fff; border-color:var(--eg); box-shadow:0 0 0 4px rgba(27,67,50,.12); }
+.xstep.done   .xstep-dot { background:var(--eg3); color:#fff; border-color:var(--eg3); }
+.xstep-lbl { font-size:.69rem; font-weight:600; color:#9ca3af; margin-left:.45rem; transition:color .28s; }
+.xstep.active .xstep-lbl { color:var(--eg); }
+.xstep.done   .xstep-lbl { color:var(--eg3); }
+.xstep-line { flex:1; height:2px; background:#e5e7eb; margin:0 .7rem; border-radius:2px; transition:background .28s; }
+.xstep-line.done { background:var(--eg3); }
+
+/* ─ Body ─ */
+.xbody { padding:1.5rem 1.75rem; overflow-y:auto; flex:1; }
+.xpanel { display:none; animation:xIn .2s ease; }
+.xpanel.active { display:block; }
+@keyframes xIn { from{opacity:0;transform:translateX(10px)} to{opacity:1;transform:none} }
+
+/* ─ Fields ─ */
+.xfld { margin-bottom:1.1rem; }
+.xfld > label {
+  display:flex; align-items:center; gap:.4rem;
+  font-size:.77rem; font-weight:600; color:#374151; margin-bottom:.42rem;
+}
+.xfld > label i { color:var(--eg3); font-size:.82rem; }
+.xreq { color:var(--red); }
+.xinput,.xselect,.xtarea {
+  width:100%; padding:.62rem .88rem;
+  border:1.5px solid #e5e7eb; border-radius:var(--rad-sm);
+  font-size:.87rem; color:#111827; background:#fff;
+  transition:border-color .18s, box-shadow .18s; outline:none;
+}
+.xinput:focus,.xselect:focus,.xtarea:focus {
+  border-color:var(--eg3); box-shadow:0 0 0 3px rgba(64,145,108,.13);
+}
+.xinput.err,.xselect.err { border-color:var(--red); }
+.xhnt { font-size:.69rem; color:#9ca3af; margin-top:.28rem; }
+.xrow { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+.xamtwrap { position:relative; }
+.xamtpfx { position:absolute; left:.88rem; top:50%; transform:translateY(-50%); font-weight:700; color:var(--eg2); font-size:.88rem; }
+.xamtwrap .xinput { padding-left:1.75rem; }
+
+/* ─ Type cards ─ */
+.xtypes { display:grid; grid-template-columns:1fr 1fr; gap:.75rem; }
+.xtype {
+  border:2px solid #e5e7eb; border-radius:var(--rad); padding:.95rem 1rem;
+  cursor:pointer; background:#fafafa; position:relative;
+  transition:all .2s;
+}
+.xtype:hover { border-color:#d1d5db; background:#f9fafb; transform:translateY(-1px); box-shadow:0 4px 12px rgba(0,0,0,.06); }
+.xtype.sel { box-shadow:0 0 0 3px rgba(0,0,0,.08); transform:translateY(-1px); }
+
+.xtype.sel::after {
+  content:'\f26a'; font-family:'bootstrap-icons';
+  position:absolute; top:.55rem; right:.7rem;
+  font-size:.9rem;
+}
+
+.xtype[data-t="direct"]            { --tc:#B45309; --tbg:#FEF3C7; --tsbg:#FFFBEB; }
+.xtype[data-t="indirect"]          { --tc:#1B4332; --tbg:#D8F3DC; --tsbg:#F0FAF2; }
+.xtype[data-t="additional_income"] { --tc:#0F766E; --tbg:#CCFBF1; --tsbg:#F0FDFA; }
+.xtype[data-t="asset"]             { --tc:#1D4ED8; --tbg:#DBEAFE; --tsbg:#EFF6FF; }
+
+.xtype.sel { border-color:var(--tc); background:var(--tsbg); }
+.xtype.sel::after { color:var(--tc); }
+
+.xtype-ico {
+  width:42px;height:42px; border-radius:11px;
+  background:var(--tbg,#f3f4f6); color:var(--tc,#6b7280);
+  display:flex; align-items:center; justify-content:center;
+  font-size:1.2rem; margin-bottom:.55rem; transition:all .2s;
+}
+.xtype-name { font-weight:700; font-size:.85rem; color:#111827; margin-bottom:.2rem; }
+.xtype-desc { font-size:.69rem; color:#6b7280; line-height:1.45; margin-bottom:.4rem; }
+.xtype-tag {
+  display:inline-flex; align-items:center; gap:.25rem;
+  font-size:.62rem; font-weight:700; padding:.15rem .5rem;
+  border-radius:20px; background:var(--tbg,#f3f4f6); color:var(--tc,#6b7280);
+}
+
+/* ─ Category pills ─ */
+.xcatpills { display:flex; flex-wrap:wrap; gap:.45rem; margin-top:.5rem; }
+.xcatpill {
+  display:inline-flex; align-items:center; gap:.32rem;
+  padding:.38rem .76rem; border:1.5px solid #e5e7eb; border-radius:50px;
+  font-size:.77rem; font-weight:500; color:#374151;
+  cursor:pointer; background:#fff; transition:all .16s;
+}
+.xcatpill:hover { border-color:var(--eg3); color:var(--eg2); background:var(--eg-xlt); }
+.xcatpill.sel { background:var(--eg); color:#fff; border-color:var(--eg); box-shadow:0 2px 8px rgba(27,67,50,.22); }
+.xcatpill i { font-size:.78rem; }
+
+/* ─ Custom input ─ */
+.xcustom {
+  margin-top:.85rem; padding:.85rem 1rem;
+  background:var(--eg-xlt); border:1.5px dashed var(--eg4);
+  border-radius:var(--rad-sm); display:none;
+}
+.xcustom.vis { display:block; }
+.xcustom > label { font-size:.74rem; font-weight:600; color:var(--eg2); margin-bottom:.38rem; display:flex; align-items:center; gap:.35rem; }
+
+/* ─ Payment buttons ─ */
+.xpays { display:grid; grid-template-columns:repeat(4,1fr); gap:.5rem; }
+.xpay {
+  border:1.5px solid #e5e7eb; border-radius:var(--rad-sm);
+  padding:.6rem .35rem; text-align:center; cursor:pointer;
+  background:#fafafa; transition:all .16s;
+}
+.xpay:hover { border-color:var(--eg4); background:var(--eg-xlt); }
+.xpay.sel { border-color:var(--eg2); background:var(--eg-xlt); box-shadow:0 0 0 2px rgba(27,67,50,.1); }
+.xpay i { display:block; font-size:1.2rem; color:#6b7280; margin-bottom:.28rem; transition:color .16s; }
+.xpay.sel i { color:var(--eg2); }
+.xpay span { font-size:.66rem; font-weight:600; color:#374151; }
+
+/* ─ Summary card ─ */
+.xsum {
+  border-radius:var(--rad); padding:1.1rem 1.2rem; margin-top:1.2rem;
+  color:#fff; transition:background .4s;
+}
+.xsum.type-direct            { background:linear-gradient(135deg,#78350F,#B45309); }
+.xsum.type-indirect          { background:linear-gradient(135deg,#1B4332,#2D6A4F); }
+.xsum.type-additional_income { background:linear-gradient(135deg,#0F766E,#0D9488); }
+.xsum.type-asset             { background:linear-gradient(135deg,#1D4ED8,#2563EB); }
+.xsum.type-none              { background:linear-gradient(135deg,#374151,#6b7280); }
+
+.xsum-label { font-size:.68rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:rgba(255,255,255,.6); margin-bottom:.7rem; }
+.xsum-amt   { font-size:1.55rem; font-weight:800; font-family:'Rajdhani',sans-serif; margin-bottom:.5rem; }
+.xsum-badge {
+  display:inline-flex; align-items:center; gap:.28rem;
+  font-size:.67rem; font-weight:700; padding:.18rem .55rem;
+  border-radius:20px; background:rgba(255,255,255,.2);
+  margin-bottom:.8rem;
+}
+.xsum-grid { display:grid; grid-template-columns:1fr 1fr; gap:.6rem; }
+.xsum-item label { font-size:.67rem; color:rgba(255,255,255,.58); display:block; margin-bottom:.12rem; }
+.xsum-item span  { font-size:.85rem; font-weight:600; }
+
+/* ─ Footer ─ */
+.xfoot {
+  padding:1rem 1.75rem; border-top:1px solid #f1f5f9;
+  display:flex; align-items:center; justify-content:space-between;
+  background:#fafafa; flex-shrink:0;
+}
+.xbtns { display:flex; gap:.55rem; align-items:center; }
+.xbtn {
+  display:inline-flex; align-items:center; gap:.42rem;
+  padding:.58rem 1.25rem; border-radius:var(--rad-sm);
+  font-size:.81rem; font-weight:600; cursor:pointer;
+  transition:all .16s; border:none;
+}
+.xbtn-ghost { background:transparent; color:#6b7280; border:1.5px solid #e5e7eb; }
+.xbtn-ghost:hover { background:#f9fafb; }
+.xbtn-back  { background:#f3f4f6; color:#374151; border:1.5px solid #e5e7eb; }
+.xbtn-back:hover { background:#e5e7eb; }
+.xbtn-next  { background:var(--eg); color:#fff; }
+.xbtn-next:hover { background:var(--eg2); box-shadow:0 4px 14px rgba(27,67,50,.3); transform:translateY(-1px); }
+.xbtn-save  { background:linear-gradient(135deg,var(--eg),var(--eg3)); color:#fff; padding:.62rem 1.55rem; }
+.xbtn-save:hover { transform:translateY(-1px); box-shadow:0 6px 20px rgba(27,67,50,.32); }
+.xbtn:disabled { opacity:.5; cursor:not-allowed; transform:none !important; }
+
+/* ─ Table badge ─ */
+.xtbadge {
+  font-size:.63rem; font-weight:700; padding:.16rem .48rem;
+  border-radius:20px; white-space:nowrap;
+}
+.xtbadge.direct            { background:#FEF3C7; color:#92400E; }
+.xtbadge.indirect          { background:#D8F3DC; color:#1B4332; }
+.xtbadge.additional_income { background:#CCFBF1; color:#0F766E; }
+.xtbadge.asset             { background:#DBEAFE; color:#1D4ED8; }
+
+/* ─ Toast ─ */
+.xtoast {
+  position:fixed; bottom:1.5rem; right:1.5rem; z-index:9999;
+  background:#fff; border-radius:12px; padding:.82rem 1.15rem;
+  display:flex; align-items:center; gap:.65rem;
+  box-shadow:0 8px 32px rgba(0,0,0,.16);
+  transform:translateY(18px) scale(.96); opacity:0;
+  transition:all .24s cubic-bezier(.22,.9,.36,1.1);
+  min-width:250px; max-width:370px; border-left:4px solid #e5e7eb;
+}
+.xtoast.show { transform:none; opacity:1; }
+.xtoast.success { border-left-color:var(--eg3); }
+.xtoast.error   { border-left-color:var(--red); }
+.xtoast i { font-size:1.05rem; }
+.xtoast.success i { color:var(--eg3); }
+.xtoast.error   i { color:var(--red); }
+.xtoast span { font-size:.82rem; font-weight:500; color:#111827; }
+
+@keyframes xShake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-6px)} 40%{transform:translateX(6px)} 60%{transform:translateX(-4px)} 80%{transform:translateX(4px)} }
+
+/* ─ Responsive ─ */
+@media(max-width:600px) {
+  .xdialog { border-radius:18px 18px 0 0; max-height:95vh; }
+  .xmodal  { align-items:flex-end; padding:0; }
+  .xrow    { grid-template-columns:1fr; }
+  .xpays   { grid-template-columns:repeat(2,1fr); }
+  .xtypes  { grid-template-columns:1fr 1fr; }
+}
+</style>
+
+<div class="exp-page">
+
+  <!-- Header -->
+  <div class="exp-header">
+    <div class="exp-header__left">
+      <div class="exp-header__icon"><i class="bi bi-wallet2"></i></div>
+      <div>
+        <h4 class="exp-header__title">Expense Tracker</h4>
+        <span class="exp-header__sub">Track and manage all financial entries</span>
+      </div>
+    </div>
+    <button class="exp-add-btn" id="openAddModal">
+      <i class="bi bi-plus-lg me-2"></i>ADD ENTRY
+    </button>
+  </div>
+
+  <!-- Stats -->
+  <div class="row g-4 mb-4">
+    <div class="col-12 col-md-4">
+      <div class="exp-stat-card exp-stat-card--total">
+        <div class="exp-stat-card__icon"><i class="bi bi-currency-rupee"></i></div>
+        <div class="exp-stat-card__body">
+          <div class="exp-stat-card__label">Total Entries</div>
+          <div class="exp-stat-card__value" id="totalAmount">₹0</div>
+          <div class="exp-stat-card__trend" id="totalCount">0 transactions</div>
         </div>
-
-        <!-- Stats Cards -->
-        <div class="row g-4 mb-4" id="statsContainer">
-            <div class="col-12 col-md-4">
-                <div class="exp-stat-card exp-stat-card--total">
-                    <div class="exp-stat-card__icon"><i class="bi bi-currency-rupee"></i></div>
-                    <div class="exp-stat-card__body">
-                        <div class="exp-stat-card__label">Total Expenses</div>
-                        <div class="exp-stat-card__value" id="totalAmount">₹0</div>
-                        <div class="exp-stat-card__trend" id="totalCount">0 transactions</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-12 col-md-4">
-                <div class="exp-stat-card exp-stat-card--monthly">
-                    <div class="exp-stat-card__icon"><i class="bi bi-calendar-month"></i></div>
-                    <div class="exp-stat-card__body">
-                        <div class="exp-stat-card__label">This Month</div>
-                        <div class="exp-stat-card__value" id="monthlyAmount">₹0</div>
-                        <div class="exp-stat-card__trend">Last 30 days</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-12 col-md-4">
-                <div class="exp-stat-card exp-stat-card--categories">
-                    <div class="exp-stat-card__icon"><i class="bi bi-pie-chart"></i></div>
-                    <div class="exp-stat-card__body">
-                        <div class="exp-stat-card__label">Top Category</div>
-                        <div class="exp-stat-card__value" id="topCategory">—</div>
-                        <div class="exp-stat-card__trend" id="topCategoryAmount">—</div>
-                    </div>
-                </div>
-            </div>
+      </div>
+    </div>
+    <div class="col-12 col-md-4">
+      <div class="exp-stat-card exp-stat-card--monthly">
+        <div class="exp-stat-card__icon"><i class="bi bi-calendar-month"></i></div>
+        <div class="exp-stat-card__body">
+          <div class="exp-stat-card__label">This Month</div>
+          <div class="exp-stat-card__value" id="monthlyAmount">₹0</div>
+          <div class="exp-stat-card__trend">Last 30 days</div>
         </div>
-
-        <!-- Filters Bar -->
-        <div class="exp-filters">
-            <div class="exp-filters__left">
-                <div class="exp-search-wrap">
-                    <i class="bi bi-search"></i>
-                    <input type="text" id="searchInput" class="exp-search-input"
-                        placeholder="Search by title, vendor..." autocomplete="off">
-                </div>
-                <select id="categoryFilter" class="exp-filter-select">
-                    <option value="all">All Categories</option>
-                    <option value="Electricity">Electricity</option>
-                    <option value="Maintenance">Maintenance</option>
-                    <option value="Salary">Salary</option>
-                    <option value="Equipment">Equipment</option>
-                    <option value="Other">Other</option>
-                </select>
-                <input type="date" id="dateFromFilter" class="exp-filter-date" placeholder="From">
-                <input type="date" id="dateToFilter" class="exp-filter-date" placeholder="To">
-            </div>
-            <button id="resetFilters" class="exp-reset-btn">
-                <i class="bi bi-arrow-repeat me-1"></i>Reset
-            </button>
+      </div>
+    </div>
+    <div class="col-12 col-md-4">
+      <div class="exp-stat-card exp-stat-card--categories">
+        <div class="exp-stat-card__icon"><i class="bi bi-pie-chart"></i></div>
+        <div class="exp-stat-card__body">
+          <div class="exp-stat-card__label">Top Category</div>
+          <div class="exp-stat-card__value" id="topCategory">—</div>
+          <div class="exp-stat-card__trend" id="topCategoryAmount">—</div>
         </div>
+      </div>
+    </div>
+  </div>
 
-        <!-- Expenses Table -->
-        <div class="exp-table-card">
-            <div class="exp-table-header">
-                <span class="exp-table-title">
-                    <i class="bi bi-list-ul me-2"></i>Expense Transactions
-                </span>
-                <span class="exp-table-info" id="tableInfo">Loading...</span>
-            </div>
-            <div class="table-responsive">
-                <table class="exp-table">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Title</th>
-                            <th>Category</th>
-                            <th>Vendor</th>
-                            <th>Amount</th>
-                            <th>Payment</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="expenseTableBody">
-                        <tr>
-                            <td colspan="7" class="text-center py-5">
-                                <div class="exp-loading">
-                                    <i class="bi bi-hourglass-split"></i> Loading...
-                                </div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+  <!-- Filters -->
+  <!-- Filters -->
+<div class="exp-filters">
+  <!-- Row 1: Search, Type, Ground -->
+  <div class="exp-filters__row1">
+    <div class="exp-search-wrap">
+      <i class="bi bi-search"></i>
+      <input type="text" id="searchInput" class="exp-search-input" placeholder="Search title, vendor..." autocomplete="off">
+    </div>
+    <select id="typeFilter" class="exp-filter-select">
+      <option value="all">All Types</option>
+      <option value="direct">⚡ Direct Expense</option>
+      <option value="indirect">🏢 Indirect Expense</option>
+      <option value="additional_income">💹 Additional Income</option>
+      <option value="asset">📦 Asset / Stock</option>
+    </select>
+    <select id="groundFilter" class="exp-filter-select exp-filter-select--ground">
+      <option value="all">All Grounds</option>
+      <option value="0">🌐 Common (All Grounds)</option>
+      <% if (typeof grounds !== 'undefined' && grounds.length > 0) { %>
+        <% grounds.forEach(g => { %>
+          <option value="<%= g.id %>">⚽ <%= g.name %></option>
+        <% }) %>
+      <% } %>
+    </select>
+  </div>
 
-            <!-- Pagination -->
-            <div class="exp-pagination" id="paginationContainer"></div>
-        </div>
+  <!-- Row 2: Date filters + Reset -->
+  <div class="exp-filters__row2">
+    <div class="exp-filter-date-group">
+      <span class="exp-filter-date-label">Starting Date</span>
+      <input type="date" id="dateFromFilter" class="exp-filter-date">
+    </div>
+    <div class="exp-filter-date-group">
+      <span class="exp-filter-date-label">Ending Date</span>
+      <input type="date" id="dateToFilter" class="exp-filter-date">
+    </div>
+    <button id="resetFilters" class="exp-reset-btn">
+      <i class="bi bi-arrow-repeat me-1"></i>Reset
+    </button>
+  </div>
+</div>
+
+  <!-- Table -->
+  <div class="exp-table-card">
+    <div class="exp-table-header">
+      <span class="exp-table-title"><i class="bi bi-list-ul me-2"></i>Financial Entries</span>
+      <span class="exp-table-info" id="tableInfo">Loading...</span>
+    </div>
+    <div class="table-responsive">
+      <table class="exp-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Title</th>
+            <th>Type</th>
+            <th>Category</th>
+            <th>Ground</th>
+            <th>Vendor</th>
+            <th>Amount</th>
+            <th>Payment</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="expenseTableBody">
+          <tr><td colspan="9" class="text-center py-5"><div class="exp-loading"><i class="bi bi-hourglass-split"></i> Loading...</div></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="exp-pagination" id="paginationContainer"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     MODAL
+═══════════════════════════════════════════════ -->
+<div class="xbdrop" id="xBdrop" onclick="closeModal()"></div>
+<div class="xmodal" id="xModal" role="dialog" aria-modal="true">
+  <div class="xdialog">
+
+    <!-- Header -->
+    <div class="xhdr type-default" id="xHdr">
+      <div class="xhdr-icon" id="xHdrIcon"><i class="bi bi-plus-lg"></i></div>
+      <div class="xhdr-text">
+        <div class="xhdr-title" id="xHdrTitle">Add New Entry</div>
+        <div class="xhdr-sub"   id="xHdrSub">Fill in the details below</div>
+      </div>
+      <!-- X button — inline onclick so it always works -->
+      <button type="button" class="xhdr-close" onclick="closeModal()">
+        <i class="bi bi-x-lg"></i>
+      </button>
     </div>
 
-    <!-- Right Side Drawer for Add/Edit Expense -->
-    <div id="expenseDrawerOverlay" class="exp-drawer-overlay"></div>
-    <div id="expenseDrawer" class="exp-drawer">
-        <div class="exp-drawer-header">
-            <div>
-                <div class="exp-drawer-title" id="drawerTitle">Add New Expense</div>
-                <div class="exp-drawer-sub">Fill in the details below</div>
-            </div>
-            <button class="exp-drawer-close" id="closeDrawerBtn">
-                <i class="bi bi-x-lg"></i>
-            </button>
-        </div>
-        <div class="exp-drawer-body">
-            <form id="expenseForm">
-                <input type="hidden" id="expenseId" name="id">
-
-                <div class="exp-form-group">
-                    <label class="exp-form-label">Title *</label>
-                    <input type="text" id="expTitle" name="title" class="exp-form-input"
-                        placeholder="e.g., Electricity Bill" required>
-                </div>
-
-                <div class="exp-form-row">
-                    <div class="exp-form-group">
-                        <label class="exp-form-label">Amount *</label>
-                        <div class="exp-amount-input-wrap">
-                            <span class="exp-currency">₹</span>
-                            <input type="number" id="expAmount" name="amount" class="exp-form-input exp-amount-input"
-                                placeholder="0.00" step="0.01" required>
-                        </div>
-                    </div>
-                    <div class="exp-form-group">
-                        <label class="exp-form-label">Date *</label>
-                        <input type="date" id="expDate" name="expense_date" class="exp-form-input" required>
-                    </div>
-                </div>
-
-                <div class="exp-form-row">
-                    <div class="exp-form-group">
-                        <label class="exp-form-label">Category</label>
-                        <select id="expCategory" name="category" class="exp-form-select">
-                            <option value="Labour">Labour</option>
-                            <option value="Production">Production</option>
-                            <option value="Selling">Selling & Distribution</option>
-                            <option value="Warehouse">Warehouse</option>
-                            <option value="Vehicle">Vehicle Expenses</option>
-                            <option value="Turf Maintenance">Turf Maintenance</option>
-                            <option value="Pitch Preparation">Pitch Preparation</option>
-                            <option value="Equipment Repair">Equipment Repair</option>
-                            <option value="Consumables">Consumables</option>
-                            <option value="Salary">Salary & Wages</option>
-                            <option value="Communication">Communication</option>
-                            <option value="Utilities">Utilities</option>
-                            <option value="Electricity">Electricity</option>
-                            <option value="Maintenance">Maintenance</option>
-                            <option value="Rent">Rent</option>
-                            <option value="Insurance">Insurance</option>
-                            <option value="Taxes">Taxes & Licenses</option>
-                            <option value="Equipment">Equipment Purchase</option>
-                            <option value="Interest">Interest Income</option>
-                            <option value="Scrap">Scrap Sales</option>
-                            <option value="Other">Other Expenses</option>
-                        </select>
-                    </div>
-                    <div class="exp-form-group">
-                        <label class="exp-form-label">Payment Mode</label>
-                        <select id="expPaymentMode" name="payment_mode" class="exp-form-select">
-                            <option value="cash"> Cash</option>
-                            <option value="upi"> UPI</option>
-                            <option value="card">Card</option>
-                            <option value="bank"> Bank Transfer</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="exp-form-group">
-                    <label class="exp-form-label">Vendor</label>
-                    <input type="text" id="expVendor" name="vendor" class="exp-form-input"
-                        placeholder="Vendor or supplier name">
-                </div>
-
-                <div class="exp-form-group">
-                    <label class="exp-form-label">Notes</label>
-                    <textarea id="expNotes" name="notes" class="exp-form-textarea" rows="3"
-                        placeholder="Additional details..."></textarea>
-                </div>
-
-                <div class="exp-form-actions">
-                    <button type="button" class="exp-btn-cancel" id="cancelDrawerBtn">Cancel</button>
-                    <button type="submit" class="exp-btn-save">
-                        <i class="bi bi-check-lg me-2"></i>Save Expense
-                    </button>
-                </div>
-            </form>
-        </div>
+    <!-- Step bar -->
+    <div class="xsteps">
+      <div class="xstep active" id="si1"><div class="xstep-dot">1</div><div class="xstep-lbl">Basic Info</div></div>
+      <div class="xstep-line" id="sl12"></div>
+      <div class="xstep" id="si2"><div class="xstep-dot">2</div><div class="xstep-lbl">Select a Category</div></div>
+      <div class="xstep-line" id="sl23"></div>
+      <div class="xstep" id="si3"><div class="xstep-dot">3</div><div class="xstep-lbl">Details</div></div>
     </div>
 
-    <script>
-        let currentPage = 1;
-        let currentFilters = {
-            search: '',
-            category: 'all',
-            date_from: '',
-            date_to: ''
-        };
+    <!-- Body -->
+    <div class="xbody">
+      <input type="hidden" id="xId">
 
-        // Load stats on page load
-        async function loadStats() {
-            try {
-                const res = await fetch('/expenses/stats');
-                const data = await res.json();
-                if (data.success) {
-                    document.getElementById('totalAmount').innerHTML = `₹${Number(data.data.total.total_amount).toLocaleString('en-IN')}`;
-                    document.getElementById('totalCount').innerHTML = `${data.data.total.total_count} transactions`;
-                    document.getElementById('monthlyAmount').innerHTML = `₹${Number(data.data.total.monthly_total).toLocaleString('en-IN')}`;
-
-                    if (data.data.categoryStats && data.data.categoryStats.length > 0) {
-                        const top = data.data.categoryStats[0];
-                        document.getElementById('topCategory').innerHTML = top.category;
-                        document.getElementById('topCategoryAmount').innerHTML = `₹${Number(top.total).toLocaleString('en-IN')}`;
-                    } else {
-                        document.getElementById('topCategory').innerHTML = '—';
-                        document.getElementById('topCategoryAmount').innerHTML = '—';
-                    }
-                }
-            } catch (err) {
-                console.error('Error loading stats:', err);
-            }
-        }
-
-        // Load expenses with filters
-        async function loadExpenses(page = 1) {
-            currentPage = page;
-            const params = new URLSearchParams({
-                page: page,
-                limit: 10,
-                ...currentFilters
-            });
-
-            try {
-                const res = await fetch(`/expenses?${params}`);
-                const data = await res.json();
-
-                if (data.success) {
-                    renderExpensesTable(data.data.expenses);
-                    renderPagination(data.data.pagination);
-                    updateTableInfo(data.data.pagination);
-                }
-            } catch (err) {
-                console.error('Error loading expenses:', err);
-            }
-        }
-
-        // Render expenses table
-        function renderExpensesTable(expenses) {
-            const tbody = document.getElementById('expenseTableBody');
-
-            if (!expenses || expenses.length === 0) {
-                tbody.innerHTML = `
-      <tr>
-        <td colspan="7" class="text-center py-5">
-          <div class="exp-empty-state">
-            <i class="bi bi-receipt"></i>
-            <p>No expenses found</p>
-            <small>Click "ADD EXPENSE" to get started</small>
+      <!-- Panel 1 — Basic Info -->
+      <div class="xpanel active" id="xP1">
+        <div class="xfld">
+          <label><i class="bi bi-tag-fill"></i> Title <span class="xreq">*</span></label>
+          <input type="text" id="xTitle" class="xinput" placeholder="e.g., Monthly Electricity Bill">
+        </div>
+        <div class="xrow">
+          <div class="xfld">
+            <label><i class="bi bi-currency-rupee"></i> Amount <span class="xreq">*</span></label>
+            <div class="xamtwrap">
+              <span class="xamtpfx">₹</span>
+              <input type="number" id="xAmount" class="xinput" placeholder="0.00" step="0.01" min="0.01">
+            </div>
           </div>
-        </td>
-      </tr>
-    `;
-                return;
-            }
+          <div class="xfld">
+            <label><i class="bi bi-calendar3"></i> Date <span class="xreq">*</span></label>
+            <input type="date" id="xDate" class="xinput">
+          </div>
+        </div>
+      </div>
 
-            tbody.innerHTML = expenses.map(exp => `
-    <tr class="exp-row" data-id="${exp.id}">
-      <td><span class="exp-date-badge">${formatDate(exp.expense_date)}</span></td>
-      <td><span class="exp-title">${escapeHtml(exp.title)}</span></td>
-      <td><span class="exp-category-badge exp-category-${exp.category.toLowerCase()}">${exp.category}</span></td>
-      <td>${exp.vendor ? `<span class="exp-vendor">${escapeHtml(exp.vendor)}</span>` : '<span class="exp-vendor-muted">—</span>'}</td>
-      <td><span class="exp-amount">₹${Number(exp.amount).toLocaleString('en-IN')}</span></td>
-      <td><span class="exp-payment-badge exp-payment-${exp.payment_mode}">${getPaymentIcon(exp.payment_mode)} ${exp.payment_mode.toUpperCase()}</span></td>
+      <!-- Panel 2 — Type & Category -->
+      <div class="xpanel" id="xP2">
+        <div class="xfld">
+          <label><i class="bi bi-diagram-3-fill"></i> Entry Type <span class="xreq">*</span></label>
+          <div class="xtypes">
+
+            <div class="xtype" data-t="direct" onclick="selType('direct')">
+              <div class="xtype-ico"><i class="bi bi-lightning-charge-fill"></i></div>
+              <div class="xtype-name">Direct Expense</div>
+              <div class="xtype-desc">Costs directly tied to ground operations, turf & sports activities</div>
+              <span class="xtype-tag"><i class="bi bi-arrow-left"></i> Debit Side</span>
+            </div>
+
+            <div class="xtype" data-t="indirect" onclick="selType('indirect')">
+              <div class="xtype-ico"><i class="bi bi-building"></i></div>
+              <div class="xtype-name">Indirect Expense</div>
+              <div class="xtype-desc">General overhead, admin & operating costs not tied to production</div>
+              <span class="xtype-tag"><i class="bi bi-arrow-left"></i> Debit Side</span>
+            </div>
+
+            <div class="xtype" data-t="additional_income" onclick="selType('additional_income')">
+              <div class="xtype-ico"><i class="bi bi-graph-up-arrow"></i></div>
+              <div class="xtype-name">Additional Income</div>
+              <div class="xtype-desc">Interest, scrap value, penalty income & other non-sales receipts</div>
+              <span class="xtype-tag"><i class="bi bi-arrow-right"></i> Credit Side</span>
+            </div>
+
+            <div class="xtype" data-t="asset" onclick="selType('asset')">
+              <div class="xtype-ico"><i class="bi bi-box-seam-fill"></i></div>
+              <div class="xtype-name">Asset / Stock</div>
+              <div class="xtype-desc">Capital purchases, equipment & closing stock entries</div>
+              <span class="xtype-tag"><i class="bi bi-arrow-right"></i> Credit Side</span>
+            </div>
+
+          </div>
+          <div class="xhnt" style="margin-top:.55rem">This determines where the entry appears in your balance sheet</div>
+        </div>
+
+        <div class="xfld" id="xCatField" style="display:none">
+          <label><i class="bi bi-grid-3x3-gap-fill"></i> Category <span class="xreq">*</span></label>
+          <div class="xcatpills" id="xCatPills"></div>
+          <div class="xcustom" id="xCustomWrap">
+            <label><i class="bi bi-pencil-square"></i> Enter custom category name</label>
+            <input type="text" id="xCustomCat" class="xinput" placeholder="e.g., Tournament Fees, Sponsorship...">
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel 3 — Details + Summary -->
+      <div class="xpanel" id="xP3">
+        <div class="xfld">
+          <label><i class="bi bi-geo-alt-fill"></i> Ground <span class="xground-hint">Which ground is this expense for?</span></label>
+          <select id="xGround" class="xinput xground-select">
+            <option value="0">🌐 All Grounds </option>
+            <% if (typeof grounds !== 'undefined' && grounds.length > 0) { %>
+              <% grounds.forEach(g => { %>
+                <option value="<%= g.id %>">⚽ <%= g.name %></option>
+              <% }) %>
+            <% } %>
+          </select>
+          <div class="xhnt" id="xGroundHint">Selecting a specific ground limits this entry to that ground's balance sheet only.</div>
+        </div>
+        <div class="xfld">
+          <label><i class="bi bi-credit-card-fill"></i> Payment Mode</label>
+          <div class="xpays">
+            <div class="xpay sel" data-m="cash" onclick="selPay('cash')"><i class="bi bi-cash-stack"></i><span>Cash</span></div>
+            <div class="xpay"     data-m="upi"  onclick="selPay('upi')"><i class="bi bi-phone-fill"></i><span>UPI</span></div>
+            <div class="xpay"     data-m="card" onclick="selPay('card')"><i class="bi bi-credit-card-2-front-fill"></i><span>Card</span></div>
+            <div class="xpay"     data-m="bank" onclick="selPay('bank')"><i class="bi bi-bank2"></i><span>Bank</span></div>
+          </div>
+        </div>
+        <div class="xfld">
+          <label><i class="bi bi-building"></i> Vendor / Supplier</label>
+          <input type="text" id="xVendor" class="xinput" placeholder="Vendor name (optional)">
+        </div>
+        <div class="xfld">
+          <label><i class="bi bi-file-text"></i> Notes</label>
+          <textarea id="xNotes" class="xinput xtarea" rows="3" placeholder="Invoice number, remarks..."></textarea>
+        </div>
+
+        <!-- Live Summary -->
+        <div class="xsum type-none" id="xSum">
+          <div class="xsum-label">Entry Summary</div>
+          <div class="xsum-amt" id="sAmt">₹0.00</div>
+          <div class="xsum-badge" id="sBadge">—</div>
+          <div class="xsum-grid">
+            <div class="xsum-item"><label>Category</label><span id="sCat">—</span></div>
+            <div class="xsum-item"><label>Date</label><span id="sDate">—</span></div>
+            <div class="xsum-item"><label>Payment</label><span id="sPay">Cash</span></div>
+            <div class="xsum-item"><label>Vendor</label><span id="sVendor">—</span></div>
+            <div class="xsum-item xsum-item--full"><label><i class="bi bi-geo-alt-fill"></i> Ground</label><span id="sGround">🌐 All Grounds</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="xfoot">
+      <button type="button" class="xbtn xbtn-ghost" onclick="closeModal()"><i class="bi bi-x"></i> Cancel</button>
+      <div class="xbtns">
+        <button type="button" class="xbtn xbtn-back" id="xBack" style="display:none" onclick="xStep(-1)"><i class="bi bi-chevron-left"></i> Back</button>
+        <button type="button" class="xbtn xbtn-next" id="xNext" onclick="xStep(1)">Next <i class="bi bi-chevron-right"></i></button>
+        <button type="button" class="xbtn xbtn-save" id="xSave" style="display:none" onclick="xSubmit()"><i class="bi bi-check-lg"></i> Save Entry</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════
+//  CLOSE MODAL — global function, always available
+// ════════════════════════════════════════════════
+function closeModal() {
+  document.getElementById('xBdrop').classList.remove('open');
+  document.getElementById('xModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// ════════════════════════════════════════════════
+//  CATEGORY DEFINITIONS
+// ════════════════════════════════════════════════
+// Default icons per category name (fallback for known categories)
+const CAT_ICONS = {
+  'Labour':'bi-person-workspace','Production':'bi-gear-fill','Selling':'bi-megaphone-fill',
+  'Warehouse':'bi-building-warehouse','Vehicle':'bi-truck','Turf Maintenance':'bi-flower1',
+  'Pitch Preparation':'bi-tsunami','Equipment Repair':'bi-wrench-adjustable','Consumables':'bi-box-seam',
+  'Salary':'bi-cash-stack','Communication':'bi-telephone-fill','Utilities':'bi-droplet-fill',
+  'Electricity':'bi-lightbulb-fill','Maintenance':'bi-tools','Rent':'bi-house-fill',
+  'Insurance':'bi-shield-check','Taxes':'bi-receipt',
+  'Interest Income':'bi-bank','Scrap / Salvage':'bi-recycle','Penalty Income':'bi-exclamation-circle',
+  'Other Income':'bi-three-dots','Other':'bi-three-dots',
+  'Equipment':'bi-tools','Sports Gear':'bi-trophy','Ground Equipment':'bi-cone-striped',
+  'IT Equipment':'bi-pc-display','Furniture':'bi-grid',
+};
+
+// CATS loaded dynamically from DB — populated on page load
+let CATS = { direct: [], indirect: [], additional_income: [], asset: [] };
+
+async function loadCatsFromDB() {
+  try {
+    const res = await fetch('/balance-sheet/api/accounts/for-form');
+    const data = await res.json();
+    if (!data.success) return;
+    const a = data.accounts;
+    const toEntry = r => ({ name: r.account_name, icon: CAT_ICONS[r.account_name] || 'bi-tag' });
+    CATS.direct            = a.direct_expense.map(toEntry);
+    CATS.indirect          = a.indirect_expense.map(toEntry);
+    CATS.additional_income = a.income.map(toEntry);
+    CATS.asset             = a.asset.map(toEntry);
+    // If a type is currently selected, re-render cats
+    if (xType) renderCats(xType, xCat);
+  } catch(e) { /* keep hardcoded fallback */ }
+}
+loadCatsFromDB();
+
+const TYPE_META = {
+  direct:            { label:'Direct Expense',     icon:'bi-lightning-charge-fill', badge:'⚡ Direct — Debit Side',     cls:'type-direct' },
+  indirect:          { label:'Indirect Expense',   icon:'bi-building',              badge:'🏢 Indirect — Debit Side',   cls:'type-indirect' },
+  additional_income: { label:'Additional Income',  icon:'bi-graph-up-arrow',        badge:'💹 Income — Credit Side',    cls:'type-additional_income' },
+  asset:             { label:'Asset / Stock',      icon:'bi-box-seam-fill',         badge:'📦 Asset — Credit Side',     cls:'type-asset' },
+};
+
+// ════════════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════════════
+let xStep_n   = 1;
+let xType     = null;
+let xCat      = null;
+let xPay      = 'cash';
+let xEditId   = null;
+let curPage   = 1;
+let curFilter = { search:'', expense_type:'all', ground_id:'all', date_from:'', date_to:'' };
+
+// ════════════════════════════════════════════════
+//  MODAL OPEN
+// ════════════════════════════════════════════════
+function xOpen(exp = null) {
+  xEditId = exp?.id || null;
+  xStep_n = 1;
+  xType   = exp?.expense_type || null;
+  xCat    = exp?.category     || null;
+  xPay    = exp?.payment_mode || 'cash';
+
+  document.getElementById('xId').value    = xEditId || '';
+  document.getElementById('xTitle').value = exp?.title || '';
+  document.getElementById('xAmount').value= exp?.amount || '';
+  document.getElementById('xDate').value  = exp?.expense_date?.split('T')[0] || today();
+  document.getElementById('xVendor').value= exp?.vendor || '';
+  document.getElementById('xNotes').value = exp?.notes  || '';
+  document.getElementById('xGround').value= exp?.ground_id != null ? String(exp.ground_id) : '0';
+
+  document.querySelectorAll('.xtype').forEach(c => c.classList.remove('sel'));
+  if (xType) {
+    document.querySelector(`.xtype[data-t="${xType}"]`)?.classList.add('sel');
+    renderCats(xType, xCat);
+    document.getElementById('xCatField').style.display = '';
+  } else {
+    document.getElementById('xCatField').style.display = 'none';
+  }
+
+  document.querySelectorAll('.xpay').forEach(b => b.classList.toggle('sel', b.dataset.m === xPay));
+
+  updateHeaderColor(xType);
+
+  const isEdit = !!exp;
+  document.getElementById('xHdrTitle').textContent = isEdit ? 'Edit Entry' : 'Add New Entry';
+  document.getElementById('xHdrSub').textContent   = isEdit ? 'Update the entry details below' : 'Record a financial entry for your balance sheet';
+  document.getElementById('xHdrIcon').innerHTML    = `<i class="bi ${isEdit ? 'bi-pencil' : 'bi-plus-lg'}"></i>`;
+
+  xUpdateUI();
+  xUpdateSummary();
+
+  document.getElementById('xBdrop').classList.add('open');
+  document.getElementById('xModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+// keep xClose as alias so existing calls inside xSubmit still work
+function xClose() { closeModal(); }
+
+function updateHeaderColor(type) {
+  const hdr = document.getElementById('xHdr');
+  hdr.className = 'xhdr ' + (type ? `type-${type}` : 'type-default');
+}
+
+// ════════════════════════════════════════════════
+//  STEP NAVIGATION
+// ════════════════════════════════════════════════
+function xStep(dir) {
+  if (dir === 1 && !xValidate(xStep_n)) return;
+  xStep_n = Math.max(1, Math.min(3, xStep_n + dir));
+  xUpdateUI();
+  if (xStep_n === 3) xUpdateSummary();
+}
+
+function xUpdateUI() {
+  document.querySelectorAll('.xpanel').forEach((p,i) => p.classList.toggle('active', i+1 === xStep_n));
+  for (let i=1; i<=3; i++) {
+    const el = document.getElementById('si'+i);
+    el.classList.toggle('active', i === xStep_n);
+    el.classList.toggle('done',   i <  xStep_n);
+    if (i < 3) document.getElementById(`sl${i}${i+1}`).classList.toggle('done', i < xStep_n);
+  }
+  document.getElementById('xBack').style.display = xStep_n > 1 ? '' : 'none';
+  document.getElementById('xNext').style.display = xStep_n < 3 ? '' : 'none';
+  document.getElementById('xSave').style.display = xStep_n === 3 ? '' : 'none';
+}
+
+function xValidate(step) {
+  if (step === 1) {
+    const title  = document.getElementById('xTitle').value.trim();
+    const amount = parseFloat(document.getElementById('xAmount').value);
+    const date   = document.getElementById('xDate').value;
+    if (!title)          { shake('xTitle');  xToast('Please enter a title','error'); return false; }
+    if (!amount||amount<=0){ shake('xAmount'); xToast('Please enter a valid amount','error'); return false; }
+    if (!date)           { shake('xDate');   xToast('Please select a date','error'); return false; }
+  }
+  if (step === 2) {
+    if (!xType) { xToast('Please select an entry type','error'); return false; }
+    if (!xCat)  { xToast('Please select a category','error'); return false; }
+    if (xCat === 'Other' || xCat === 'Other Income') {
+      if (!document.getElementById('xCustomCat').value.trim()) {
+        shake('xCustomCat'); xToast('Please enter a custom category name','error'); return false;
+      }
+    }
+  }
+  return true;
+}
+
+function shake(id) {
+  const el = document.getElementById(id);
+  el.classList.add('err');
+  el.style.animation = '';
+  requestAnimationFrame(() => { el.style.animation = 'xShake .35s ease'; });
+  setTimeout(() => { el.classList.remove('err'); el.style.animation=''; }, 800);
+}
+
+// ════════════════════════════════════════════════
+//  TYPE & CATEGORY
+// ════════════════════════════════════════════════
+function selType(type) {
+  xType = type; xCat = null;
+  document.querySelectorAll('.xtype').forEach(c => c.classList.remove('sel'));
+  document.querySelector(`.xtype[data-t="${type}"]`).classList.add('sel');
+  document.getElementById('xCatField').style.display = '';
+  renderCats(type, null);
+  updateHeaderColor(type);
+  xUpdateSummary();
+}
+
+function renderCats(type, selected) {
+  const cats = CATS[type] || [];
+  const wrap = document.getElementById('xCatPills');
+  wrap.innerHTML = cats.map(c => `
+    <div class="xcatpill ${selected===c.name?'sel':''}" data-cat="${c.name}" onclick="selCat('${c.name}')">
+      <i class="bi ${c.icon}"></i> ${c.name}
+    </div>`).join('');
+  const needCustom = (selected==='Other'||selected==='Other Income');
+  document.getElementById('xCustomWrap').classList.toggle('vis', !!needCustom);
+}
+
+function selCat(cat) {
+  xCat = cat;
+  document.querySelectorAll('.xcatpill').forEach(p => p.classList.toggle('sel', p.dataset.cat===cat));
+  const needCustom = (cat==='Other'||cat==='Other Income');
+  document.getElementById('xCustomWrap').classList.toggle('vis', needCustom);
+  if (!needCustom) document.getElementById('xCustomCat').value='';
+  xUpdateSummary();
+}
+
+function selPay(mode) {
+  xPay = mode;
+  document.querySelectorAll('.xpay').forEach(b => b.classList.toggle('sel', b.dataset.m===mode));
+  xUpdateSummary();
+}
+
+// ════════════════════════════════════════════════
+//  SUMMARY
+// ════════════════════════════════════════════════
+function xUpdateSummary() {
+  const amount = parseFloat(document.getElementById('xAmount').value)||0;
+  const date   = document.getElementById('xDate').value;
+  const vendor = document.getElementById('xVendor').value.trim();
+  const custom = document.getElementById('xCustomCat').value.trim();
+  const catDisp = (xCat==='Other'||xCat==='Other Income') && custom ? custom : (xCat||'—');
+
+  // Ground summary
+  const groundSel = document.getElementById('xGround');
+  const groundText = groundSel ? groundSel.options[groundSel.selectedIndex]?.text || '🌐 All Grounds' : '🌐 All Grounds';
+  const groundHint = document.getElementById('xGroundHint');
+  if (groundSel && groundSel.value === '0') {
+    if (groundHint) groundHint.textContent = '✅ This expense will reflect in ALL ground balance sheets and the total balance sheet.';
+  } else {
+    if (groundHint) groundHint.textContent = 'This expense will only appear in the selected ground\'s balance sheet + total balance sheet.';
+  }
+
+  document.getElementById('sAmt').textContent   = '₹'+amount.toLocaleString('en-IN',{minimumFractionDigits:2});
+  document.getElementById('sCat').textContent   = catDisp;
+  document.getElementById('sDate').textContent  = date ? new Date(date).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}) : '—';
+  document.getElementById('sVendor').textContent= vendor||'—';
+  document.getElementById('sPay').textContent   = xPay.charAt(0).toUpperCase()+xPay.slice(1);
+  const sGroundEl = document.getElementById('sGround');
+  if (sGroundEl) sGroundEl.textContent = groundText.replace('⚽ ','').replace('🌐 ','');
+
+  const sum   = document.getElementById('xSum');
+  const badge = document.getElementById('sBadge');
+  if (xType && TYPE_META[xType]) {
+    sum.className   = 'xsum type-' + xType;
+    badge.textContent = TYPE_META[xType].badge;
+  } else {
+    sum.className   = 'xsum type-none';
+    badge.textContent = '—';
+  }
+}
+
+// ════════════════════════════════════════════════
+//  SUBMIT
+// ════════════════════════════════════════════════
+async function xSubmit() {
+  if (!xValidate(3)) return;
+  const id     = document.getElementById('xId').value;
+  const custom = document.getElementById('xCustomCat').value.trim();
+  const btn    = document.getElementById('xSave');
+
+  const payload = {
+    title:           document.getElementById('xTitle').value.trim(),
+    amount:          document.getElementById('xAmount').value,
+    expense_date:    document.getElementById('xDate').value,
+    expense_type:    xType,
+    category:        xCat,
+    custom_category: (xCat==='Other'||xCat==='Other Income') ? custom : '',
+    payment_mode:    xPay,
+    vendor:          document.getElementById('xVendor').value.trim(),
+    notes:           document.getElementById('xNotes').value.trim(),
+    ground_id:       document.getElementById('xGround').value || '0',
+  };
+
+  btn.disabled = true;
+  btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Saving...';
+
+  try {
+    const res    = await fetch(id ? `/expenses/${id}` : '/expenses/add', {
+      method: id ? 'PUT' : 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(payload),
+    });
+    const result = await res.json();
+    if (result.success) {
+      closeModal(); loadStats(); loadExpenses(curPage);
+      xToast(result.message, 'success');
+    } else {
+      xToast(result.message||'Error saving entry','error');
+    }
+  } catch(e) { xToast('Network error. Please try again.','error'); }
+  finally    { btn.disabled=false; btn.innerHTML='<i class="bi bi-check-lg"></i> Save Entry'; }
+}
+
+// ════════════════════════════════════════════════
+//  DATA
+// ════════════════════════════════════════════════
+async function loadStats() {
+  try {
+    const d = await (await fetch('/expenses/stats')).json();
+    if (d.success) {
+      document.getElementById('totalAmount').innerHTML  = '₹'+Number(d.data.total.total_amount).toLocaleString('en-IN');
+      document.getElementById('totalCount').innerHTML   = d.data.total.total_count+' entries';
+      document.getElementById('monthlyAmount').innerHTML= '₹'+Number(d.data.total.monthly_total).toLocaleString('en-IN');
+      if (d.data.categoryStats?.length) {
+        const top = d.data.categoryStats[0];
+        document.getElementById('topCategory').innerHTML      = top.category;
+        document.getElementById('topCategoryAmount').innerHTML = '₹'+Number(top.total).toLocaleString('en-IN');
+      }
+    }
+  } catch(e) {}
+}
+
+async function loadExpenses(page=1) {
+  curPage = page;
+  const params = new URLSearchParams({page, limit:10, ...curFilter});
+  try {
+    const d = await (await fetch('/expenses?'+params)).json();
+    if (d.success) {
+      renderTable(d.data.expenses);
+      renderPager(d.data.pagination);
+      document.getElementById('tableInfo').innerHTML = d.data.pagination.totalRecords+' entr'+(d.data.pagination.totalRecords!==1?'ies':'y');
+    }
+  } catch(e) {}
+}
+
+const TYPE_TABLE_LABEL = {
+  direct:'⚡ Direct', indirect:'🏢 Indirect',
+  additional_income:'💹 Income', asset:'📦 Asset',
+};
+
+function renderTable(rows) {
+  const tbody = document.getElementById('expenseTableBody');
+  if (!rows?.length) {
+    tbody.innerHTML=`<tr><td colspan="9" class="text-center py-5">
+      <div class="exp-empty-state"><i class="bi bi-receipt"></i><p>No entries found</p><small>Click "ADD ENTRY" to get started</small></div>
+    </td></tr>`;
+    return;
+  }
+  tbody.innerHTML = rows.map(e=>{
+    const groundBadge = (!e.ground_id || e.ground_id === 0)
+      ? `<span class="exp-ground-badge exp-ground-all"><i class="bi bi-globe2"></i> All</span>`
+      : `<span class="exp-ground-badge exp-ground-specific"><i class="bi bi-geo-alt-fill"></i> ${esc(e.ground_name||'Ground #'+e.ground_id)}</span>`;
+    return `
+    <tr class="exp-row">
+      <td><span class="exp-date-badge">${fmtDate(e.expense_date)}</span></td>
+      <td><span class="exp-title">${esc(e.title)}</span></td>
+      <td><span class="xtbadge ${e.expense_type||'indirect'}">${TYPE_TABLE_LABEL[e.expense_type]||'🏢 Indirect'}</span></td>
+      <td><span class="exp-category-badge">${esc(e.category)}</span></td>
+      <td>${groundBadge}</td>
+      <td>${e.vendor?`<span class="exp-vendor">${esc(e.vendor)}</span>`:'<span class="exp-vendor-muted">—</span>'}</td>
+      <td><span class="exp-amount">₹${Number(e.amount).toLocaleString('en-IN')}</span></td>
+      <td><span class="exp-payment-badge exp-payment-${e.payment_mode}">${payIco(e.payment_mode)} ${e.payment_mode.toUpperCase()}</span></td>
       <td>
         <div class="exp-actions">
-          <button class="exp-action-btn exp-edit-btn" onclick="editExpense(${exp.id})" title="Edit">
-            <i class="bi bi-pencil"></i>
-          </button>
-          <button class="exp-action-btn exp-delete-btn" onclick="deleteExpense(${exp.id}, '${escapeHtml(exp.title)}')" title="Delete">
-            <i class="bi bi-trash"></i>
-          </button>
+          <button class="exp-action-btn exp-edit-btn" onclick="editExp(${e.id})" title="Edit"><i class="bi bi-pencil"></i></button>
+          <button class="exp-action-btn exp-delete-btn" onclick="delExp(${e.id},'${esc(e.title)}')" title="Delete"><i class="bi bi-trash"></i></button>
         </div>
       </td>
-    </tr>
-  `).join('');
-        }
+    </tr>`;
+  }).join('');
+}
 
-        // Render pagination
-        function renderPagination(pagination) {
-            const container = document.getElementById('paginationContainer');
-            const { currentPage, totalPages, totalRecords, limit } = pagination;
+function renderPager(p) {
+  const c = document.getElementById('paginationContainer');
+  if (p.totalPages<=1) { c.innerHTML=''; return; }
+  let h = `<div class="exp-pagination-info">Showing ${((p.currentPage-1)*p.limit)+1}–${Math.min(p.currentPage*p.limit,p.totalRecords)} of ${p.totalRecords}</div><div class="exp-pagination-controls">`;
+  h += p.currentPage>1 ? `<button class="exp-page-btn" onclick="loadExpenses(${p.currentPage-1})"><i class="bi bi-chevron-left"></i></button>` : `<button class="exp-page-btn disabled" disabled><i class="bi bi-chevron-left"></i></button>`;
+  let s=Math.max(1,p.currentPage-2), en=Math.min(p.totalPages,p.currentPage+2);
+  if(s>1){h+=`<button class="exp-page-btn" onclick="loadExpenses(1)">1</button>`;if(s>2)h+=`<span class="exp-page-dots">...</span>`;}
+  for(let i=s;i<=en;i++) h+=`<button class="exp-page-btn ${i===p.currentPage?'active':''}" onclick="loadExpenses(${i})">${i}</button>`;
+  if(en<p.totalPages){if(en<p.totalPages-1)h+=`<span class="exp-page-dots">...</span>`;h+=`<button class="exp-page-btn" onclick="loadExpenses(${p.totalPages})">${p.totalPages}</button>`;}
+  h += p.currentPage<p.totalPages ? `<button class="exp-page-btn" onclick="loadExpenses(${p.currentPage+1})"><i class="bi bi-chevron-right"></i></button>` : `<button class="exp-page-btn disabled" disabled><i class="bi bi-chevron-right"></i></button>`;
+  c.innerHTML = h+'</div>';
+}
 
-            if (totalPages <= 1) {
-                container.innerHTML = '';
-                return;
-            }
+async function editExp(id) {
+  try {
+    const d = await (await fetch('/expenses/'+id)).json();
+    if (!d.success) return;
+    const e = d.data;
+    const type = e.expense_type||'indirect';
+    const knownCats = (CATS[type]||[]).map(c=>c.name);
+    if (!knownCats.includes(e.category)) {
+      e._custom = e.category;
+      e.category = type==='additional_income' ? 'Other Income' : 'Other';
+    }
+    xType=type; xCat=e.category;
+    xOpen(e);
+    if (e._custom) setTimeout(()=>{ document.getElementById('xCustomCat').value=e._custom; },60);
+  } catch(e) { xToast('Error loading entry','error'); }
+}
 
-            let html = `
-    <div class="exp-pagination-info">
-      Showing ${((currentPage - 1) * limit) + 1} to ${Math.min(currentPage * limit, totalRecords)} of ${totalRecords} entries
-    </div>
-    <div class="exp-pagination-controls">
-  `;
+async function delExp(id, title) {
+  showDelModal(title, async () => {
+    try {
+      const d = await (await fetch('/expenses/'+id, {method:'DELETE'})).json();
+      if (d.success) { loadStats(); loadExpenses(curPage); xToast('Entry deleted','success'); }
+      else xToast(d.message||'Error','error');
+    } catch(e) { xToast('Network error','error'); }
+  });
+}
 
-            // Previous button
-            if (currentPage > 1) {
-                html += `<button class="exp-page-btn" onclick="loadExpenses(${currentPage - 1})"><i class="bi bi-chevron-left"></i></button>`;
-            } else {
-                html += `<button class="exp-page-btn disabled" disabled><i class="bi bi-chevron-left"></i></button>`;
-            }
+// ════════════════════════════════════════════════
+//  TOAST
+// ════════════════════════════════════════════════
+function xToast(msg, type='success') {
+  const t = document.createElement('div');
+  t.className = `xtoast ${type}`;
+  t.innerHTML = `<i class="bi bi-${type==='success'?'check-circle-fill':'exclamation-triangle-fill'}"></i><span>${msg}</span>`;
+  document.body.appendChild(t);
+  setTimeout(()=>t.classList.add('show'),10);
+  setTimeout(()=>{t.classList.remove('show');setTimeout(()=>t.remove(),300);},3300);
+}
 
-            // Page numbers
-            let startPage = Math.max(1, currentPage - 2);
-            let endPage = Math.min(totalPages, currentPage + 2);
+// ════════════════════════════════════════════════
+//  HELPERS
+// ════════════════════════════════════════════════
+function today() { return new Date().toISOString().split('T')[0]; }
+function fmtDate(d) { return new Date(d).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}); }
+function payIco(m) { return{cash:'💵',upi:'📱',card:'💳',bank:'🏦'}[m]||'💵'; }
+function esc(s) { return String(s||'').replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]||m)); }
+function debounce(fn,ms){let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms);};}
 
-            if (startPage > 1) {
-                html += `<button class="exp-page-btn" onclick="loadExpenses(1)">1</button>`;
-                if (startPage > 2) html += `<span class="exp-page-dots">...</span>`;
-            }
+// ════════════════════════════════════════════════
+//  EVENT LISTENERS
+// ════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('openAddModal').addEventListener('click', () => xOpen());
 
-            for (let i = startPage; i <= endPage; i++) {
-                html += `<button class="exp-page-btn ${i === currentPage ? 'active' : ''}" onclick="loadExpenses(${i})">${i}</button>`;
-            }
+  document.getElementById('searchInput').addEventListener('input',debounce(()=>{curFilter.search=document.getElementById('searchInput').value;loadExpenses(1);},500));
+  document.getElementById('typeFilter').addEventListener('change',()=>{curFilter.expense_type=document.getElementById('typeFilter').value;loadExpenses(1);});
+  document.getElementById('groundFilter').addEventListener('change',()=>{curFilter.ground_id=document.getElementById('groundFilter').value;loadExpenses(1);});
+  document.getElementById('dateFromFilter').addEventListener('change',()=>{curFilter.date_from=document.getElementById('dateFromFilter').value;loadExpenses(1);});
+  document.getElementById('dateToFilter').addEventListener('change',()=>{curFilter.date_to=document.getElementById('dateToFilter').value;loadExpenses(1);});
+  document.getElementById('resetFilters').addEventListener('click',()=>{
+    ['searchInput','dateFromFilter','dateToFilter'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('typeFilter').value='all';
+    document.getElementById('groundFilter').value='all';
+    curFilter={search:'',expense_type:'all',ground_id:'all',date_from:'',date_to:''};
+    loadExpenses(1);
+  });
 
-            if (endPage < totalPages) {
-                if (endPage < totalPages - 1) html += `<span class="exp-page-dots">...</span>`;
-                html += `<button class="exp-page-btn" onclick="loadExpenses(${totalPages})">${totalPages}</button>`;
-            }
+  ['xAmount','xDate','xVendor'].forEach(id=>document.getElementById(id).addEventListener('input',xUpdateSummary));
+  document.getElementById('xCustomCat').addEventListener('input',xUpdateSummary);
+  document.getElementById('xGround').addEventListener('change', xUpdateSummary);
 
-            // Next button
-            if (currentPage < totalPages) {
-                html += `<button class="exp-page-btn" onclick="loadExpenses(${currentPage + 1})"><i class="bi bi-chevron-right"></i></button>`;
-            } else {
-                html += `<button class="exp-page-btn disabled" disabled><i class="bi bi-chevron-right"></i></button>`;
-            }
+  loadStats();
+  loadExpenses(1);
+});
+</script>
 
-            html += `</div>`;
-            container.innerHTML = html;
-        }
-
-        // Update table info
-        function updateTableInfo(pagination) {
-            const info = document.getElementById('tableInfo');
-            info.innerHTML = `${pagination.totalRecords} transaction${pagination.totalRecords !== 1 ? 's' : ''}`;
-        }
-
-        // Drawer functions
-        function openDrawer(expense = null) {
-            const overlay = document.getElementById('expenseDrawerOverlay');
-            const drawer = document.getElementById('expenseDrawer');
-            const title = document.getElementById('drawerTitle');
-            const form = document.getElementById('expenseForm');
-
-            if (expense) {
-                title.textContent = 'Edit Expense';
-                document.getElementById('expenseId').value = expense.id;
-                document.getElementById('expTitle').value = expense.title;
-                document.getElementById('expAmount').value = expense.amount;
-                document.getElementById('expDate').value = expense.expense_date;
-                document.getElementById('expCategory').value = expense.category;
-                document.getElementById('expPaymentMode').value = expense.payment_mode;
-                document.getElementById('expVendor').value = expense.vendor || '';
-                document.getElementById('expNotes').value = expense.notes || '';
-            } else {
-                title.textContent = 'Add New Expense';
-                form.reset();
-                document.getElementById('expenseId').value = '';
-                document.getElementById('expDate').value = new Date().toISOString().split('T')[0];
-            }
-
-            overlay.classList.add('active');
-            drawer.classList.add('active');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeDrawer() {
-            const overlay = document.getElementById('expenseDrawerOverlay');
-            const drawer = document.getElementById('expenseDrawer');
-            overlay.classList.remove('active');
-            drawer.classList.remove('active');
-            document.body.style.overflow = '';
-        }
-
-        // Add/Edit expense
-        async function saveExpense(event) {
-            event.preventDefault();
-
-            const id = document.getElementById('expenseId').value;
-            const data = {
-                title: document.getElementById('expTitle').value,
-                amount: document.getElementById('expAmount').value,
-                expense_date: document.getElementById('expDate').value,
-                category: document.getElementById('expCategory').value,
-                payment_mode: document.getElementById('expPaymentMode').value,
-                vendor: document.getElementById('expVendor').value,
-                notes: document.getElementById('expNotes').value
-            };
-
-            const url = id ? `/expenses/${id}` : '/expenses/add';
-            const method = id ? 'PUT' : 'POST';
-
-            try {
-                const res = await fetch(url, {
-                    method: method,
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-
-                const result = await res.json();
-                if (result.success) {
-                    closeDrawer();
-                    loadStats();
-                    loadExpenses(currentPage);
-                    showToast(result.message, 'success');
-                } else {
-                    showToast(result.message || 'Error saving expense', 'error');
-                }
-            } catch (err) {
-                showToast('Network error. Please try again.', 'error');
-            }
-        }
-
-        // Edit expense
-        async function editExpense(id) {
-            try {
-                const res = await fetch(`/expenses/${id}`);
-                const data = await res.json();
-                if (data.success) {
-                    openDrawer(data.data);
-                }
-            } catch (err) {
-                showToast('Error loading expense', 'error');
-            }
-        }
-
-        // Delete expense
-        async function deleteExpense(id, title) {
-            if (!confirm(`Delete "${title}"? This action cannot be undone.`)) return;
-
-            try {
-                const res = await fetch(`/expenses/${id}`, { method: 'DELETE' });
-                const data = await res.json();
-                if (data.success) {
-                    loadStats();
-                    loadExpenses(currentPage);
-                    showToast('Expense deleted successfully', 'success');
-                } else {
-                    showToast(data.message || 'Error deleting expense', 'error');
-                }
-            } catch (err) {
-                showToast('Network error. Please try again.', 'error');
-            }
-        }
-
-        // Toast notification
-        function showToast(message, type = 'success') {
-            const toast = document.createElement('div');
-            toast.className = `exp-toast exp-toast--${type}`;
-            toast.innerHTML = `
-    <i class="bi bi-${type === 'success' ? 'check-circle-fill' : 'exclamation-triangle-fill'}"></i>
-    <span>${message}</span>
-  `;
-            document.body.appendChild(toast);
-            setTimeout(() => toast.classList.add('show'), 10);
-            setTimeout(() => {
-                toast.classList.remove('show');
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
-        }
-
-        // Helper functions
-        function formatDate(dateStr) {
-            const date = new Date(dateStr);
-            return date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
-        }
-
-        function getPaymentIcon(mode) {
-            const icons = { cash: '💵', upi: '📱', card: '💳', bank: '🏦' };
-            return icons[mode] || '💵';
-        }
-
-        function escapeHtml(str) {
-            if (!str) return '';
-            return str.replace(/[&<>]/g, function (m) {
-                if (m === '&') return '&amp;';
-                if (m === '<') return '&lt;';
-                if (m === '>') return '&gt;';
-                return m;
-            });
-        }
-
-        // Filter handlers
-        document.getElementById('searchInput').addEventListener('input', debounce(() => {
-            currentFilters.search = document.getElementById('searchInput').value;
-            loadExpenses(1);
-        }, 500));
-
-        document.getElementById('categoryFilter').addEventListener('change', () => {
-            currentFilters.category = document.getElementById('categoryFilter').value;
-            loadExpenses(1);
-        });
-
-        document.getElementById('dateFromFilter').addEventListener('change', () => {
-            currentFilters.date_from = document.getElementById('dateFromFilter').value;
-            loadExpenses(1);
-        });
-
-        document.getElementById('dateToFilter').addEventListener('change', () => {
-            currentFilters.date_to = document.getElementById('dateToFilter').value;
-            loadExpenses(1);
-        });
-
-        document.getElementById('resetFilters').addEventListener('click', () => {
-            document.getElementById('searchInput').value = '';
-            document.getElementById('categoryFilter').value = 'all';
-            document.getElementById('dateFromFilter').value = '';
-            document.getElementById('dateToFilter').value = '';
-            currentFilters = { search: '', category: 'all', date_from: '', date_to: '' };
-            loadExpenses(1);
-        });
-
-        function debounce(func, wait) {
-            let timeout;
-            return function executedFunction(...args) {
-                clearTimeout(timeout);
-                timeout = setTimeout(() => func(...args), wait);
-            };
-        }
-
-        // Event listeners
-        document.getElementById('openExpenseDrawer').addEventListener('click', () => openDrawer());
-        document.getElementById('closeDrawerBtn').addEventListener('click', closeDrawer);
-        document.getElementById('cancelDrawerBtn').addEventListener('click', closeDrawer);
-        document.getElementById('expenseForm').addEventListener('submit', saveExpense);
-        document.getElementById('expenseDrawerOverlay').addEventListener('click', closeDrawer);
-
-        // Initialize
-        loadStats();
-        loadExpenses(1);
-    </script>
-
-    <%- include('../partials/footer') %>
+<%- include('../partials/footer') %>

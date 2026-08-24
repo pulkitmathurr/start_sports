@@ -1,0 +1,212 @@
+<%- include('../../partials/header') %>
+
+<div class="row settings-page-header">
+
+    <!-- Page Header - Blue Theme -->
+    <div class="col-12 mb-4">
+        <div class="batch-detail-header">
+            <div class="batch-detail-header__left">
+                <div class="batch-detail-header__icon">
+                    <i class="bi bi-layers"></i>
+                </div>
+                <div>
+                    <h4 class="batch-detail-header__title"><%= batch.batch_name %></h4>
+                    <span class="batch-detail-header__sub">
+                        <a href="/academy/batches" class="batch-detail-breadcrumb">Batches</a>
+                        &rsaquo; <%= batch.batch_name %>
+                    </span>
+                </div>
+            </div>
+            <div class="batch-detail-header__actions">
+                <a href="/academy/batches/<%= batch.id %>/edit" class="batch-detail-edit-btn">
+                    <i class="bi bi-pencil"></i> Edit Batch
+                </a>
+                <a href="/academy/batches" class="batch-detail-back-btn">
+                    <i class="bi bi-arrow-left"></i> Back
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <% if (success) { %>
+    <script>document.addEventListener('DOMContentLoaded',()=>xToast('<%= success.replace(/'/g,"\'") %>','success'));</script>
+    <% } %>
+    <% if (error) { %>
+    <script>document.addEventListener('DOMContentLoaded',()=>xToast('<%= error.replace(/'/g,"\'") %>','error'));</script>
+    <% } %>
+
+    <!-- Left: Batch Info + Enrol -->
+    <div class="col-12 col-lg-4 mb-4">
+
+        <!-- Batch Details Card -->
+        <div class="batch-info-card">
+            <div class="batch-info-card__header">
+                <i class="bi bi-info-circle"></i> Batch Details
+            </div>
+            <div class="batch-info-card__body">
+                <% if (batch.sport) { %>
+                <div class="batch-info-row">
+                    <i class="bi bi-trophy"></i>
+                    <span><strong><%= batch.sport %></strong></span>
+                </div>
+                <% } %>
+                <% if (batch.coach_name) { %>
+                <div class="batch-info-row">
+                    <i class="bi bi-person-badge"></i>
+                    <span><%= batch.coach_name %></span>
+                </div>
+                <% } %>
+                <% if (batch.start_time && batch.end_time) { %>
+                <div class="batch-info-row">
+                    <i class="bi bi-clock"></i>
+                    <span><%= batch.start_time.slice(0,5) %> — <%= batch.end_time.slice(0,5) %></span>
+                </div>
+                <% } %>
+                <% if (batch.days_of_week) { %>
+                <div class="batch-info-row">
+                    <i class="bi bi-calendar3"></i>
+                    <span><%= batch.days_of_week %></span>
+                </div>
+                <% } %>
+                <div class="batch-info-row">
+                    <i class="bi bi-people"></i>
+                    <span><%= batch.students.filter(s => s.batch_status === 'active').length %> / <%= batch.max_students %> students enrolled</span>
+                </div>
+                <div class="batch-info-row">
+                    <i class="bi bi-circle-fill" style="font-size: 0.5rem; margin-top: 5px;"></i>
+                    <span>
+                        <% if (batch.status === 1) { %>
+                            <span class="batch-detail-status-badge batch-detail-status-active">Active</span>
+                        <% } else { %>
+                            <span class="batch-detail-status-batch-detail-status-inactive">Inactive</span>
+                        <% } %>
+                    </span>
+                </div>
+                <% if (batch.description) { %>
+                <div class="batch-description">
+                    <i class="bi bi-file-text me-1"></i> <%= batch.description %>
+                </div>
+                <% } %>
+            </div>
+        </div>
+
+        <!-- Enrol Student Card -->
+        <div class="batch-info-card">
+            <div class="batch-info-card__header">
+                <i class="bi bi-person-plus"></i> Enrol a Student
+            </div>
+            <div class="batch-info-card__body">
+                <% if (availableStudents.length === 0) { %>
+                <div class="batch-empty-students">
+                    <div class="batch-empty-students__icon">
+                        <i class="bi bi-people"></i>
+                    </div>
+                    <p>All active students are already enrolled, or no students added yet.</p>
+                    <a href="/academy/students/new">Add a student →</a>
+                </div>
+                <% } else { %>
+                <form method="POST" action="/academy/batches/<%= batch.id %>/enrol">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                    <div class="mb-3">
+                        <select name="student_id" class="batch-enrol-select" required>
+                            <option value="">-- Select Student --</option>
+                            <% availableStudents.forEach(s => { %>
+                            <option value="<%= s.id %>"><%= s.name %><% if (s.phone) { %> · <%= s.phone %><% } %></option>
+                            <% }) %>
+                        </select>
+                    </div>
+                    <button type="submit" class="batch-enrol-btn">
+                        <i class="bi bi-person-plus"></i> Enrol Student
+                    </button>
+                </form>
+                <% } %>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Right: Enrolled Students -->
+    <div class="col-12 col-lg-8 mb-4">
+        <div class="batch-info-card">
+            <div class="batch-info-card__header">
+                <i class="bi bi-people-fill"></i> Enrolled Students
+                <span style="margin-left: auto; background: #eff6ff; color: #2563eb; padding: 2px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 600;">
+                    <%= batch.students.filter(s => s.batch_status === 'active').length %>
+                </span>
+            </div>
+
+            <% const activeStudents = batch.students.filter(s => s.batch_status === 'active'); %>
+            <% if (activeStudents.length === 0) { %>
+            <div class="batch-empty-students">
+                <div class="batch-empty-students__icon">
+                    <i class="bi bi-person-x"></i>
+                </div>
+                <p>No students enrolled yet.</p>
+                <small>Use the form on the left to enrol students</small>
+            </div>
+            <% } else { %>
+            <div class="table-responsive">
+                <table class="batch-students-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Student</th>
+                            <th>Parent WhatsApp</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% activeStudents.forEach((student, index) => { %>
+                        <tr>
+                            <td style="color: #94a3b8;"><%= index + 1 %></td>
+                            <td>
+                                <div class="batch-student-info">
+                                    <% if (student.photo) { %>
+                                        <img src="/uploads/students/<%= student.photo %>" class="batch-student-avatar">
+                                    <% } else { %>
+                                        <div class="batch-student-avatar-placeholder">
+                                            <%= student.name.charAt(0).toUpperCase() %>
+                                        </div>
+                                    <% } %>
+                                    <div>
+                                        <div class="batch-student-name"><%= student.name %></div>
+                                        <% if (student.phone) { %>
+                                            <div class="batch-student-phone"><%= student.phone %></div>
+                                        <% } %>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="batch-student-whatsapp">
+                                    <i class="bi bi-whatsapp"></i> <%= student.parent_phone %>
+                                </div>
+                            </td>
+                            <td>
+                                <% if (student.status === 1) { %>
+                                    <span class="batch-student-status-badge batch-student-status-active">Active</span>
+                                <% } else { %>
+                                    <span class="batch-student-status-badge batch-student-status-inactive">Inactive</span>
+                                <% } %>
+                            </td>
+                            <td>
+                                <form method="POST" action="/academy/batches/<%= batch.id %>/remove/<%= student.id %>"
+                                      onsubmit="return confirm('Remove <%= student.name %> from this batch?')">
+                                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                    <button type="submit" class="batch-remove-btn">
+                                        <i class="bi bi-person-dash"></i> Remove
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+            <% } %>
+        </div>
+    </div>
+
+</div>
+
+<%- include('../../partials/footer') %>

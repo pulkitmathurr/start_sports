@@ -10,6 +10,29 @@
 <!-- Bootstrap -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
+<style>
+/* ── Global Toast ─────────────────────────────────────────── */
+.xtoast {
+  position:fixed; bottom:1.5rem; right:1.5rem; z-index:99999;
+  background:#fff; border-radius:12px; padding:.82rem 1.15rem;
+  display:flex; align-items:center; gap:.65rem;
+  box-shadow:0 8px 32px rgba(0,0,0,.16);
+  transform:translateY(18px) scale(.96); opacity:0;
+  transition:all .24s cubic-bezier(.22,.9,.36,1.1);
+  min-width:260px; max-width:380px; border-left:4px solid #e5e7eb;
+  pointer-events:none;
+}
+.xtoast.show { transform:none; opacity:1; pointer-events:auto; }
+.xtoast.success { border-left-color:#059669; }
+.xtoast.error   { border-left-color:#dc2626; }
+.xtoast.warning { border-left-color:#d97706; }
+.xtoast i { font-size:1.05rem; flex-shrink:0; }
+.xtoast.success i { color:#059669; }
+.xtoast.error   i { color:#dc2626; }
+.xtoast.warning i { color:#d97706; }
+.xtoast span { font-size:.82rem; font-weight:500; color:#111827; line-height:1.4; }
+</style>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const toggle = document.querySelector('.app-sidebar__toggle');
@@ -27,22 +50,66 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-async function logout() {
+// ── Global Toast ───────────────────────────────────────────────
+function xToast(msg, type='success') {
+    const icons = { success:'check-circle-fill', error:'exclamation-triangle-fill', warning:'exclamation-circle-fill' };
+    const t = document.createElement('div');
+    t.className = `xtoast ${type}`;
+    t.innerHTML = `<i class="bi bi-${icons[type]||icons.success}"></i><span>${msg}</span>`;
+    document.body.appendChild(t);
+    setTimeout(() => t.classList.add('show'), 10);
+    setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 3500);
+}
+
+
+// ── Auto-inject CSRF into ALL plain HTML form submissions ─────
+// Plain <form method="POST"> cannot set custom headers, so we
+// intercept every form submit and inject a hidden _csrf field.
+// This fixes CSRF errors on every page without touching any EJS file.
+// NOTE: getCsrfToken() is defined in header.ejs — available globally.
+document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('submit', function (e) {
+        const form = e.target;
+        if (form.tagName !== 'FORM') return;
+        if ((form.method || '').toUpperCase() !== 'POST') return;
+        // Skip forms already handled by data-csrf-form (they use fetch)
+        if (form.hasAttribute('data-csrf-form')) return;
+        // Skip if _csrf field already added
+        if (form.querySelector('input[name="_csrf"]')) return;
+
+        const token = getCsrfToken();
+        if (!token) return;
+
+        const input = document.createElement('input');
+        input.type  = 'hidden';
+        input.name  = '_csrf';
+        input.value = token;
+        form.appendChild(input);
+        // No need to prevent default — let the form submit normally
+    }, true); // capture phase so it runs before any inline onsubmit
+});
+
+// NOTE: window.fetch CSRF patch and getCsrfToken() have been moved to
+// header.ejs so they are available to all inline scripts (including
+// quickbook-drawer.ejs) before those scripts execute.
+
+// ── Logout ─────────────────────────────────────────────────────
+// NOTE: window.fetch is already patched in header.ejs to auto-inject
+// X-CSRF-Token on every mutating request, so the token is sent
+// automatically. This function is the single shared logout handler
+// for the regular admin panel (called via onclick="logout(event)").
+async function logout(e) {
+    if (e) e.preventDefault();
     try {
         await fetch('/auth/logout', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': getCsrfToken()
+            }
         });
-    } catch(e) {}
-
-    document.cookie = 'access_token=; path=/; max-age=0';
-    document.cookie = 'session_id=; path=/; max-age=0';
-    document.cookie = 'refresh_token=; path=/; max-age=0';
-
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
-
-    window.location.href = '/auth/login';
+    } catch(err) { /* proceed to redirect regardless */ }
+    window.location.replace('/auth/login');
 }
 </script>
 
@@ -176,6 +243,209 @@ async function logout() {
     setInterval(checkPeakSuggestions, 5 * 60 * 1000);
 })();
 </script>
+
+<!-- ── Global Delete Confirmation Modal ──────────────────────── -->
+<style>
+.del-modal-backdrop {
+  display:none; position:fixed; inset:0; z-index:99990;
+  background:rgba(0,0,0,.45); backdrop-filter:blur(3px);
+  align-items:center; justify-content:center; padding:1rem;
+}
+.del-modal-backdrop.open { display:flex; animation:delFadeIn .18s ease; }
+@keyframes delFadeIn { from{opacity:0} to{opacity:1} }
+
+.del-modal {
+  background:#fff; border-radius:18px; padding:2rem 1.75rem 1.5rem;
+  width:100%; max-width:380px; text-align:center;
+  box-shadow:0 20px 60px rgba(0,0,0,.18);
+  animation:delSlideUp .22s cubic-bezier(.22,.9,.36,1.1);
+}
+@keyframes delSlideUp { from{opacity:0;transform:translateY(20px) scale(.97)} to{opacity:1;transform:none} }
+
+.del-modal__icon {
+  width:58px; height:58px; border-radius:50%;
+  background:#fef2f2; display:flex; align-items:center; justify-content:center;
+  margin:0 auto 1rem; font-size:1.6rem; color:#dc2626;
+}
+.del-modal__title {
+  font-size:1.05rem; font-weight:800; color:#111827; margin:0 0 .4rem;
+  font-family:'Plus Jakarta Sans','Inter',sans-serif;
+}
+.del-modal__sub {
+  font-size:.82rem; color:#6b7280; margin:0 0 1.5rem; line-height:1.5;
+}
+.del-modal__name {
+  font-weight:700; color:#111827;
+}
+.del-modal__actions {
+  display:flex; gap:.75rem;
+}
+.del-modal__btn {
+  flex:1; padding:.65rem 1rem; border-radius:10px; border:none;
+  font-size:.84rem; font-weight:700; cursor:pointer;
+  transition:all .18s; font-family:inherit;
+}
+.del-modal__btn--cancel {
+  background:#f3f4f6; color:#374151;
+}
+.del-modal__btn--cancel:hover { background:#e5e7eb; }
+.del-modal__btn--confirm {
+  background:#dc2626; color:#fff;
+}
+.del-modal__btn--confirm:hover { background:#b91c1c; transform:scale(1.02); }
+</style>
+
+<!-- ══ GLOBAL CONFIRM MODAL ══════════════════════════════════ -->
+<div class="del-modal-backdrop" id="delModalBackdrop" onclick="closeDelModal(event)">
+  <div class="del-modal" id="delModal">
+    <div class="del-modal__icon" id="delModalIcon"><i class="bi bi-trash3-fill"></i></div>
+    <div class="del-modal__title" id="delModalTitle">Confirm</div>
+    <p class="del-modal__sub" id="delModalSub"></p>
+    <div class="del-modal__actions">
+      <button class="del-modal__btn del-modal__btn--cancel" id="delModalCancel" onclick="closeDelModal()">Cancel</button>
+      <button class="del-modal__btn del-modal__btn--confirm" id="delModalConfirm">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ GLOBAL INPUT MODAL ════════════════════════════════════ -->
+<div class="del-modal-backdrop" id="inputModalBackdrop" onclick="closeInputModal(event)">
+  <div class="del-modal" id="inputModal">
+    <div class="del-modal__icon" id="inputModalIcon"><i class="bi bi-pencil-square"></i></div>
+    <div class="del-modal__title" id="inputModalTitle">Enter Details</div>
+    <p class="del-modal__sub" id="inputModalSub"></p>
+    <div style="margin-bottom:16px;">
+      <textarea id="inputModalField" rows="3" placeholder=""
+        style="width:100%;border:1.5px solid #e5e7eb;border-radius:10px;padding:10px 12px;
+               font-size:0.85rem;color:#111827;resize:none;font-family:inherit;box-sizing:border-box;
+               transition:border-color .2s;"
+        onfocus="this.style.borderColor='#1B4332'" onblur="this.style.borderColor='#e5e7eb'"></textarea>
+      <div id="inputModalError" style="display:none;color:#dc2626;font-size:0.75rem;margin-top:4px;"></div>
+    </div>
+    <div class="del-modal__actions">
+      <button class="del-modal__btn del-modal__btn--cancel" onclick="closeInputModal()">Cancel</button>
+      <button class="del-modal__btn del-modal__btn--confirm" id="inputModalConfirm">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<style>
+/* Enhanced modal icon colors */
+.del-modal__icon--warn  { background:#fef3c7; color:#d97706; }
+.del-modal__icon--info  { background:#dbeafe; color:#1d4ed8; }
+.del-modal__icon--success { background:#d1fae5; color:#065f46; }
+.del-modal__icon--danger  { background:#fef2f2; color:#dc2626; }
+/* Confirm button variants */
+.del-modal__btn--confirm.warn    { background:#d97706; }
+.del-modal__btn--confirm.warn:hover  { background:#b45309; }
+.del-modal__btn--confirm.info    { background:#1d4ed8; }
+.del-modal__btn--confirm.info:hover  { background:#1e40af; }
+.del-modal__btn--confirm.success { background:#059669; }
+.del-modal__btn--confirm.success:hover { background:#047857; }
+</style>
+
+<script>
+// ── Global Confirm Modal ────────────────────────────────────────
+// showDelModal(options, onConfirm)
+// options: { title, message, confirmText, cancelText, icon, iconClass, confirmClass }
+// OR legacy: showDelModal(nameString, onConfirm) — backward compatible
+function showDelModal(optionsOrName, onConfirm) {
+    let title = 'Confirm', sub = '', confirmText = 'Confirm', cancelText = 'Cancel';
+    let icon = 'bi bi-question-circle-fill', iconClass = 'del-modal__icon--warn', confirmClass = '';
+
+    if (typeof optionsOrName === 'string') {
+        // Legacy: showDelModal('booking name', fn)
+        title = 'Delete Confirmation';
+        sub = `Are you sure you want to delete <strong>${optionsOrName}</strong>? This action cannot be undone.`;
+        icon = 'bi bi-trash3-fill';
+        iconClass = 'del-modal__icon--danger';
+        confirmText = 'Delete';
+    } else {
+        title       = optionsOrName.title       || title;
+        sub         = optionsOrName.message     || sub;
+        confirmText = optionsOrName.confirmText || confirmText;
+        cancelText  = optionsOrName.cancelText  || cancelText;
+        icon        = optionsOrName.icon        || icon;
+        iconClass   = optionsOrName.iconClass   || iconClass;
+        confirmClass= optionsOrName.confirmClass|| confirmClass;
+    }
+
+    document.getElementById('delModalIcon').className = 'del-modal__icon ' + iconClass;
+    document.getElementById('delModalIcon').innerHTML = `<i class="${icon}"></i>`;
+    document.getElementById('delModalTitle').textContent = title;
+    document.getElementById('delModalSub').innerHTML = sub;
+    document.getElementById('delModalCancel').textContent = cancelText;
+    document.getElementById('delModalConfirm').textContent = confirmText;
+    document.getElementById('delModalConfirm').className = 'del-modal__btn del-modal__btn--confirm ' + confirmClass;
+    document.getElementById('delModalConfirm').onclick = function() {
+        closeDelModal();
+        onConfirm();
+    };
+    document.getElementById('delModalBackdrop').classList.add('open');
+}
+
+function closeDelModal(e) {
+    if (e && e.target !== document.getElementById('delModalBackdrop')) return;
+    document.getElementById('delModalBackdrop').classList.remove('open');
+}
+
+// ── Global Input Modal ──────────────────────────────────────────
+// showInputModal({ title, message, placeholder, confirmText, icon, iconClass, required }, onConfirm)
+function showInputModal(options, onConfirm) {
+    const title       = options.title       || 'Enter Details';
+    const sub         = options.message     || '';
+    const placeholder = options.placeholder || '';
+    const confirmText = options.confirmText || 'Confirm';
+    const icon        = options.icon        || 'bi bi-pencil-square';
+    const iconClass   = options.iconClass   || 'del-modal__icon--info';
+    const required    = options.required    !== false;
+    const rows        = options.rows        || 3;
+
+    document.getElementById('inputModalIcon').className = 'del-modal__icon ' + iconClass;
+    document.getElementById('inputModalIcon').innerHTML = `<i class="${icon}"></i>`;
+    document.getElementById('inputModalTitle').textContent = title;
+    document.getElementById('inputModalSub').innerHTML = sub;
+    document.getElementById('inputModalField').placeholder = placeholder;
+    document.getElementById('inputModalField').value = '';
+    document.getElementById('inputModalField').rows = rows;
+    document.getElementById('inputModalError').style.display = 'none';
+    document.getElementById('inputModalConfirm').textContent = confirmText;
+    document.getElementById('inputModalConfirm').className = 'del-modal__btn del-modal__btn--confirm';
+    document.getElementById('inputModalConfirm').onclick = function() {
+        const val = document.getElementById('inputModalField').value.trim();
+        if (required && !val) {
+            document.getElementById('inputModalError').textContent = 'This field is required';
+            document.getElementById('inputModalError').style.display = 'block';
+            return;
+        }
+        closeInputModal();
+        onConfirm(val);
+    };
+    document.getElementById('inputModalBackdrop').classList.add('open');
+    setTimeout(() => document.getElementById('inputModalField').focus(), 100);
+}
+
+function closeInputModal(e) {
+    if (e && e.target !== document.getElementById('inputModalBackdrop')) return;
+    document.getElementById('inputModalBackdrop').classList.remove('open');
+}
+
+// Close on Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        document.getElementById('delModalBackdrop').classList.remove('open');
+        document.getElementById('inputModalBackdrop').classList.remove('open');
+    }
+});
+// Keep access_token alive on all admin pages
+(function () {
+    function ping() {
+        fetch('/dashboard', { method: 'GET', headers: { 'Accept': 'application/json' }, credentials: 'same-origin' }).catch(function(){});
+    }
+    setInterval(ping, 10 * 60 * 1000);
+})();
+</script>
+
 
 </body>
 </html>

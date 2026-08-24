@@ -1,0 +1,952 @@
+<%- include('../partials/header') %>
+
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   BULK BOOKING DETAIL PAGE - Blue/White Theme
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Page Header */
+.bulk-detail-header {
+    background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 45%, #1e40af 100%);
+    border-radius: 20px;
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 24px;
+    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.2);
+}
+
+.bulk-detail-header__left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.bulk-detail-header__icon {
+    width: 46px;
+    height: 46px;
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.bulk-detail-header__title {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #fff;
+    margin: 0;
+    line-height: 1.3;
+    letter-spacing: -0.3px;
+}
+
+.bulk-detail-header__sub {
+    font-size: 0.68rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin-top: 2px;
+    display: block;
+}
+
+.bulk-detail-header__actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.bulk-payment-btn {
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    color: #fff;
+    border-radius: 10px;
+    padding: 8px 18px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+}
+
+.bulk-payment-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
+}
+
+.bulk-print-btn {
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    color: #fff;
+    border-radius: 10px;
+    padding: 8px 18px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+}
+
+.bulk-print-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
+}
+
+.bulk-back-link {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.85rem;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+}
+
+.bulk-back-link:hover {
+    color: #fff;
+    transform: translateX(-2px);
+}
+
+/* Summary Cards */
+.bulk-summary-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 14px 16px;
+    transition: all 0.2s;
+}
+
+.bulk-summary-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(37, 99, 235, 0.08);
+    border-color: #bfdbfe;
+}
+
+.bulk-summary-label {
+    font-size: 0.62rem;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+}
+
+.bulk-summary-value {
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: #1e293b;
+}
+
+.bulk-summary-large {
+    font-weight: 800;
+    font-size: 1.1rem;
+    color: #2563eb;
+}
+
+/* Cards Grid */
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+/* Table */
+.bk-th {
+    color: #64748b;
+    font-weight: 600;
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    padding: 10px 10px;
+    white-space: nowrap;
+}
+
+.bk-badge {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.4px;
+    white-space: nowrap;
+}
+
+.bk-badge--green { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
+.bk-badge--amber { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+.bk-badge--red   { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+.bk-badge--grey  { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+
+.bk-dots-btn {
+    background: none;
+    border: 1px solid #e2e8f0;
+    border-radius: 7px;
+    padding: 5px 9px;
+    cursor: pointer;
+    color: #64748b;
+    font-size: 0.9rem;
+    transition: all 0.15s;
+}
+
+.bk-dots-btn:hover {
+    background: #f1f5f9;
+    border-color: #2563eb;
+    color: #2563eb;
+}
+
+.bk-action-menu {
+    font-size: 0.78rem;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    padding: 4px;
+    min-width: 150px;
+}
+
+.bk-action-item {
+    border-radius: 7px;
+    padding: 7px 12px;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: #475569;
+}
+
+.bk-action-item--danger { color: #dc2626 !important; }
+.bk-action-item--danger:hover { background: #fef2f2 !important; }
+
+/* Slot Time Badge */
+.slot-time-badge {
+    background: #eff6ff;
+    color: #2563eb;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.68rem;
+    font-weight: 600;
+    border: 1px solid #bfdbfe;
+}
+
+/* Payment Drawer */
+.bulk-pay-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+}
+
+.bulk-pay-drawer {
+    display: none;
+    position: fixed;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 380px;
+    max-width: 90vw;
+    background: #fff;
+    z-index: 1001;
+    box-shadow: -8px 0 32px rgba(0, 0, 0, 0.15);
+    flex-direction: column;
+    animation: slideInRight 0.3s ease;
+}
+
+@keyframes slideInRight {
+    from { transform: translateX(100%); }
+    to { transform: translateX(0); }
+}
+
+.bulk-pay-header {
+    padding: 18px 22px;
+    background: linear-gradient(135deg, #1e3a5f, #2563eb);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.bulk-pay-header h4 {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.bulk-pay-header small {
+    font-size: 0.68rem;
+    opacity: 0.8;
+}
+
+.bulk-pay-close {
+    background: rgba(255, 255, 255, 0.15);
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    color: #fff;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.bulk-pay-close:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: rotate(90deg);
+}
+
+.bulk-pay-body {
+    padding: 24px;
+    flex: 1;
+    overflow-y: auto;
+}
+
+.bulk-pay-info {
+    background: #fef3c7;
+    border: 1px solid #fde68a;
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 20px;
+    font-size: 0.78rem;
+    color: #92400e;
+}
+
+.bulk-pay-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.bulk-pay-input {
+    width: 100%;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 9px 12px;
+    font-size: 0.85rem;
+    color: #1e293b;
+    transition: all 0.2s;
+}
+
+.bulk-pay-input:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.bulk-pay-select {
+    width: 100%;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 9px 12px;
+    font-size: 0.85rem;
+    color: #1e293b;
+    background: #fff;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+}
+
+.bulk-pay-submit {
+    width: 100%;
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 11px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 20px;
+}
+
+.bulk-pay-submit:hover {
+    background: linear-gradient(135deg, #1d4ed8, #1e40af);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.bulk-pay-msg {
+    display: none;
+    margin-top: 12px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 0.78rem;
+}
+</style>
+
+<div class="row">
+
+  <!-- Header -->
+  <div class="col-12 mb-4">
+    <div class="bulk-detail-header">
+      <div class="bulk-detail-header__left">
+        <a href="/bookings" class="bulk-back-link">
+          <i class="bi bi-arrow-left"></i>
+        </a>
+        <div class="bulk-detail-header__icon">
+          <i class="bi bi-calendar2-range"></i>
+        </div>
+        <div>
+          <h4 class="bulk-detail-header__title"><%= group.bulk_booking_id %></h4>
+          <span class="bulk-detail-header__sub"><%= group.slot_count %> slots · Bulk Booking</span>
+        </div>
+      </div>
+      <div class="bulk-detail-header__actions">
+        <% if (group.total_balance > 0) { %>
+        <button onclick="openBulkPayment()" class="bulk-payment-btn">
+          <i class="bi bi-cash-coin"></i> Record Payment
+        </button>
+        <% } %>
+        <button onclick="printBulkInvoice()" class="bulk-print-btn">
+          <i class="bi bi-printer"></i> Print Invoice
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="col-12 mb-4">
+    <div class="summary-grid">
+      <div class="bulk-summary-card">
+        <div class="bulk-summary-label">Customer</div>
+        <div class="bulk-summary-value"><%= group.customer_name %></div>
+        <div style="font-size:0.72rem; color:#64748b;"><%= group.customer_phone %></div>
+        <% if (group.customer_email) { %>
+        <div style="font-size:0.68rem; color:#94a3b8; margin-top:2px;"><%= group.customer_email %></div>
+        <% } %>
+      </div>
+      <div class="bulk-summary-card">
+        <div class="bulk-summary-label">Ground</div>
+        <div class="bulk-summary-value" style="color:#2563eb;"><%= group.ground_name %></div>
+        <div style="font-size:0.72rem; color:#64748b; text-transform:capitalize;"><%= group.booking_type %> · <%= group.payment_mode ? group.payment_mode.replace(/_/g,' ') : '—' %></div>
+      </div>
+      <div class="bulk-summary-card">
+        <div class="bulk-summary-label">Grand Total</div>
+        <div class="bulk-summary-large">₹<%= Number(group.grand_total).toLocaleString('en-IN') %></div>
+        <div style="font-size:0.68rem; color:#64748b;"><%= group.slot_count %> slot<%= group.slot_count > 1 ? 's' : '' %></div>
+      </div>
+      <div class="bulk-summary-card">
+        <div class="bulk-summary-label">Advance Paid</div>
+        <div class="bulk-summary-value" style="color:#059669;">₹<%= Number(group.total_advance).toLocaleString('en-IN') %></div>
+      </div>
+      <div class="bulk-summary-card" style="border-color: <%= group.total_balance > 0 ? '#fde68a' : '#bbf7d0' %>; background: <%= group.total_balance > 0 ? '#fffbeb' : '#f0fdf4' %>;">
+        <div class="bulk-summary-label" style="color:<%= group.total_balance > 0 ? '#92400e' : '#166534' %>;">Balance Due</div>
+        <div class="bulk-summary-value" style="color:<%= group.total_balance > 0 ? '#d97706' : '#059669' %>; font-size:1rem; font-weight:800;">₹<%= Number(group.total_balance).toLocaleString('en-IN') %></div>
+        <div style="font-size:0.68rem; color:<%= group.total_balance > 0 ? '#92400e' : '#166534' %>;"><%= group.total_balance > 0 ? 'Pending collection' : 'Fully paid' %></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slots Table -->
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span style="font-family:'Rajdhani',sans-serif; letter-spacing:1px; font-weight:600; color:#1e293b;">
+          <i class="bi bi-table me-2" style="color:#2563eb;"></i>ALL SLOTS
+        </span>
+        <small style="color:#64748b;"><%= group.slot_count %> bookings in this group</small>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0" style="font-size:0.78rem; white-space:nowrap;">
+            <thead>
+              <tr style="border-bottom:1px solid #e2e8f0; background:#f8fafc;">
+                <th class="bk-th" style="padding:10px 14px;">#</th>
+                <th class="bk-th">Booking No.</th>
+                <th class="bk-th">Date</th>
+                <th class="bk-th">Slot Time</th>
+                <th class="bk-th">Amount</th>
+                <th class="bk-th">Advance</th>
+                <th class="bk-th">Balance</th>
+                <th class="bk-th">Payment</th>
+                <th class="bk-th">Status</th>
+                <th class="bk-th">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% group.bookings.forEach((b, i) => { %>
+              <tr style="border-bottom:1px solid #f1f5f9;">
+                <td style="padding:10px 14px; color:#94a3b8; font-size:0.7rem;"><%= i + 1 %></td>
+                <td style="padding:10px 10px;">
+                  <span style="color:#2563eb; font-weight:700; font-size:0.75rem; font-family:'Rajdhani',sans-serif; letter-spacing:.5px;">
+                    <%= b.booking_no %>
+                  </span>
+                </td>
+                <td style="padding:10px 10px;">
+                  <div style="font-weight:600; font-size:0.78rem; color:#1e293b;">
+                    <%= new Date(b.slot_date).toLocaleDateString('en-IN', {weekday:'short', day:'2-digit', month:'short', year:'numeric'}) %>
+                  </div>
+                </td>
+                <td style="padding:10px 10px;">
+                  <span class="slot-time-badge">
+                    <%= b.start_time.slice(0,5) %> – <%= b.end_time.slice(0,5) %>
+                  </span>
+                </td>
+                <td style="padding:10px 10px; font-weight:700; color:#1e293b;">
+                  ₹<%= Number(b.total_amount).toLocaleString('en-IN') %>
+                </td>
+                <td style="padding:10px 10px; color:#059669; font-weight:600;">
+                  ₹<%= Number(b.advance_amount || 0).toLocaleString('en-IN') %>
+                </td>
+                <td style="padding:10px 10px; font-weight:600; color:<%= b.balance_amount > 0 ? '#d97706' : '#059669' %>;">
+                  ₹<%= Number(b.balance_amount || 0).toLocaleString('en-IN') %>
+                </td>
+                <td style="padding:10px 10px;">
+                  <% if (b.payment_status === 'paid') { %>
+                    <span class="bk-badge bk-badge--green">Paid</span>
+                  <% } else if (b.payment_status === 'partial') { %>
+                    <span class="bk-badge bk-badge--amber">Partial</span>
+                  <% } else { %>
+                    <span class="bk-badge bk-badge--red">Unpaid</span>
+                  <% } %>
+                </td>
+                <td style="padding:10px 10px;">
+                  <% if (b.booking_status === 'confirmed') { %>
+                    <span class="bk-badge bk-badge--green">Confirmed</span>
+                  <% } else if (b.booking_status === 'cancelled') { %>
+                    <span class="bk-badge bk-badge--red">Cancelled</span>
+                  <% } else { %>
+                    <span class="bk-badge bk-badge--grey"><%= b.booking_status %></span>
+                  <% } %>
+                </td>
+                <td style="padding:10px 10px;">
+                  <div class="dropdown">
+                    <button class="bk-dots-btn" data-bs-toggle="dropdown" aria-expanded="false">
+                      <i class="bi bi-three-dots"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end bk-action-menu">
+                      <li>
+                        <a class="dropdown-item bk-action-item" href="/bookings/<%= b.id %>">
+                          <i class="bi bi-eye me-2" style="color:#2563eb;"></i>View
+                        </a>
+                      </li>
+                      <li><hr class="dropdown-divider" style="margin:4px 0;"></li>
+                      <li>
+                        <button class="dropdown-item bk-action-item bk-action-item--danger"
+                          onclick="confirmCancel(<%= b.id %>, '<%= b.booking_no %>')">
+                          <i class="bi bi-x-circle me-2"></i>Cancel
+                        </button>
+                      </li>
+                      <li>
+                        <button class="dropdown-item bk-action-item bk-action-item--danger"
+                          onclick="confirmDelete(<%= b.id %>, '<%= b.booking_no %>')">
+                          <i class="bi bi-trash me-2"></i>Delete
+                        </button>
+                      </li>
+                    </ul>
+                  </div>
+                </td>
+              </tr>
+              <% }) %>
+            </tbody>
+            <tfoot>
+              <tr style="background:#f8fafc; border-top:2px solid #e2e8f0;">
+                <td colspan="4" style="padding:12px 14px; font-weight:700; font-size:0.78rem; color:#475569;">
+                  TOTAL (<%= group.slot_count %> slots)
+                </td>
+                <td style="padding:12px 10px; font-weight:800; color:#1e293b;">
+                  ₹<%= Number(group.grand_total).toLocaleString('en-IN') %>
+                </td>
+                <td style="padding:12px 10px; font-weight:800; color:#059669;">
+                  ₹<%= Number(group.total_advance).toLocaleString('en-IN') %>
+                </td>
+                <td style="padding:12px 10px; font-weight:800; color:<%= group.total_balance > 0 ? '#d97706' : '#059669' %>;">
+                  ₹<%= Number(group.total_balance).toLocaleString('en-IN') %>
+                </td>
+                <td colspan="3"></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Bulk Payment Drawer -->
+<div id="bulk-pay-overlay" class="bulk-pay-overlay" onclick="closeBulkPayment()"></div>
+<div id="bulk-pay-drawer" class="bulk-pay-drawer">
+  <div class="bulk-pay-header">
+    <div>
+      <h4><i class="bi bi-cash-stack me-2"></i>Record Payment</h4>
+      <small><%= group.bulk_booking_id %></small>
+    </div>
+    <button onclick="closeBulkPayment()" class="bulk-pay-close">×</button>
+  </div>
+  <div class="bulk-pay-body">
+    <div class="bulk-pay-info">
+      <strong>Balance Due: ₹<%= Number(group.total_balance).toLocaleString('en-IN') %></strong><br>
+      Payment will be distributed across unpaid slots in date order.
+    </div>
+    <div style="margin-bottom:16px;">
+      <label class="bulk-pay-label">Amount (₹) *</label>
+      <input type="number" id="bulk-pay-amount" placeholder="Enter amount" class="bulk-pay-input" max="<%= group.total_balance %>">
+    </div>
+    <div style="margin-bottom:20px;">
+      <label class="bulk-pay-label">Payment Mode *</label>
+      <select id="bulk-pay-mode" class="bulk-pay-select">
+        <option value="cash">Cash</option>
+        <option value="upi">UPI</option>
+        <option value="bank_transfer">Bank Transfer</option>
+        <option value="cheque">Cheque</option>
+        <option value="card">Card</option>
+      </select>
+    </div>
+    <button onclick="submitBulkPayment()" id="bulk-pay-btn" class="bulk-pay-submit">
+      Confirm Payment
+    </button>
+    <div id="bulk-pay-msg" class="bulk-pay-msg"></div>
+  </div>
+</div>
+
+<!-- ══ BULK INVOICE (hidden, print only) ══════════════ -->
+<div id="bulk-invoice-print" style="display:none;">
+    <div class="inv-page">
+        <div class="inv-header">
+            <div class="inv-header__brand">
+                <div class="inv-header__logo">
+                    <img src="/images/startSportLogo1.png" alt="Logo" onerror="this.style.display='none'">
+                </div>
+                <div>
+                    <div class="inv-header__name"><%= settings && settings.ground_name ? settings.ground_name : 'Start Sports' %></div>
+                    <% if (settings && settings.ground_address) { %>
+                        <div class="inv-header__addr"><%= settings.ground_address %></div>
+                    <% } %>
+                    <% if (settings && settings.ground_phone) { %>
+                        <div class="inv-header__addr">Ph: <%= settings.ground_phone %></div>
+                    <% } %>
+                    <% if (settings && settings.ground_email) { %>
+                        <div class="inv-header__addr"><%= settings.ground_email %></div>
+                    <% } %>
+                </div>
+            </div>
+            <div class="inv-header__right">
+                <div class="inv-header__title">INVOICE</div>
+                <div class="inv-header__no"># <%= group.bulk_booking_id %></div>
+                <div class="inv-header__date">Date: <%= new Date().toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'}) %></div>
+                <div class="inv-status-badge inv-status--confirmed">BULK BOOKING</div>
+            </div>
+        </div>
+        <div class="inv-divider"></div>
+        <div class="inv-meta">
+            <div class="inv-meta__box">
+                <div class="inv-meta__title">BILLED TO</div>
+                <div class="inv-meta__val inv-meta__val--lg"><%= group.customer_name %></div>
+                <div class="inv-meta__val">Ph: <%= group.customer_phone %></div>
+                <% if (group.customer_email) { %>
+                    <div class="inv-meta__val"><%= group.customer_email %></div>
+                <% } %>
+            </div>
+            <div class="inv-meta__box inv-meta__box--right">
+                <div class="inv-meta__title">BOOKING INFO</div>
+                <div class="inv-meta__row">
+                    <span class="inv-meta__key">Bulk Booking ID</span>
+                    <span class="inv-meta__val inv-meta__val--green"><%= group.bulk_booking_id %></span>
+                </div>
+                <div class="inv-meta__row">
+                    <span class="inv-meta__key">Booking Type</span>
+                    <span class="inv-meta__val" style="text-transform:capitalize;"><%= group.booking_type %></span>
+                </div>
+                <div class="inv-meta__row">
+                    <span class="inv-meta__key">Ground</span>
+                    <span class="inv-meta__val"><%= group.ground_name %></span>
+                </div>
+                <div class="inv-meta__row">
+                    <span class="inv-meta__key">Total Slots</span>
+                    <span class="inv-meta__val"><%= group.slot_count %></span>
+                </div>
+                <div class="inv-meta__row">
+                    <span class="inv-meta__key">Payment Mode</span>
+                    <span class="inv-meta__val" style="text-transform:capitalize;"><%= group.payment_mode ? group.payment_mode.replace(/_/g,' ') : '—' %></span>
+                </div>
+            </div>
+        </div>
+        <table class="inv-table">
+            <thead>
+                <tr>
+                    <th style="width:5%; text-align:center;">#</th>
+                    <th style="width:20%;">Booking No.</th>
+                    <th style="text-align:center; width:22%;">Date</th>
+                    <th style="text-align:center; width:20%;">Time Slot</th>
+                    <th style="text-align:right; width:16%;">Amount</th>
+                    <th style="text-align:right; width:17%;">Balance</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% group.bookings.forEach((b, i) => { %>
+                <tr>
+                    <td style="text-align:center; color:#94a3b8;"><%= i + 1 %></td>
+                    <td style="font-weight:600; color:#2563eb; font-size:0.75rem;"><%= b.booking_no %></td>
+                    <td style="text-align:center;">
+                        <%= new Date(b.slot_date instanceof Date ? b.slot_date.toISOString().slice(0,10) + 'T00:00:00' : String(b.slot_date).slice(0,10) + 'T00:00:00').toLocaleDateString('en-IN', {weekday:'short', day:'2-digit', month:'short', year:'numeric'}) %>
+                    </td>
+                    <td style="text-align:center; font-weight:700; color:#2563eb;">
+                        <%= b.start_time.slice(0,5) %> – <%= b.end_time.slice(0,5) %>
+                    </td>
+                    <td style="text-align:right; font-weight:700;">
+                        ₹<%= Number(b.total_amount).toLocaleString('en-IN') %>
+                    </td>
+                    <td style="text-align:right; font-weight:600; color:<%= Number(b.balance_amount) > 0 ? '#d97706' : '#059669' %>;">
+                        ₹<%= Number(b.balance_amount || 0).toLocaleString('en-IN') %>
+                    </td>
+                </tr>
+                <% }) %>
+            </tbody>
+        </table>
+        <div class="inv-summary">
+            <div class="inv-summary__row">
+                <span>Grand Total (<%= group.slot_count %> slots)</span>
+                <span>₹<%= Number(group.grand_total).toLocaleString('en-IN') %></span>
+            </div>
+            <div class="inv-summary__row inv-summary__row--paid">
+                <span>Amount Paid</span>
+                <span>₹<%= Number(group.total_advance).toLocaleString('en-IN') %></span>
+            </div>
+            <div class="inv-summary__divider"></div>
+            <div class="inv-summary__row inv-summary__row--total">
+                <span>Balance Due</span>
+                <span style="color:<%= Number(group.total_balance) > 0 ? '#d97706' : '#2563eb' %>;">
+                    ₹<%= Number(group.total_balance).toLocaleString('en-IN') %>
+                </span>
+            </div>
+        </div>
+        <div class="inv-footer">
+            <div class="inv-footer__status">
+                <% if (Number(group.total_balance) <= 0) { %>
+                    <span class="inv-footer__paid">✓ FULLY PAID</span>
+                <% } else { %>
+                    <span class="inv-footer__pending">⚠ BALANCE DUE: ₹<%= Number(group.total_balance).toLocaleString('en-IN') %></span>
+                <% } %>
+            </div>
+            <div class="inv-footer__note">Thank you for your booking. Please present this invoice at the ground.</div>
+            <div class="inv-footer__generated">Generated on <%= new Date().toLocaleString('en-IN') %></div>
+        </div>
+    </div>
+</div>
+
+<style>
+@media print {
+    @page { size: A4 portrait; margin: 0; }
+    body * { visibility: hidden; }
+    #bulk-invoice-print,
+    #bulk-invoice-print * { visibility: visible; }
+    #bulk-invoice-print {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 99999;
+        background: #fff;
+    }
+}
+.inv-page { width:210mm; min-height:297mm; padding:14mm 16mm; margin:0 auto; background:#fff; color:#111; font-family:'Segoe UI',Arial,sans-serif; font-size:13px; line-height:1.5; box-sizing:border-box; }
+.inv-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:14px; }
+.inv-header__brand { display:flex; align-items:flex-start; gap:12px; }
+.inv-header__logo img { width:54px; height:54px; object-fit:contain; }
+.inv-header__name { font-size:1.2rem; font-weight:800; color:#1e293b; letter-spacing:0.5px; }
+.inv-header__addr { font-size:0.78rem; color:#6b7280; margin-top:2px; }
+.inv-header__right { text-align:right; }
+.inv-header__title { font-size:1.8rem; font-weight:900; color:#1e293b; letter-spacing:3px; }
+.inv-header__no { font-size:0.85rem; color:#374151; font-weight:600; margin-top:2px; }
+.inv-header__date { font-size:0.78rem; color:#6b7280; margin-top:2px; }
+.inv-status-badge { display:inline-block; margin-top:6px; padding:2px 10px; border-radius:20px; font-size:0.7rem; font-weight:700; letter-spacing:1px; }
+.inv-status--confirmed { background:#dbeafe; color:#1e40af; border:1px solid #bfdbfe; }
+.inv-divider { height:2px; background:linear-gradient(90deg,#2563eb,#60a5fa,#2563eb); margin:10px 0 16px; border-radius:2px; }
+.inv-meta { display:flex; justify-content:space-between; gap:20px; margin-bottom:20px; padding:14px 16px; background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px; }
+.inv-meta__box { flex:1; }
+.inv-meta__box--right { text-align:right; }
+.inv-meta__title { font-size:0.65rem; font-weight:700; color:#9ca3af; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:6px; }
+.inv-meta__val { font-size:0.82rem; color:#374151; margin-bottom:2px; }
+.inv-meta__val--lg { font-size:1rem; font-weight:700; color:#111; }
+.inv-meta__val--green { color:#2563eb; font-weight:700; }
+.inv-meta__row { display:flex; justify-content:flex-end; gap:10px; font-size:0.8rem; margin-bottom:3px; }
+.inv-meta__key { color:#9ca3af; }
+.inv-table { width:100%; border-collapse:collapse; margin-bottom:16px; font-size:0.82rem; }
+.inv-table thead tr { background:#2563eb; color:#fff; }
+.inv-table th { padding:9px 12px; font-weight:600; font-size:0.75rem; letter-spacing:0.5px; }
+.inv-table tbody tr { border-bottom:1px solid #e5e7eb; }
+.inv-table tbody tr:last-child { border-bottom:2px solid #2563eb; }
+.inv-table td { padding:9px 12px; color:#374151; vertical-align:top; }
+.inv-summary { display:flex; flex-direction:column; align-items:flex-end; gap:5px; margin-bottom:20px; }
+.inv-summary__row { display:flex; justify-content:space-between; width:260px; font-size:0.82rem; color:#374151; }
+.inv-summary__row--paid { color:#2563eb; font-weight:600; }
+.inv-summary__divider { width:260px; height:1px; background:#d1d5db; margin:4px 0; }
+.inv-summary__row--total { font-size:0.95rem; font-weight:800; color:#111; }
+.inv-footer { margin-top:30px; padding-top:16px; border-top:1px solid #e5e7eb; text-align:center; }
+.inv-footer__paid { display:inline-block; background:#dbeafe; color:#1e40af; border:1px solid #bfdbfe; padding:4px 16px; border-radius:20px; font-weight:700; font-size:0.82rem; letter-spacing:1px; }
+.inv-footer__pending { display:inline-block; background:#fef2f2; color:#991b1b; border:1px solid #fca5a5; padding:4px 16px; border-radius:20px; font-weight:700; font-size:0.82rem; letter-spacing:1px; }
+.inv-footer__note { font-size:0.75rem; color:#6b7280; margin-top:8px; }
+.inv-footer__generated { font-size:0.7rem; color:#9ca3af; margin-top:4px; }
+</style>
+
+<script>
+function printBulkInvoice() {
+    const invoiceEl = document.getElementById('bulk-invoice-print');
+    const invoiceHTML = invoiceEl.innerHTML;
+    const win = window.open('', '_blank', 'width=900,height=700');
+    win.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>Invoice - <%= group.bulk_booking_id %></title>
+            <style>
+                @page { size: A4 portrait; margin: 0; }
+                * { margin: 0; padding: 0; box-sizing: border-box; }
+                body { background: #f3f4f6; font-family: 'Segoe UI', Arial, sans-serif; font-size: 13px; color: #111; display: flex; justify-content: center; }
+                .inv-page { width: 210mm; min-height: 297mm; padding: 14mm 16mm; margin: 0 auto; background: #fff; }
+                .inv-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
+                .inv-header__brand { display: flex; align-items: flex-start; gap: 12px; }
+                .inv-header__logo img { width: 90px; height: 90px; object-fit: contain; }
+                .inv-header__name { font-size: 1.2rem; font-weight: 800; color: #1e293b; letter-spacing: 0.5px; }
+                .inv-header__addr { font-size: 0.78rem; color: #6b7280; margin-top: 2px; }
+                .inv-header__right { text-align: right; }
+                .inv-header__title { font-size: 1.8rem; font-weight: 900; color: #1e293b; letter-spacing: 3px; }
+                .inv-header__no { font-size: 0.85rem; color: #374151; font-weight: 600; margin-top: 2px; }
+                .inv-header__date { font-size: 0.78rem; color: #6b7280; margin-top: 2px; }
+                .inv-status-badge { display: inline-block; margin-top: 6px; padding: 2px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; letter-spacing: 1px; }
+                .inv-status--confirmed { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
+                .inv-divider { height: 2px; background: linear-gradient(90deg, #2563eb, #60a5fa, #2563eb); margin: 10px 0 16px; border-radius: 2px; }
+                .inv-meta { display: flex; justify-content: space-between; gap: 20px; margin-bottom: 20px; padding: 14px 16px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; }
+                .inv-meta__box { flex: 1; }
+                .inv-meta__box--right { text-align: right; }
+                .inv-meta__title { font-size: 0.65rem; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 6px; }
+                .inv-meta__val { font-size: 0.82rem; color: #374151; margin-bottom: 2px; }
+                .inv-meta__val--lg { font-size: 1rem; font-weight: 700; color: #111; }
+                .inv-meta__val--green { color: #2563eb; font-weight: 700; }
+                .inv-meta__row { display: flex; justify-content: flex-end; gap: 10px; font-size: 0.8rem; margin-bottom: 3px; }
+                .inv-meta__key { color: #9ca3af; }
+                .inv-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; font-size: 0.82rem; }
+                .inv-table thead tr { background: #2563eb; color: #fff; }
+                .inv-table th { padding: 9px 12px; font-weight: 600; font-size: 0.75rem; letter-spacing: 0.5px; }
+                .inv-table tbody tr { border-bottom: 1px solid #e5e7eb; }
+                .inv-table tbody tr:last-child { border-bottom: 2px solid #2563eb; }
+                .inv-table td { padding: 9px 12px; color: #374151; vertical-align: top; }
+                .inv-summary { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; margin-bottom: 20px; }
+                .inv-summary__row { display: flex; justify-content: space-between; width: 260px; font-size: 0.82rem; color: #374151; }
+                .inv-summary__row--paid { color: #2563eb; font-weight: 600; }
+                .inv-summary__divider { width: 260px; height: 1px; background: #d1d5db; margin: 4px 0; }
+                .inv-summary__row--total { font-size: 0.95rem; font-weight: 800; color: #111; }
+                .inv-footer { margin-top: 30px; padding-top: 16px; border-top: 1px solid #e5e7eb; text-align: center; }
+                .inv-footer__paid { display: inline-block; background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; padding: 4px 16px; border-radius: 20px; font-weight: 700; font-size: 0.82rem; letter-spacing: 1px; }
+                .inv-footer__pending { display: inline-block; background: #fef2f2; color: #991b1b; border: 1px solid #fca5a5; padding: 4px 16px; border-radius: 20px; font-weight: 700; font-size: 0.82rem; letter-spacing: 1px; }
+                .inv-footer__note { font-size: 0.75rem; color: #6b7280; margin-top: 8px; }
+                .inv-footer__generated { font-size: 0.7rem; color: #9ca3af; margin-top: 4px; }
+                @media print { body { background: #fff; } }
+            </style>
+        </head>
+        <body>
+            <div class="inv-page">${invoiceHTML}</div>
+        </body>
+        </html>
+    `);
+    win.document.close();
+    win.focus();
+    setTimeout(() => {
+        win.print();
+        win.close();
+    }, 500);
+}
+
+async function confirmCancel(id, bookingNo) {
+    showDelModal({
+        title: 'Cancel Booking',
+        message: `Cancel booking <strong>${bookingNo}</strong>? This cannot be undone.`,
+        confirmText: 'Yes, Cancel', cancelText: 'Keep Booking',
+        icon: 'bi bi-x-circle-fill', iconClass: 'del-modal__icon--warn', confirmClass: 'warn'
+    }, async () => {
+        try {
+            const res = await fetch('/bookings/cancel', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({booking_id:id}) });
+            const data = await res.json();
+            if (data.success) window.location.reload();
+            else xToast(data.message || 'Failed to cancel booking', 'error');
+        } catch(e) { xToast('Connection error. Please try again.', 'error'); }
+    });
+}
+
+async function confirmDelete(id, bookingNo) {
+    showDelModal({
+        title: 'Delete Booking',
+        message: `Delete booking <strong>${bookingNo}</strong>?<br><small style="color:#9ca3af;">Booking must be cancelled before it can be deleted.</small>`,
+        confirmText: 'Delete', cancelText: 'Cancel',
+        icon: 'bi bi-trash3-fill', iconClass: 'del-modal__icon--danger', confirmClass: ''
+    }, async () => {
+        try {
+            const res = await fetch('/bookings/delete', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({booking_id:id}) });
+            const data = await res.json();
+            if (data.success) window.location.reload();
+            else xToast(data.message || 'Failed to delete booking', 'error');
+        } catch(e) { xToast('Connection error. Please try again.', 'error'); }
+    });
+}
+
+function openBulkPayment() {
+    document.getElementById('bulk-pay-overlay').style.display = 'block';
+    document.getElementById('bulk-pay-drawer').style.display  = 'flex';
+    document.getElementById('bulk-pay-amount').value = '';
+    document.getElementById('bulk-pay-msg').style.display = 'none';
+}
+function closeBulkPayment() {
+    document.getElementById('bulk-pay-overlay').style.display = 'none';
+    document.getElementById('bulk-pay-drawer').style.display  = 'none';
+}
+
+async function submitBulkPayment() {
+    const amount       = parseFloat(document.getElementById('bulk-pay-amount').value);
+    const payment_mode = document.getElementById('bulk-pay-mode').value;
+    const msgEl        = document.getElementById('bulk-pay-msg');
+    const btn          = document.getElementById('bulk-pay-btn');
+
+    if (!amount || amount <= 0) { showMsg('Enter a valid amount', false); return; }
+
+    btn.disabled = true;
+    btn.textContent = 'Processing...';
+
+    try {
+        const csrf = (document.cookie.match(/(?:^|; )csrf_token=([^;]*)/) || [])[1] || '';
+        const res  = await fetch('/bookings/bulk/payment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': decodeURIComponent(csrf) },
+            body: JSON.stringify({ bulk_booking_id: '<%= group.bulk_booking_id %>', amount, payment_mode })
+        });
+        const data = await res.json();
+        if (data.success) {
+            showMsg('Payment recorded successfully!', true);
+            setTimeout(() => window.location.reload(), 1200);
+        } else {
+            showMsg(data.message || 'Failed to record payment', false);
+            btn.disabled = false;
+            btn.textContent = 'Confirm Payment';
+        }
+    } catch (e) {
+        showMsg('Connection error', false);
+        btn.disabled = false;
+        btn.textContent = 'Confirm Payment';
+    }
+}
+
+function showMsg(msg, success) {
+    const el = document.getElementById('bulk-pay-msg');
+    el.style.display = 'block';
+    el.style.background = success ? '#ecfdf5' : '#fef2f2';
+    el.style.border = `1px solid ${success ? '#a7f3d0' : '#fecaca'}`;
+    el.style.color  = success ? '#065f46' : '#991b1b';
+    el.textContent  = msg;
+}
+</script>
+
+<%- include('../partials/footer') %>

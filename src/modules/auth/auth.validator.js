@@ -14,7 +14,10 @@ module.exports.validate = (method) => {
             return [
                 body('name').notEmpty().withMessage('Name required'),
                 body('email').isEmail().withMessage('Invalid email'),
-                body('password').isLength({ min: 6 }).withMessage('Password min 6 characters'),
+                body('password')
+                    .isLength({ min: 8 }).withMessage('Password must be at least 8 characters')
+                    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
+                    .withMessage('Password must contain at least one uppercase letter, one lowercase letter, and one number'),
                 validatorMiddleware
             ];
         }

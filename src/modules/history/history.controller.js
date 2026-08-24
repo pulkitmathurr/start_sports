@@ -3,11 +3,16 @@ const historyService = require('./history.service');
 // ── GET /history ──
 const getHistoryPage = async (req, res, next) => {
     try {
-        const grounds = await historyService.getAllGrounds();
+        const grounds = await historyService.getAllGrounds(
+            req.tenant ? req.tenant.id : null,
+            req.user.role
+        );
         return res.render('history/index', {
             title: 'Booking History',
             activePage: 'history',
-            grounds
+            grounds,
+            user: res.locals.user,
+            tenant: req.tenant
         });
     } catch (error) { next(error); }
 };
@@ -25,10 +30,27 @@ const getGroundHistoryPage = async (req, res, next) => {
         const offset    = (page - 1) * limit;
 
         const { ground, bookings, stats } = await historyService.getGroundHistory({
-            ground_id, status, date_from, date_to, search, limit, offset
+            ground_id, 
+            status, 
+            date_from, 
+            date_to, 
+            search, 
+            limit, 
+            offset,
+            tenant_id: req.tenant ? req.tenant.id : null,
+            user_role: req.user.role
         });
 
-        const totalRecords = await historyService.getTotalHistoryCount({ ground_id, status, date_from, date_to, search });
+        const totalRecords = await historyService.getTotalHistoryCount({ 
+            ground_id, 
+            status, 
+            date_from, 
+            date_to, 
+            search,
+            tenant_id: req.tenant ? req.tenant.id : null,
+            user_role: req.user.role
+        });
+        
         const totalPages   = Math.ceil(totalRecords / limit);
 
         const buildPaginationUrl = (pageNum) => {
@@ -41,6 +63,15 @@ const getGroundHistoryPage = async (req, res, next) => {
             params.append('page', pageNum);
             return `/history/${ground_id}?${params.toString()}`;
         };
+
+        // ── JSON response for real-time search ──
+        if (req.headers.accept && req.headers.accept.includes('application/json')) {
+            return res.json({
+                success: true,
+                bookings,
+                pagination: { currentPage: page, totalPages, totalRecords, limit }
+            });
+        }
 
         return res.render('history/ground', {
             title: `History — ${ground.name}`,
@@ -56,7 +87,9 @@ const getGroundHistoryPage = async (req, res, next) => {
                 limit:        limit,
                 offset:       offset
             },
-            buildPaginationUrl
+            buildPaginationUrl,
+            user: res.locals.user,
+            tenant: req.tenant
         });
     } catch (error) { next(error); }
 };
@@ -64,7 +97,11 @@ const getGroundHistoryPage = async (req, res, next) => {
 // ── POST /history/booking/:id/delete ─────────────
 const softDeleteBooking = async (req, res, next) => {
     try {
-        await historyService.softDeleteBooking(req.params.id);
+        await historyService.softDeleteBooking(
+            req.params.id,
+            req.tenant ? req.tenant.id : null,
+            req.user.role
+        );
         return res.status(200).json({ success: true, message: 'Booking deleted' });
     } catch (error) { next(error); }
 };

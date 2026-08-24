@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> - Start Sports</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="/css/super-admin.css">
+    <style>
+        .page-btn { display:inline-flex; align-items:center; justify-content:center; min-width:32px; height:32px; padding:0 8px; border-radius:8px; border:1px solid var(--border); font-size:13px; font-weight:500; color:var(--text); text-decoration:none; transition:all .15s; }
+        .page-btn:hover:not(.disabled):not(.active) { background:var(--hover); }
+        .page-btn.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+        .page-btn.disabled { opacity:0.4; pointer-events:none; }
+    </style>
+</head>
+<body>
+<%- include('../partials/sidebar', {
+    adminType: 'SUPER ADMIN',
+    currentPage: 'billing',
+    logoutUrl: '/auth/logout',
+    loginUrl: '/auth/login'
+}) %>
+
+<main class="sa-main">
+    <div class="sa-topbar">
+        <div class="page-title">
+            <h1>Billing & Payments</h1>
+            <p>Track, verify and mark payments for all tenant subscriptions</p>
+        </div>
+        <div class="topbar-right">
+            <div class="admin-badge"><i class="bi bi-shield-lock-fill"></i><span>Super Admin</span></div>
+        </div>
+    </div>
+
+    <div class="section-card">
+        <div class="filters-bar">
+            <select class="filter-select" id="statusFilter" onchange="applyFilters()">
+                <option value="all"    <%= !filters.status || filters.status==='all'    ? 'selected':'' %>>All Payments</option>
+                <option value="paid"   <%= filters.status==='paid'   ? 'selected':'' %>>Paid</option>
+                <option value="unpaid" <%= filters.status==='unpaid' ? 'selected':'' %>>Unpaid</option>
+                <option value="pending"<%= filters.status==='pending'? 'selected':'' %>>Pending</option>
+            </select>
+            <input type="text" class="filter-input" id="searchInput" placeholder="Search by business or email..." value="<%= filters.search || '' %>">
+            <button class="btn btn-ghost" onclick="applyFilters()"><i class="bi bi-search"></i> Search</button>
+            <% if (filters.status || filters.search) { %>
+            <a href="/super-admin/billing" class="btn btn-ghost"><i class="bi bi-x"></i> Clear</a>
+            <% } %>
+        </div>
+
+        <% if (payments.length === 0) { %>
+        <div class="empty-state"><i class="bi bi-credit-card"></i><p>No payment records found</p></div>
+        <% } else { %>
+        <div class="table-responsive">
+        <table>
+            <thead><tr><th>Partner</th><th>Plan</th><th>Cycle</th><th>Amount</th><th>Period</th><th>Mode</th><th>Payment</th><th>Actions</th></tr></thead>
+            <tbody>
+                <% payments.forEach(p => { %>
+                <tr>
+                    <td>
+                        <div style="font-weight:600;font-size:13px"><%= p.business_name %></div>
+                        <div style="font-size:11px;color:var(--text-3)"><%= p.owner_name %> · <%= p.email %></div>
+                    </td>
+                    <td style="font-weight:500"><%= p.plan_name || '—' %></td>
+                    <td style="text-transform:capitalize;color:var(--text-2)"><%= p.billing_cycle %></td>
+                    <td style="font-weight:700;color:var(--accent)">₹<%= Number(p.amount_paid||0).toLocaleString('en-IN') %></td>
+                    <td style="font-size:12px;color:var(--text-2)">
+                        <%= new Date(p.started_at).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}) %>
+                        <br>→ <%= new Date(p.expires_at).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}) %>
+                    </td>
+                    <td style="font-size:13px;">
+                        <% if (p.payment_mode) { %>
+                            <span style="background:var(--hover);padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;text-transform:capitalize;color:var(--text-2);">
+                                </i><%= p.payment_mode.replace(/_/g,' ').toUpperCase() %>
+                            </span>
+                        <% } else { %>
+                            <span style="color:var(--text-3);font-size:12px;">—</span>
+                        <% } %>
+                    </td>
+                    <td>
+                        <% if (p.payment_status === 'paid') { %>
+                            <span class="badge badge-paid"><i class="bi bi-check-circle-fill"></i> Paid</span>
+                            <% if (p.payment_date) { %><div style="font-size:11px;color:var(--text-3);margin-top:4px"><%= new Date(p.payment_date).toLocaleDateString('en-IN') %></div><% } %>
+                            <% if (p.payment_note) { %><div style="font-size:11px;color:var(--text-3);margin-top:2px"><%= p.payment_note %></div><% } %>
+                        <% } else if (p.payment_status === 'unpaid') { %>
+                            <span class="badge badge-unpaid"><i class="bi bi-x-circle-fill"></i> Unpaid</span>
+                        <% } else { %>
+                            <span class="badge badge-pending">Pending</span>
+                        <% } %>
+                    </td>
+                    <td>
+                        <div style="display:flex;gap:6px;flex-wrap:wrap">
+                            <% if (p.payment_status !== 'paid') { %>
+<button class="action-btn green" onclick="openMarkDrawer(<%= p.sub_id %>, 'paid', '<%= p.business_name.replace(/'/g, '\\\'') %>')"><i class="bi bi-check-lg"></i> Mark Paid</button>
+<% } %>
+<% if (p.payment_status === 'paid' || p.payment_status === 'pending' || !p.payment_status) { %>
+<button class="action-btn red" onclick="openMarkDrawer(<%= p.sub_id %>, 'unpaid', '<%= p.business_name.replace(/'/g, '\\\'') %>')"><i class="bi bi-x-lg"></i> Mark Unpaid</button>
+<% } %>
+                            <a href="/super-admin/tenants/<%= p.tenant_id %>" class="action-btn yellow"><i class="bi bi-eye"></i></a>
+                        </div>
+                    </td>
+                </tr>
+                <% }) %>
+            </tbody>
+        </table>
+        </div>
+        <% } %>
+
+        <% if (pagination.totalPages > 1) { %>
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 20px; border-top:1px solid var(--border); flex-wrap:wrap; gap:12px;">
+            <small style="color:var(--text-3);">
+                Showing <%= pagination.offset + 1 %>–<%= Math.min(pagination.offset + pagination.limit, pagination.totalRecords) %>
+                of <%= pagination.totalRecords %> records
+            </small>
+            <div style="display:flex; gap:4px; align-items:center;">
+                <% const buildUrl = (pg) => {
+                    const q = new URLSearchParams();
+                    if (filters.status && filters.status !== 'all') q.set('status', filters.status);
+                    if (filters.search) q.set('search', filters.search);
+                    q.set('page', pg);
+                    return '/super-admin/billing?' + q.toString();
+                } %>
+                <a href="<%= buildUrl(1) %>" class="page-btn <%= pagination.currentPage === 1 ? 'disabled' : '' %>"><i class="bi bi-chevron-double-left"></i></a>
+                <a href="<%= buildUrl(pagination.currentPage - 1) %>" class="page-btn <%= pagination.currentPage === 1 ? 'disabled' : '' %>"><i class="bi bi-chevron-left"></i></a>
+                <% for (let pg = Math.max(1, pagination.currentPage - 2); pg <= Math.min(pagination.totalPages, pagination.currentPage + 2); pg++) { %>
+                    <a href="<%= buildUrl(pg) %>" class="page-btn <%= pg === pagination.currentPage ? 'active' : '' %>"><%= pg %></a>
+                <% } %>
+                <a href="<%= buildUrl(pagination.currentPage + 1) %>" class="page-btn <%= pagination.currentPage === pagination.totalPages ? 'disabled' : '' %>"><i class="bi bi-chevron-right"></i></a>
+                <a href="<%= buildUrl(pagination.totalPages) %>" class="page-btn <%= pagination.currentPage === pagination.totalPages ? 'disabled' : '' %>"><i class="bi bi-chevron-double-right"></i></a>
+            </div>
+        </div>
+        <% } %>
+    </div>
+</main>
+
+<!-- Mark Payment Drawer -->
+<div class="drawer-overlay" id="markDrawerOverlay">
+    <div class="drawer">
+        <div class="drawer-header">
+            <div class="drawer-header-left">
+                <div class="drawer-icon"><i class="bi bi-credit-card"></i></div>
+                <div>
+                    <h2 id="markDrawerTitle">Mark Payment</h2>
+                    <p id="markDrawerSub" style="font-size:11.5px;color:var(--text-3);margin-top:2px"></p>
+                </div>
+            </div>
+            <button class="drawer-close" onclick="closeMarkDrawer()"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <div class="drawer-body">
+            <input type="hidden" id="markSubId">
+            <input type="hidden" id="markStatus">
+            <div class="drawer-section">
+                <div class="drawer-section-title">Payment Details</div>
+                <div class="form-group">
+                    <label class="form-label">Payment Date</label>
+                    <input type="date" class="form-input" id="markDate">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Mode of Payment</label>
+                    <select class="form-input" id="markMode">
+                        <option value="">-- Select --</option>
+                        <option value="cash">Cash</option>
+                        <option value="upi">UPI</option>
+                        <option value="bank_transfer">Bank Transfer</option>
+                        <option value="cheque">Cheque</option>
+                        <option value="card">Card</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Note <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text-3)">(optional)</span></label>
+                    <input type="text" class="form-input" id="markNote" placeholder="e.g. UPI ref #1234">
+                </div>
+            </div>
+        </div>
+        <div class="drawer-footer">
+            <button class="btn btn-ghost" onclick="closeMarkDrawer()">Cancel</button>
+            <button class="btn btn-primary" id="markSaveBtn" onclick="savePaymentMark()"><i class="bi bi-check-lg"></i> Confirm</button>
+        </div>
+    </div>
+</div>
+
+<div id="toast" style="display:none"><i class="bi bi-check-circle-fill" id="toastIcon"></i><span id="toastMessage"></span></div>
+
+<script>
+function getCsrfToken() { const m = document.cookie.match(/(?:^|; )csrf_token=([^;]*)/); return m ? decodeURIComponent(m[1]) : ''; }
+function showToast(msg, isError=false) {
+    const t = document.getElementById('toast');
+    document.getElementById('toastMessage').textContent = msg;
+    document.getElementById('toastIcon').className = isError ? 'bi bi-x-circle-fill' : 'bi bi-check-circle-fill';
+    t.style.display = 'flex'; t.style.borderColor = isError ? 'rgba(231,76,60,.4)' : 'rgba(46,204,113,.4)'; t.style.color = isError ? '#e74c3c' : '#2ecc71';
+    clearTimeout(t._t); t._t = setTimeout(() => t.style.display = 'none', 3500);
+}
+document.getElementById('toast').addEventListener('click', function(){ this.style.display='none'; });
+
+function openMarkDrawer(subId, status, tenantName) {
+    document.getElementById('markSubId').value = subId;
+    document.getElementById('markStatus').value = status;
+    document.getElementById('markDrawerTitle').textContent = status === 'paid' ? 'Mark as Paid' : 'Mark as Unpaid';
+    document.getElementById('markDrawerSub').textContent = tenantName;
+    document.getElementById('markDate').value = new Date().toISOString().split('T')[0];
+    document.getElementById('markNote').value = '';
+    document.getElementById('markMode').value = '';
+    document.getElementById('markDrawerOverlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+}
+function closeMarkDrawer() {
+    document.getElementById('markDrawerOverlay').classList.remove('open');
+    document.body.style.overflow = '';
+}
+document.getElementById('markDrawerOverlay').addEventListener('click', e => {
+    if (e.target === document.getElementById('markDrawerOverlay')) closeMarkDrawer();
+});
+
+async function savePaymentMark() {
+    const btn = document.getElementById('markSaveBtn'); btn.disabled = true;
+    try {
+        const res = await fetch(`/super-admin/billing/${document.getElementById('markSubId').value}/mark-payment`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCsrfToken() },
+            body: JSON.stringify({
+                payment_status: document.getElementById('markStatus').value,
+                payment_date: document.getElementById('markDate').value,
+                payment_mode: document.getElementById('markMode').value || null,
+                payment_note: document.getElementById('markNote').value.trim() || null
+            })
+        });
+        const data = await res.json();
+        if (data.success) { closeMarkDrawer(); showToast('Payment updated'); setTimeout(() => location.reload(), 1200); }
+        else showToast(data.message, true);
+    } catch { showToast('Network error', true); }
+    finally { btn.disabled = false; }
+}
+function applyFilters() {
+    const params = new URLSearchParams();
+    const s = document.getElementById('statusFilter').value, q = document.getElementById('searchInput').value.trim();
+    if (s && s !== 'all') params.set('status', s); if (q) params.set('search', q);
+    params.set('page', '1');
+    window.location.href = '/super-admin/billing?' + params.toString();
+}
+document.getElementById('searchInput').addEventListener('keydown', e => { if (e.key === 'Enter') applyFilters(); });
+
+</script>
+
+<script>
+(function() {
+    function ping() {
+        fetch('/super-admin/keepalive', { method: 'GET', credentials: 'same-origin' })
+            .catch(function() {});
+    }
+    ping();
+    setInterval(ping, 10 * 60 * 1000);
+})();
+</script>
+</body>
+</html>

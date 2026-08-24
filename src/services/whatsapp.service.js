@@ -1,7 +1,13 @@
 require('dotenv').config();
 const twilio = require('twilio');
 
-const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+let _client = null;
+const getClient = () => {
+    if (!_client) {
+        _client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+    }
+    return _client;
+};
 const FROM = process.env.TWILIO_WHATSAPP_FROM;
 
 const formatDate = (dateVal) => {
@@ -19,12 +25,14 @@ const formatTime = (timeStr) => {
     return `${String(hour).padStart(2, '0')}:${String(m).padStart(2, '0')} ${period}`;
 };
 
-const formatPhone = (phone) => {
-    const digits = String(phone).replace(/\D/g, '').slice(-10);
-    return `whatsapp:+91${digits}`;
+const formatPhone = (phone, countryCode = '91') => {
+    const raw = String(phone).trim();
+    if (raw.startsWith('+')) return `whatsapp:${raw}`;
+    const digits = raw.replace(/\D/g, '').slice(-10);
+    return `whatsapp:+${countryCode}${digits}`;
 };
 
-// ── Booking Confirmation (advance ya full payment) ─
+// ── Booking Confirmation ───────────────────────────────────────
 const sendWhatsAppConfirmation = async ({
     customer_name, customer_phone, booking_no,
     slot_date, start_time, end_time, ground_name,
@@ -55,14 +63,10 @@ ${payment_mode ? `💳 *Payment Mode:* ${payment_mode}` : ''}
 Please arrive 10 minutes early.
 Thank you for choosing *Start Sports Arena*! 🙏`;
 
-    await client.messages.create({
-        from: FROM,
-        to: formatPhone(customer_phone),
-        body: message
-    });
+    await getClient().messages.create({ from: FROM, to: formatPhone(customer_phone), body: message });
 };
 
-// ── Balance Payment Received ───────────────────────
+// ── Balance Payment Received ───────────────────────────────────
 const sendWhatsAppBalancePayment = async ({
     customer_name, customer_phone, booking_no,
     slot_date, start_time, end_time, ground_name,
@@ -87,14 +91,10 @@ ${payment_mode ? `💳 *Payment Mode:* ${payment_mode}` : ''}
 
 Thank you for choosing *Start Sports Arena*! 🙏`;
 
-    await client.messages.create({
-        from: FROM,
-        to: formatPhone(customer_phone),
-        body: message
-    });
+    await getClient().messages.create({ from: FROM, to: formatPhone(customer_phone), body: message });
 };
 
-// ── Booking Approval Notification ─────────────────
+// ── Booking Approval Notification ─────────────────────────────
 const sendWhatsAppApproval = async ({
     customer_name, customer_phone, booking_no,
     slot_date, start_time, end_time, total_amount, deadline
@@ -121,11 +121,70 @@ Hi ${customer_name}, your booking request has been *approved*.
 
 Thank you for choosing *Start Sports Arena*! 🙏`;
 
-    await client.messages.create({
-        from: FROM,
-        to: formatPhone(customer_phone),
-        body: message
-    });
+    await getClient().messages.create({ from: FROM, to: formatPhone(customer_phone), body: message });
 };
 
-module.exports = { sendWhatsAppConfirmation, sendWhatsAppBalancePayment, sendWhatsAppApproval };
+// ── Academy Attendance Alert ───────────────────────────────────
+const sendAttendanceAlert = async ({
+    parent_name, parent_phone,
+    student_name, batch_name,
+    date, status
+}) => {
+    if (!parent_phone) return;
+
+    const emoji = status === 'present' ? '✅' : status === 'late' ? '⏰' : '❌';
+    const statusLabel = status === 'present' ? 'Present' : status === 'late' ? 'Late' : 'Absent';
+
+    const message =
+`${emoji} *Attendance Update*
+
+Hi ${parent_name}, here is today's attendance update for your child.
+
+👤 *Student:* ${student_name}
+🏋️ *Batch:* ${batch_name}
+📅 *Date:* ${formatDate(date)}
+📋 *Status:* *${statusLabel}*
+
+Thank you for choosing *Start Sports Arena*! 🙏`;
+
+    await getClient().messages.create({ from: FROM, to: formatPhone(parent_phone), body: message });
+};
+
+// ── Academy Fee Receipt Alert ──────────────────────────────────
+const sendFeeReceiptAlert = async ({
+    parent_name, parent_phone,
+    student_name, batch_name,
+    amount_paid, total_amount, balance,
+    payment_mode, payment_date, status
+}) => {
+    if (!parent_phone) return;
+
+    const isPaid = status === 'paid';
+
+    const message =
+`💰 *Fee Payment Received*
+
+Hi ${parent_name}, we have received a payment for your child.
+
+👤 *Student:* ${student_name}
+${batch_name ? `🏋️ *Batch:* ${batch_name}\n` : ''}📅 *Date:* ${formatDate(payment_date)}
+💳 *Amount Paid:* ₹${parseFloat(amount_paid).toFixed(2)}
+💰 *Total Fee:* ₹${parseFloat(total_amount).toFixed(2)}
+${isPaid
+    ? `✅ *Status:* Fully Paid`
+    : `⚠️ *Balance Due:* ₹${parseFloat(balance).toFixed(2)}`
+}
+💳 *Payment Mode:* ${payment_mode ? payment_mode.charAt(0).toUpperCase() + payment_mode.slice(1) : 'Cash'}
+
+Thank you for choosing *Start Sports Arena*! 🙏`;
+
+    await getClient().messages.create({ from: FROM, to: formatPhone(parent_phone), body: message });
+};
+
+module.exports = {
+    sendWhatsAppConfirmation,
+    sendWhatsAppBalancePayment,
+    sendWhatsAppApproval,
+    sendAttendanceAlert,
+    sendFeeReceiptAlert,
+};

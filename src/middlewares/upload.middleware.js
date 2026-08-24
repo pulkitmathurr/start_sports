@@ -10,11 +10,15 @@ if (!fs.existsSync(avatarDir)) fs.mkdirSync(avatarDir, { recursive: true });
 const groundDir = path.join(__dirname, '../public/uploads/grounds');
 if (!fs.existsSync(groundDir)) fs.mkdirSync(groundDir, { recursive: true });
 
-// ── File filter — only images ─────────────────────
+// ── File filter — validate both extension AND mimetype ────────
+// Extension-only check can be bypassed by renaming a file (e.g. shell.php → shell.jpg).
+// Checking mimetype as well means the browser-reported content type must also match.
+// Note: mimetype is still client-supplied, but combining both checks raises the bar.
 const fileFilter = (req, file, cb) => {
-    const allowed = ['.jpg', '.jpeg', '.png', '.webp'];
-    const ext     = path.extname(file.originalname).toLowerCase();
-    if (allowed.includes(ext)) {
+    const allowedExts  = ['.jpg', '.jpeg', '.png', '.webp'];
+    const allowedMimes = ['image/jpeg', 'image/png', 'image/webp'];
+    const ext  = path.extname(file.originalname).toLowerCase();
+    if (allowedExts.includes(ext) && allowedMimes.includes(file.mimetype)) {
         cb(null, true);
     } else {
         cb(new Error('Only JPG, PNG and WEBP images are allowed'), false);

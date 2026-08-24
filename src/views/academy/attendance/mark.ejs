@@ -1,0 +1,331 @@
+<%- include('../../partials/header') %>
+
+<div class="row settings-page-header">
+
+    <div class="col-12 mb-4">
+        <div class="mark-attendance-header">
+            <div class="mark-attendance-header__left">
+                <div class="mark-attendance-header__icon"><i class="bi bi-pencil-square"></i></div>
+                <div>
+                    <h4 class="mark-attendance-header__title">Mark Attendance</h4>
+                    <span class="mark-attendance-header__sub">Select a batch and date, then mark each student</span>
+                </div>
+            </div>
+            <a href="/academy/attendance" class="mark-attendance-history-btn">
+                <i class="bi bi-clock-history"></i> View History
+            </a>
+        </div>
+    </div>
+
+    <% if (typeof error !== 'undefined' && error) { %>
+    <script>document.addEventListener('DOMContentLoaded',function(){xToast('<%= error.replace(/'/g,"\\'") %>','error');});</script>
+    <% } %>
+    <% if (typeof success !== 'undefined' && success) { %>
+    <script>document.addEventListener('DOMContentLoaded',function(){xToast('<%= success.replace(/'/g,"\\'") %>','success');});</script>
+    <% } %>
+
+    <div class="col-12 mb-4">
+        <div class="mark-attendance-step-card">
+            <div class="mark-attendance-step-card__body">
+                <div class="mark-attendance-step-title">
+                    <i class="bi bi-calendar-check"></i> Step 1 — Select Batch & Date
+                </div>
+                <form method="GET" action="/academy/attendance/mark" class="mark-attendance-select-form">
+                    <div class="mark-attendance-select-group">
+                        <label class="mark-attendance-select-label">Batch</label>
+                        <select name="batch_id" class="mark-attendance-select" required>
+                            <option value="">-- Select Batch --</option>
+                            <% for(var bi=0; bi<batches.length; bi++) { var b = batches[bi]; %>
+                            <option value="<%= b.id %>" <%= (batch_id == b.id) ? 'selected' : '' %>>
+                                <%= b.batch_name %><% if(b.sport){ %> — <%= b.sport %><% } %>
+                            </option>
+                            <% } %>
+                        </select>
+                    </div>
+                    <div class="mark-attendance-select-group">
+                        <label class="mark-attendance-select-label">Date</label>
+                        <input type="date" name="date" class="mark-attendance-date-input"
+                               value="<%= date %>" max="<%= new Date().toISOString().slice(0,10) %>">
+                    </div>
+                    <div class="mark-attendance-select-group">
+                        <button type="submit" class="mark-attendance-load-btn">
+                            <i class="bi bi-search"></i> Load Students
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <% if (batch_id && students.length > 0) { %>
+    <div class="col-12">
+        <div class="mark-attendance-table-card">
+            <div class="mark-attendance-table-header">
+                <div class="mark-attendance-batch-info">
+                    <span class="mark-attendance-batch-name">
+                        <%= selectedBatch ? selectedBatch.batch_name : 'Batch' %>
+                    </span>
+                    <span class="mark-attendance-batch-date">
+                        <i class="bi bi-calendar3"></i>
+                        <%
+                            var _dArr = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+                            var _mArr = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                            var _dt = new Date(date + 'T00:00:00');
+                            var _dateStr = _dArr[_dt.getDay()] + ', ' + ('0'+_dt.getDate()).slice(-2) + ' ' + _mArr[_dt.getMonth()] + ' ' + _dt.getFullYear();
+                        %>
+                        <%= _dateStr %>
+                    </span>
+                </div>
+                <div class="mark-attendance-bulk-buttons">
+                    <button type="button" onclick="markAll('present')" class="mark-attendance-bulk-btn mark-attendance-bulk-present">
+                        <i class="bi bi-check-lg"></i> All Present
+                    </button>
+                    <button type="button" onclick="markAll('absent')" class="mark-attendance-bulk-btn mark-attendance-bulk-absent">
+                        <i class="bi bi-x-lg"></i> All Absent
+                    </button>
+                </div>
+            </div>
+
+            <form method="POST" action="/academy/attendance/save" id="attendanceForm">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <input type="hidden" name="batch_id" value="<%= batch_id %>">
+                <input type="hidden" name="date" value="<%= date %>">
+
+                <div class="table-responsive">
+                    <table class="mark-attendance-table">
+                        <thead>
+                            <tr>
+                                <th style="width:5%">#</th>
+                                <th style="width:30%">Student</th>
+                                <th style="width:25%">Parent WhatsApp</th>
+                                <th style="width:13%;text-align:center">Present</th>
+                                <th style="width:13%;text-align:center">Absent</th>
+                                <th style="width:14%;text-align:center">Late</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        <% for(var si=0; si<students.length; si++) {
+                            var st = students[si];
+                            var stId     = st.student_id;
+                            var stName   = st.student_name;
+                            var stPhone  = st.student_phone;
+                            var stParent = st.parent_phone || '';
+                            var stPhoto  = st.student_photo || '';
+                            var existRec = existingMap[stId];
+                            var stStatus = existRec ? existRec.status : 'present';
+                            var isPresent = (stStatus === 'present');
+                            var isAbsent  = (stStatus === 'absent');
+                            var isLate    = (stStatus === 'late');
+                            var pBorder = isPresent ? '#2563eb' : '#e2e8f0';
+                            var pBg     = isPresent ? '#eff6ff' : '#fff';
+                            var pColor  = isPresent ? '#2563eb' : '#94a3b8';
+                            var aBorder = isAbsent  ? '#dc2626' : '#e2e8f0';
+                            var aBg     = isAbsent  ? '#fef2f2' : '#fff';
+                            var aColor  = isAbsent  ? '#dc2626' : '#94a3b8';
+                            var lBorder = isLate    ? '#f59e0b' : '#e2e8f0';
+                            var lBg     = isLate    ? '#fffbeb' : '#fff';
+                            var lColor  = isLate    ? '#f59e0b' : '#94a3b8';
+                            var stInitial = stName ? stName.charAt(0).toUpperCase() : '?';
+                        %>
+                            <tr id="row-<%= si %>" class="mark-attendance-row-<%= stStatus %>">
+                                <td class="attendance-row-num"><%= si + 1 %></td>
+                                <td>
+                                    <div class="mark-attendance-student-info">
+                                        <% if(stPhoto) { %>
+                                            <img src="/uploads/students/<%= stPhoto %>" class="mark-attendance-student-avatar">
+                                        <% } else { %>
+                                            <div class="mark-attendance-student-avatar-placeholder"><%= stInitial %></div>
+                                        <% } %>
+                                        <span class="mark-attendance-student-name"><%= stName %></span>
+                                    </div>
+                                    <input type="hidden" name="student_ids[]" value="<%= stId %>">
+                                    <input type="hidden" name="statuses[]" id="status-<%= si %>" value="<%= stStatus %>">
+                                </td>
+                                <td>
+                                    <div class="mark-attendance-parent-whatsapp">
+                                        <i class="bi bi-whatsapp"></i> <%= stParent || '&mdash;' %>
+                                    </div>
+                                </td>
+                                <td class="mark-attendance-radio-group">
+                                    <button type="button" id="btn-p-<%= si %>" onclick="setStatus(<%= si %>,'present')"
+                                            class="mark-attendance-radio-label"
+                                            style="border:2px solid <%= pBorder %>;background:<%= pBg %>">
+                                        <i class="bi bi-check-lg" style="color:<%= pColor %>"></i>
+                                    </button>
+                                </td>
+                                <td class="mark-attendance-radio-group">
+                                    <button type="button" id="btn-a-<%= si %>" onclick="setStatus(<%= si %>,'absent')"
+                                            class="mark-attendance-radio-label"
+                                            style="border:2px solid <%= aBorder %>;background:<%= aBg %>">
+                                        <i class="bi bi-x-lg" style="color:<%= aColor %>"></i>
+                                    </button>
+                                </td>
+                                <td class="mark-attendance-radio-group">
+                                    <button type="button" id="btn-l-<%= si %>" onclick="setStatus(<%= si %>,'late')"
+                                            class="mark-attendance-radio-label"
+                                            style="border:2px solid <%= lBorder %>;background:<%= lBg %>">
+                                        <i class="bi bi-clock" style="color:<%= lColor %>"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        <% } %>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mark-attendance-form-actions">
+                    <div class="d-flex align-items-center gap-3 mb-2">
+                        <div class="form-check form-switch mb-0">
+                            <input class="form-check-input" type="checkbox" name="notify" value="1" id="notifyParents" checked>
+                            <label class="form-check-label text-muted small" for="notifyParents">
+                                <i class="bi bi-whatsapp text-success"></i> Notify parents via WhatsApp
+                            </label>
+                        </div>
+                    </div>
+                    <button type="submit" class="mark-attendance-save-btn">
+                        <i class="bi bi-send"></i> Save Attendance
+                    </button>
+                    <div class="mark-attendance-whatsapp-hint">
+                        <i class="bi bi-whatsapp"></i>
+                        WhatsApp will be sent to <%= students.length %> parent<%= students.length !== 1 ? 's' : '' %>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <% } else if (batch_id && students.length === 0) { %>
+    <div class="col-12">
+        <div class="mark-attendance-empty">
+            <div class="mark-attendance-empty__icon"><i class="bi bi-people"></i></div>
+            <p class="mark-attendance-empty__title">No students in this batch</p>
+            <small class="mark-attendance-empty__sub">
+                Go to <a href="/academy/batches" class="mark-attendance-empty__link">Batches</a> and enrol students first
+            </small>
+        </div>
+    </div>
+    <% } %>
+
+</div>
+
+<style>
+.mark-attendance-header{background:linear-gradient(135deg,#1e3a5f 0%,#2563eb 45%,#1e40af 100%);border-radius:20px;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;position:relative;overflow:hidden;box-shadow:0 8px 24px rgba(37,99,235,0.2)}
+.mark-attendance-header::before{content:'';position:absolute;top:-50px;right:-50px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(96,165,250,0.12) 0%,transparent 70%);pointer-events:none}
+.mark-attendance-header__left{display:flex;align-items:center;gap:14px;position:relative;z-index:2}
+.mark-attendance-header__icon{width:46px;height:46px;background:rgba(255,255,255,0.12);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;color:#fff;border:1px solid rgba(255,255,255,0.25)}
+.mark-attendance-header__title{font-family:'Rajdhani',sans-serif;font-size:1.3rem;font-weight:700;color:#fff;margin:0}
+.mark-attendance-header__sub{font-size:0.68rem;color:rgba(255,255,255,0.7);margin-top:2px;display:block}
+.mark-attendance-history-btn{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);color:#fff;font-size:0.72rem;font-weight:600;padding:7px 16px;border-radius:10px;text-decoration:none;transition:all 0.2s;position:relative;z-index:2}
+.mark-attendance-history-btn:hover{background:rgba(255,255,255,0.2);transform:translateY(-1px);color:#fff}
+.mark-attendance-step-card{background:#fff;border:1px solid #e2e8f0;border-radius:18px;overflow:hidden;margin-bottom:20px;box-shadow:0 2px 12px rgba(0,0,0,0.04)}
+.mark-attendance-step-card__body{padding:20px}
+.mark-attendance-step-title{font-size:0.72rem;font-weight:700;color:#2563eb;text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;gap:8px}
+.mark-attendance-select-form{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end}
+.mark-attendance-select-group{flex:1;min-width:180px}
+.mark-attendance-select-label{font-size:0.68rem;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;display:block}
+.mark-attendance-select{width:100%;padding:9px 12px;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;font-size:0.82rem;color:#1e293b;transition:all 0.2s;cursor:pointer;appearance:none}
+.mark-attendance-select:focus{outline:none;border-color:#2563eb;background:#fff;box-shadow:0 0 0 3px rgba(37,99,235,0.1)}
+.mark-attendance-date-input{width:100%;padding:9px 12px;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;font-size:0.82rem;color:#1e293b;transition:all 0.2s}
+.mark-attendance-date-input:focus{outline:none;border-color:#2563eb;background:#fff;box-shadow:0 0 0 3px rgba(37,99,235,0.1)}
+.mark-attendance-load-btn{background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;border:none;border-radius:10px;padding:9px 20px;font-size:0.78rem;font-weight:600;cursor:pointer;transition:all 0.2s;display:inline-flex;align-items:center;gap:6px}
+.mark-attendance-load-btn:hover{background:linear-gradient(135deg,#1d4ed8,#1e40af);transform:translateY(-1px);box-shadow:0 3px 10px rgba(37,99,235,0.25)}
+.mark-attendance-table-card{background:#fff;border:1px solid #e2e8f0;border-radius:18px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.04)}
+.mark-attendance-table-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;padding:14px 20px;border-bottom:1px solid #e2e8f0;background:#f8fafc}
+.mark-attendance-batch-info{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.mark-attendance-batch-name{font-family:'Rajdhani',sans-serif;font-size:0.9rem;font-weight:700;color:#1e293b}
+.mark-attendance-batch-date{font-size:0.78rem;color:#64748b}
+.mark-attendance-batch-date i{margin-right:4px;color:#2563eb}
+.mark-attendance-bulk-buttons{display:flex;gap:8px}
+.mark-attendance-bulk-btn{padding:4px 14px;border-radius:8px;font-size:0.72rem;font-weight:600;cursor:pointer;transition:all 0.2s;border:1px solid}
+.mark-attendance-bulk-present{background:#ecfdf5;color:#059669;border-color:#a7f3d0}
+.mark-attendance-bulk-present:hover{background:#059669;color:#fff;transform:translateY(-1px)}
+.mark-attendance-bulk-absent{background:#fef2f2;color:#991b1b;border-color:#fecaca}
+.mark-attendance-bulk-absent:hover{background:#dc2626;color:#fff;transform:translateY(-1px)}
+.mark-attendance-table{width:100%;border-collapse:collapse;font-size:0.82rem}
+.mark-attendance-table thead th{padding:10px 14px;font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#64748b;border-bottom:1px solid #e2e8f0;background:#f8fafc}
+.mark-attendance-table tbody tr{border-bottom:1px solid #f1f5f9;transition:background 0.15s}
+.mark-attendance-table tbody td{padding:10px 14px;vertical-align:middle}
+.mark-attendance-row-present{background:#ecfdf5}
+.mark-attendance-row-absent{background:#fef2f2}
+.mark-attendance-row-late{background:#fffbeb}
+.mark-attendance-student-info{display:flex;align-items:center;gap:10px}
+.mark-attendance-student-avatar{width:32px;height:32px;border-radius:50%;object-fit:cover;border:1px solid #e2e8f0;flex-shrink:0}
+.mark-attendance-student-avatar-placeholder{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#2563eb,#1d4ed8);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;font-size:0.75rem;flex-shrink:0}
+.mark-attendance-student-name{font-weight:600;color:#1e293b;font-size:0.82rem}
+.mark-attendance-parent-whatsapp{color:#2563eb;font-size:0.78rem;display:inline-flex;align-items:center;gap:4px}
+.mark-attendance-radio-group{text-align:center}
+.mark-attendance-radio-label{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;cursor:pointer;transition:all 0.15s;background:#fff}
+.mark-attendance-radio-label:hover{transform:scale(1.08)}
+.mark-attendance-form-actions{display:flex;align-items:center;gap:16px;padding:16px 20px;border-top:1px solid #e2e8f0;background:#f8fafc;flex-wrap:wrap}
+.mark-attendance-save-btn{background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;border:none;border-radius:10px;padding:10px 28px;font-size:0.82rem;font-weight:700;font-family:'Rajdhani',sans-serif;letter-spacing:1px;cursor:pointer;transition:all 0.2s;display:inline-flex;align-items:center;gap:6px}
+.mark-attendance-save-btn:hover{background:linear-gradient(135deg,#1d4ed8,#1e40af);transform:translateY(-1px);box-shadow:0 4px 12px rgba(37,99,235,0.3)}
+.mark-attendance-whatsapp-hint{font-size:0.72rem;color:#64748b;display:inline-flex;align-items:center;gap:6px}
+.mark-attendance-whatsapp-hint i{color:#25D366}
+.mark-attendance-empty{text-align:center;padding:60px 30px;background:#f8fafc;border-radius:24px;border:1px solid #e2e8f0}
+.mark-attendance-empty__icon{width:70px;height:70px;background:#eff6ff;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px}
+.mark-attendance-empty__icon i{font-size:2rem;color:#2563eb}
+.mark-attendance-empty__title{font-family:'Rajdhani',sans-serif;font-size:1.2rem;font-weight:700;color:#1e293b;margin-bottom:6px}
+.mark-attendance-empty__sub{font-size:0.8rem;color:#64748b}
+.mark-attendance-empty__link{color:#2563eb;text-decoration:none;font-weight:600}
+.attendance-row-num{color:#94a3b8;font-size:0.75rem;font-weight:600;text-align:center}
+@media(max-width:768px){
+    .mark-attendance-header{flex-direction:column;align-items:flex-start;padding:14px 18px}
+    .mark-attendance-history-btn,.mark-attendance-load-btn,.mark-attendance-save-btn{width:100%;justify-content:center}
+    .mark-attendance-select-form,.mark-attendance-form-actions{flex-direction:column;align-items:stretch}
+    .mark-attendance-select-group{width:100%}
+    .mark-attendance-table-header{flex-direction:column;align-items:flex-start}
+    .mark-attendance-bulk-buttons{width:100%}
+    .mark-attendance-bulk-btn,.mark-attendance-whatsapp-hint{flex:1;text-align:center;justify-content:center}
+    .mark-attendance-table{min-width:600px}
+}
+</style>
+
+<script>
+function setStatus(idx, status) {
+    document.getElementById('status-' + idx).value = status;
+    highlightRow(idx, status);
+}
+
+function highlightRow(idx, status) {
+    var row  = document.getElementById('row-'   + idx);
+    var btnP = document.getElementById('btn-p-' + idx);
+    var btnA = document.getElementById('btn-a-' + idx);
+    var btnL = document.getElementById('btn-l-' + idx);
+    if (!row) return;
+
+    row.classList.remove('mark-attendance-row-present','mark-attendance-row-absent','mark-attendance-row-late');
+    [btnP, btnA, btnL].forEach(function(btn) {
+        if (!btn) return;
+        btn.style.border = '2px solid #e2e8f0';
+        btn.style.background = '#fff';
+        var ic = btn.querySelector('i');
+        if (ic) ic.style.color = '#94a3b8';
+    });
+
+    var active, border, bg, color;
+    if (status === 'present')     { active = btnP; border = '#2563eb'; bg = '#eff6ff'; color = '#2563eb'; row.classList.add('mark-attendance-row-present'); }
+    else if (status === 'absent') { active = btnA; border = '#dc2626'; bg = '#fef2f2'; color = '#dc2626'; row.classList.add('mark-attendance-row-absent'); }
+    else if (status === 'late')   { active = btnL; border = '#f59e0b'; bg = '#fffbeb'; color = '#f59e0b'; row.classList.add('mark-attendance-row-late'); }
+    if (active) {
+        active.style.border = '2px solid ' + border;
+        active.style.background = bg;
+        var ic = active.querySelector('i');
+        if (ic) ic.style.color = color;
+    }
+}
+
+var totalStudents = <%= students.length %>;
+
+function markAll(status) {
+    for (var i = 0; i < totalStudents; i++) { setStatus(i, status); }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    for (var i = 0; i < totalStudents; i++) {
+        var inp = document.getElementById('status-' + i);
+        if (inp) highlightRow(i, inp.value);
+    }
+});
+</script>
+
+<%- include('../../partials/footer') %>

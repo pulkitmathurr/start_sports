@@ -2,279 +2,665 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register Your Ground - Start Sports</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Create Account - Start Sports</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/css/bootstrap.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
     <style>
-        body { background: #0f1923; min-height: 100vh; }
+     /* ============================================
+        SIGNUP PAGE - Blue & White Theme
+     ============================================ */
 
-        .signup-wrapper {
-            min-height: 100vh;
-            display: flex;
+    /* Full Screen Container */
+    .signup-container {
+        display: flex;
+        width: 100%;
+        height: 100vh;
+        overflow: hidden;
+        gap: 0;
+    }
+
+    /* LEFT PANEL - Blue gradient theme */
+    .left-panel {
+        flex: 1;
+        position: relative;
+        background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 50%, #1e40af 100%);
+        height: calc(100vh - 4px);
+        margin: 2px 0 2px 2px;
+        border-radius: 28px 0 0 28px;
+        overflow: hidden;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    }
+
+    .left-panel::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('/images/signup2.jpg') center/cover no-repeat;
+        opacity: 0.2;
+        transition: transform 0.6s ease;
+        animation: slowZoom 20s ease-in-out infinite alternate;
+    }
+
+    @keyframes slowZoom {
+        0% { transform: scale(1); }
+        100% { transform: scale(1.08); }
+    }
+
+    .left-panel:hover::before {
+        transform: scale(1.05);
+    }
+
+    .left-panel::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(30, 58, 95, 0.65) 0%, rgba(37, 99, 235, 0.55) 100%);
+        z-index: 1;
+    }
+
+    .left-content {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 50px 40px;
+        background: linear-gradient(to top, rgba(0, 0, 0, 0.6), transparent);
+        z-index: 2;
+        animation: slideUp 0.8s ease-out;
+    }
+
+    @keyframes slideUp {
+        from { transform: translateY(40px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+
+    .left-tag {
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 3px;
+        color: #60a5fa;
+        text-transform: uppercase;
+        margin-bottom: 16px;
+        display: inline-block;
+        padding: 4px 12px;
+        background: rgba(96, 165, 250, 0.15);
+        border-radius: 30px;
+        backdrop-filter: blur(4px);
+    }
+
+    .left-title {
+        font-family: 'Rajdhani', sans-serif;
+        font-size: 46px;
+        font-weight: 800;
+        color: #fff;
+        line-height: 1.2;
+        margin-bottom: 20px;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .left-sub {
+        font-size: 14px;
+        color: rgba(255, 255, 255, 0.8);
+        line-height: 1.6;
+        margin-bottom: 32px;
+        max-width: 85%;
+    }
+
+    .left-stats {
+        display: flex;
+        align-items: center;
+        gap: 32px;
+    }
+
+    .stat-item {
+        text-align: center;
+        animation: fadeInUp 0.6s ease-out 0.3s both;
+    }
+
+    @keyframes fadeInUp {
+        from { transform: translateY(20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+
+    .stat-number {
+        font-size: 28px;
+        font-weight: 800;
+        color: #60a5fa;
+        display: block;
+        font-family: 'Rajdhani', sans-serif;
+    }
+
+    .stat-label {
+        font-size: 11px;
+        color: rgba(255, 255, 255, 0.6);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .stat-divider {
+        width: 1px;
+        height: 40px;
+        background: rgba(255, 255, 255, 0.2);
+    }
+
+    /* RIGHT PANEL - Clean white/blue theme */
+    .right-panel {
+        flex: 1;
+        background: #ffffff;
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 0 28px 28px 0;
+        margin: 2px 2px 2px 0;
+        box-shadow: -5px 0 25px rgba(0, 0, 0, 0.05);
+        overflow-y: hidden;
+    }
+
+    /* Hide scrollbar completely on right panel */
+    .right-panel::-webkit-scrollbar {
+        display: none;
+    }
+    .right-panel {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+
+    /* Form Container - Compact height */
+    .form-container {
+        width: 100%;
+        max-width: 460px;
+        padding: 12px 28px;
+        margin: 0 auto;
+        background: #fff;
+        border-radius: 28px;
+        animation: cardGlow 0.7s ease-out;
+    }
+
+    @keyframes cardGlow {
+        from { opacity: 0; transform: scale(0.96); }
+        to { opacity: 1; transform: scale(1); }
+    }
+
+    .form-header {
+        margin-bottom: 16px;
+        text-align: center;
+    }
+
+    .form-header h1 {
+        font-family: 'Rajdhani', sans-serif;
+        font-size: 28px;
+        font-weight: 800;
+        background: linear-gradient(135deg, #1e3a5f, #2563eb);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 4px;
+        letter-spacing: -0.5px;
+    }
+
+    .login-prompt {
+        color: #64748b;
+        font-size: 13px;
+    }
+
+    .login-prompt a {
+        color: #2563eb;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+
+    .login-prompt a:hover {
+        color: #1d4ed8;
+        text-decoration: underline;
+    }
+
+    /* Form Fields - Clean blue theme */
+    .form-group {
+        margin-bottom: 8px;
+    }
+
+    .form-row {
+        display: flex;
+        gap: 14px;
+        margin-bottom: 0;
+    }
+
+    .form-row .form-group {
+        flex: 1;
+        margin-bottom: 8px;
+    }
+
+    .form-label {
+        display: block;
+        font-size: 11px;
+        font-weight: 600;
+        color: #475569;
+        margin-bottom: 3px;
+        letter-spacing: 0.3px;
+    }
+
+    .form-label i {
+        margin-right: 5px;
+        color: #2563eb;
+        font-size: 10px;
+    }
+
+    .field-wrap {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .field-icon {
+        position: absolute;
+        left: 14px;
+        color: #94a3b8;
+        font-size: 14px;
+        pointer-events: none;
+        transition: color 0.2s;
+    }
+
+    .field-input {
+        width: 100%;
+        background: #f8fafc;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 14px;
+        padding: 8px 14px 8px 42px;
+        font-size: 13px;
+        color: #1e293b;
+        transition: all 0.25s ease;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .field-input:focus {
+        outline: none;
+        border-color: #2563eb;
+        background: #ffffff;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    .field-input::placeholder {
+        color: #cbd5e1;
+    }
+
+    .field-wrap:focus-within .field-icon {
+        color: #2563eb;
+    }
+
+    /* Plan Section - Blue card style */
+    .plan-section {
+        margin: 10px 0 8px;
+    }
+
+    .plan-label-header {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 1px;
+        color: #2563eb;
+        text-transform: uppercase;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .plan-label-header i {
+        color: #2563eb;
+        font-size: 12px;
+    }
+
+    .plans-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+    }
+
+    .plan-option {
+        display: none;
+    }
+
+    .plan-label {
+        display: block;
+        border: 2px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 8px 4px;
+        cursor: pointer;
+        transition: all 0.25s ease;
+        text-align: center;
+        background: #fefefe;
+    }
+
+    .plan-label:hover {
+        border-color: #60a5fa;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 14px rgba(37, 99, 235, 0.12);
+    }
+
+    .plan-option:checked + .plan-label {
+        border-color: #2563eb;
+        background: linear-gradient(135deg, #eff6ff, #dbeafe);
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
+    }
+
+    .plan-name {
+        font-weight: 800;
+        color: #1e293b;
+        font-size: 12px;
+        margin-bottom: 1px;
+        letter-spacing: 0.3px;
+    }
+
+    .plan-price {
+        font-size: 14px;
+        font-weight: 800;
+        color: #2563eb;
+        margin: 3px 0 1px;
+    }
+
+    .plan-trial {
+        font-size: 8px;
+        color: #64748b;
+        font-weight: 500;
+    }
+
+    .plan-grounds {
+        font-size: 8px;
+        color: #94a3b8;
+        margin-top: 2px;
+    }
+
+    /* Submit Button - Blue gradient */
+    .btn-signup {
+        width: 100%;
+        background: linear-gradient(135deg, #2563eb, #1d4ed8);
+        color: #fff;
+        border: none;
+        border-radius: 14px;
+        padding: 9px;
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 6px;
+        font-family: 'Rajdhani', sans-serif;
+        letter-spacing: 1px;
+    }
+
+    .btn-signup:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 24px rgba(37, 99, 235, 0.3);
+        background: linear-gradient(135deg, #1d4ed8, #1e40af);
+    }
+
+    .btn-signup:disabled {
+        background: #94a3b8;
+        transform: none;
+        cursor: not-allowed;
+        box-shadow: none;
+    }
+
+    /* Error Alert - Blue-red */
+    .alert-error {
+        background: #fef2f2;
+        border-left: 3px solid #dc2626;
+        color: #991b1b;
+        border-radius: 12px;
+        padding: 8px 12px;
+        font-size: 12px;
+        margin-bottom: 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .alert-error i {
+        font-size: 15px;
+        color: #dc2626;
+    }
+
+    /* Spinner */
+    .spinner {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-top-color: #fff;
+        border-radius: 50%;
+        animation: spin 0.6s linear infinite;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* Animations for form fields */
+    .form-group {
+        animation: fadeSlide 0.5s ease-out forwards;
+        opacity: 0;
+    }
+    .form-group:nth-child(1) { animation-delay: 0.05s; }
+    .form-group:nth-child(2) { animation-delay: 0.1s; }
+    .form-row .form-group:first-child { animation-delay: 0.15s; }
+    .form-row .form-group:last-child { animation-delay: 0.2s; }
+    .plan-section { animation: fadeSlide 0.5s ease-out 0.25s forwards; opacity: 0; }
+    .btn-signup { animation: fadeSlide 0.5s ease-out 0.35s forwards; opacity: 0; }
+
+    @keyframes fadeSlide {
+        from { opacity: 0; transform: translateY(8px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Responsive Design */
+    @media (max-width: 900px) {
+        .signup-container {
+            flex-direction: column;
+        }
+        .left-panel {
+            height: 42vh;
+            margin: 2px 2px 0 2px;
+            border-radius: 28px 28px 0 0;
+        }
+        .right-panel {
+            height: auto;
+            min-height: 58vh;
+            margin: 0 2px 2px 2px;
+            border-radius: 0 0 28px 28px;
             align-items: flex-start;
-            justify-content: center;
-            padding: 40px 16px;
+            overflow-y: auto;
         }
-
-        .signup-card {
-            background: #1a2332;
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 16px;
-            width: 100%;
-            max-width: 560px;
-            padding: 40px;
+        .left-content {
+            padding: 30px 24px;
         }
-
-        .signup-logo {
-            text-align: center;
-            margin-bottom: 28px;
+        .left-title {
+            font-size: 32px;
         }
-
-        .signup-logo h1 {
-            font-family: 'Rajdhani', sans-serif;
-            font-size: 28px;
-            font-weight: 700;
-            color: #fff;
-            margin: 0;
+        .left-sub {
+            max-width: 100%;
+            font-size: 12px;
         }
-
-        .signup-logo p {
-            color: rgba(255,255,255,0.5);
-            font-size: 14px;
-            margin: 4px 0 0;
+        .form-container {
+            padding: 16px 20px;
+            margin: 16px auto;
         }
-
-        .section-label {
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 1px;
-            color: rgba(255,255,255,0.35);
-            text-transform: uppercase;
-            margin: 24px 0 12px;
-        }
-
-        .form-label {
-            color: rgba(255,255,255,0.7);
-            font-size: 13px;
-            margin-bottom: 6px;
-        }
-
-        .form-control {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 8px;
-            color: #fff;
-            padding: 10px 14px;
-            font-size: 14px;
-            transition: border-color 0.2s;
-        }
-
-        .form-control:focus {
-            background: rgba(255,255,255,0.08);
-            border-color: #2ecc71;
-            color: #fff;
-            box-shadow: none;
-        }
-
-        .form-control::placeholder { color: rgba(255,255,255,0.25); }
-
-        /* Plan cards */
         .plans-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 12px;
-            margin-bottom: 4px;
+            grid-template-columns: repeat(2, 1fr);
         }
+    }
 
-        .plan-option { display: none; }
-
-        .plan-label {
-            display: block;
-            border: 2px solid rgba(255,255,255,0.1);
-            border-radius: 10px;
-            padding: 14px 12px;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-align: center;
+    @media (max-width: 640px) {
+        .form-row {
+            flex-direction: column;
+            gap: 0;
         }
-
-        .plan-label:hover { border-color: rgba(46,204,113,0.4); }
-
-        .plan-option:checked + .plan-label {
-            border-color: #2ecc71;
-            background: rgba(46,204,113,0.08);
+        .plans-grid {
+            grid-template-columns: 1fr;
         }
-
-        .plan-name {
-            font-weight: 600;
-            color: #fff;
-            font-size: 14px;
+        .left-stats {
+            gap: 20px;
         }
-
-        .plan-price {
-            font-size: 18px;
-            font-weight: 700;
-            color: #2ecc71;
-            margin: 4px 0;
+        .stat-number {
+            font-size: 22px;
         }
-
-        .plan-trial {
-            font-size: 11px;
-            color: rgba(255,255,255,0.4);
-        }
-
-        .plan-grounds {
-            font-size: 11px;
-            color: rgba(255,255,255,0.5);
-            margin-top: 4px;
-        }
-
-        .btn-signup {
-            width: 100%;
-            background: #2ecc71;
-            color: #0f1923;
-            border: none;
-            border-radius: 8px;
-            padding: 13px;
-            font-size: 15px;
-            font-weight: 700;
-            margin-top: 28px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .btn-signup:hover { background: #27ae60; }
-        .btn-signup:disabled { background: #555; cursor: not-allowed; }
-
-        .login-link {
-            text-align: center;
-            margin-top: 20px;
-            color: rgba(255,255,255,0.4);
-            font-size: 13px;
-        }
-
-        .login-link a { color: #2ecc71; text-decoration: none; }
-
-        .alert-error {
-            background: rgba(192,57,43,0.15);
-            border: 1px solid rgba(192,57,43,0.4);
-            color: #e74c3c;
-            border-radius: 8px;
+        .form-container {
             padding: 12px 16px;
-            font-size: 14px;
-            margin-bottom: 20px;
         }
-
-        .spinner {
-            display: inline-block;
-            width: 16px; height: 16px;
-            border: 2px solid rgba(0,0,0,0.3);
-            border-top-color: #0f1923;
-            border-radius: 50%;
-            animation: spin 0.6s linear infinite;
-            vertical-align: middle;
-            margin-right: 6px;
+        .form-header h1 {
+            font-size: 24px;
         }
+        .left-title {
+            font-size: 28px;
+        }
+        .left-tag {
+            font-size: 10px;
+        }
+    }
 
-        @keyframes spin { to { transform: rotate(360deg); } }
+    /* Remove any global scroll */
+    html, body {
+        overflow: hidden;
+        height: 100%;
+    }
     </style>
 </head>
-
 <body>
-<div class="signup-wrapper">
-    <div class="signup-card">
 
-        <div class="signup-logo">
-            <h1>START SPORTS</h1>
-            <p>Register your ground and start managing bookings</p>
+<div class="signup-container">
+
+    <!-- LEFT PANEL - Blue theme -->
+    <div class="left-panel">
+        <div class="left-content">
+            <div class="left-tag">✨ START YOUR JOURNEY</div>
+            <h2 class="left-title">Join the<br>Sports Revolution</h2>
+            <p class="left-sub">Manage your sports ground effortlessly. Track bookings, handle payments, and grow your business with our all-in-one platform.</p>
         </div>
+    </div>
 
-        <!-- Error message -->
-        <div id="errorBox" class="alert-error" style="display:none;"></div>
+    <!-- RIGHT PANEL - Compact, no scrollbar -->
+    <div class="right-panel">
+        <div class="form-container">
 
-        <form id="signupForm">
-
-            <!-- Personal Info -->
-            <div class="section-label">Your Details</div>
-
-            <div class="mb-3">
-                <label class="form-label">Full Name *</label>
-                <input type="text" name="name" class="form-control" placeholder="e.g. Rahul Sharma" required>
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label">Email Address *</label>
-                <input type="email" name="email" class="form-control" placeholder="you@example.com" required>
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label">Password *</label>
-                <input type="password" name="password" class="form-control" placeholder="Min 6 characters" required minlength="6">
-            </div>
-
-            <!-- Business Info -->
-            <div class="section-label">Ground / Business Details</div>
-
-            <div class="mb-3">
-                <label class="form-label">Ground / Business Name *</label>
-                <input type="text" name="business_name" class="form-control" placeholder="e.g. ABC Cricket Arena" required>
-            </div>
-
-            <div class="row">
-                <div class="col-6 mb-3">
-                    <label class="form-label">Phone Number</label>
-                    <input type="tel" name="phone" class="form-control" placeholder="9876543210">
-                </div>
-                <div class="col-6 mb-3">
-                    <label class="form-label">City</label>
-                    <input type="text" name="city" class="form-control" placeholder="e.g. Jaipur">
+            <div class="form-header">
+                <h1>Create an Account</h1>
+                <div class="login-prompt">
+                    Already have an account? <a href="/auth/login">Log in →</a>
                 </div>
             </div>
 
-            <!-- Plan Selection -->
-            <div class="section-label">Choose Your Plan</div>
+            <!-- Error message -->
+            <div id="errorBox" class="alert-error" style="display:none;">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                <span id="errorText"></span>
+            </div>
 
-            <div class="plans-grid">
-                <% plans.forEach((plan, index) => { %>
-                <div>
-                    <input
-                        type="radio"
-                        name="plan_id"
-                        id="plan_<%= plan.id %>"
-                        value="<%= plan.id %>"
-                        class="plan-option"
-                        <%= index === 0 ? 'checked' : '' %>
-                    >
-                    <label class="plan-label" for="plan_<%= plan.id %>">
-                        <div class="plan-name"><%= plan.name %></div>
-                        <div class="plan-price">
-                            <% if (plan.price_monthly == 0) { %>
-                                Free
-                            <% } else { %>
-                                ₹<%= plan.price_monthly %>/mo
-                            <% } %>
+            <form id="signupForm">
+
+                <!-- Full Name -->
+                <div class="form-group">
+                    <label class="form-label"><i class="bi bi-person"></i> Full Name *</label>
+                    <div class="field-wrap">
+                        <span class="field-icon"><i class="bi bi-person"></i></span>
+                        <input type="text" name="name" class="field-input" placeholder="Enter Name" required>
+                    </div>
+                </div>
+
+                <!-- Email and Password in one row -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label"><i class="bi bi-envelope"></i> Email *</label>
+                        <div class="field-wrap">
+                            <span class="field-icon"><i class="bi bi-envelope"></i></span>
+                            <input type="email" name="email" class="field-input" placeholder="you@example.com" required>
                         </div>
-                        <div class="plan-trial"><%= plan.trial_days %> day free trial</div>
-                        <div class="plan-grounds">Up to <%= plan.max_grounds %> ground<%= plan.max_grounds > 1 ? 's' : '' %></div>
-                    </label>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label"><i class="bi bi-lock"></i> Password *</label>
+                        <div class="field-wrap">
+                            <span class="field-icon"><i class="bi bi-lock"></i></span>
+                            <input type="password" name="password" class="field-input" placeholder="Enter Password" required minlength="6">
+                        </div>
+                    </div>
                 </div>
-                <% }) %>
-            </div>
 
-            <button type="submit" class="btn-signup" id="submitBtn">
-                Start Free Trial
-            </button>
+                <!-- Ground/Business Name -->
+                <div class="form-group">
+                    <label class="form-label"><i class="bi bi-building"></i> Ground / Business Name *</label>
+                    <div class="field-wrap">
+                        <span class="field-icon"><i class="bi bi-building"></i></span>
+                        <input type="text" name="business_name" class="field-input" placeholder="ABC Cricket Arena" required>
+                    </div>
+                </div>
 
-        </form>
+                <!-- Phone and City in one row -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label"><i class="bi bi-telephone"></i> Phone</label>
+                        <div class="field-wrap">
+                            <span class="field-icon"><i class="bi bi-telephone"></i></span>
+                            <input type="tel" name="phone" class="field-input" placeholder="9876543210" maxlength="10">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label"><i class="bi bi-geo-alt"></i> City</label>
+                        <div class="field-wrap">
+                            <span class="field-icon"><i class="bi bi-geo-alt"></i></span>
+                            <input type="text" name="city" class="field-input" placeholder="Mumbai, Delhi">
+                        </div>
+                    </div>
+                </div>
 
-        <div class="login-link">
-            Already have an account? <a href="/auth/login">Login here</a>
+                <!-- Plan Selection -->
+                <div class="plan-section">
+                    <div class="plan-label-header">
+                        <i class="bi bi-tag"></i> Choose Your Plan
+                    </div>
+                    <div class="plans-grid">
+                        <% plans.forEach((plan, index) => { %>
+                        <div>
+                            <input
+                                type="radio"
+                                name="plan_id"
+                                id="plan_<%= plan.id %>"
+                                value="<%= plan.id %>"
+                                class="plan-option"
+                                <%= index === 0 ? 'checked' : '' %>
+                            >
+                            <label class="plan-label" for="plan_<%= plan.id %>">
+                                <div class="plan-name"><%= plan.name %></div>
+                                <div class="plan-price">
+                                    <% if (plan.price_monthly == 0) { %>
+                                        Free
+                                    <% } else { %>
+                                        ₹<%= plan.price_monthly %>
+                                    <% } %>
+                                </div>
+                                <div class="plan-trial"><%= plan.trial_days %> days free</div>
+                                <div class="plan-grounds"><%= plan.max_grounds %> ground<%= plan.max_grounds > 1 ? 's' : '' %></div>
+                            </label>
+                        </div>
+                        <% }) %>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-signup" id="submitBtn">
+                    <i class="bi bi-check-circle"></i> Start Free Trial
+                </button>
+
+            </form>
+
         </div>
-
     </div>
 </div>
 
@@ -282,52 +668,74 @@
 document.getElementById('signupForm').addEventListener('submit', async function(e) {
     e.preventDefault();
 
-    const btn       = document.getElementById('submitBtn');
-    const errorBox  = document.getElementById('errorBox');
-    const form      = e.target;
+    const btn = document.getElementById('submitBtn');
+    const errorBox = document.getElementById('errorBox');
+    const errorText = document.getElementById('errorText');
+    const form = e.target;
 
-    // Gather form data
     const body = {
-        name:          form.name.value.trim(),
-        email:         form.email.value.trim(),
-        password:      form.password.value,
+        name: form.name.value.trim(),
+        email: form.email.value.trim(),
+        password: form.password.value,
         business_name: form.business_name.value.trim(),
-        phone:         form.phone.value.trim(),
-        city:          form.city.value.trim(),
-        plan_id:       form.plan_id.value
+        phone: form.phone.value.trim(),
+        city: form.city.value.trim(),
+        plan_id: form.plan_id.value
     };
 
-    // Show loading
-    btn.disabled    = true;
-    btn.innerHTML   = '<span class="spinner"></span> Creating your account...';
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Creating account...';
     errorBox.style.display = 'none';
 
     try {
-        const res  = await fetch('/tenant/signup', {
-            method:  'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body:    JSON.stringify(body)
+        const csrfToken = (document.cookie.match(/(?:^|; )csrf_token=([^;]*)/) || [])[1] || '';
+        const res = await fetch('/tenant/signup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': decodeURIComponent(csrfToken) },
+            body: JSON.stringify(body)
         });
 
         const data = await res.json();
 
         if (data.success) {
-            btn.innerHTML = '✓ Account created! Redirecting...';
-            setTimeout(() => {
-                window.location.href = data.data.redirect || '/dashboard';
-            }, 1000);
+            if (data.data && data.data.pending_approval) {
+                // Account submitted for SA approval — show success message, no auto-login
+                btn.innerHTML = '<i class="bi bi-check-circle"></i> Request Submitted!';
+                btn.style.background = 'linear-gradient(135deg, #059669, #047857)';
+                errorBox.style.display = 'none';
+                // Replace form with a success message
+                document.querySelector('form').innerHTML = `
+                    <div style="text-align:center;padding:32px 16px;">
+                        <div style="font-size:3rem;margin-bottom:16px;">✅</div>
+                        <h3 style="font-size:1.25rem;font-weight:700;color:#111;margin-bottom:8px;">Account Request Submitted!</h3>
+                        <p style="color:#555;font-size:0.95rem;line-height:1.6;margin-bottom:20px;">
+                            Your request for <strong>${document.getElementById('business_name')?.value || 'your business'}</strong>
+                            has been received. Our team will review and approve your account shortly.<br><br>
+                            You will be notified once your account is approved and you can log in.
+                        </p>
+                        <a href="/auth/login" style="display:inline-block;background:#1d4ed8;color:#fff;padding:10px 24px;border-radius:8px;text-decoration:none;font-weight:600;font-size:0.9rem;">
+                            Go to Login
+                        </a>
+                    </div>`;
+            } else {
+                btn.innerHTML = '<i class="bi bi-check-circle"></i> Account created! Redirecting...';
+                btn.style.background = 'linear-gradient(135deg, #1d4ed8, #1e40af)';
+                setTimeout(() => {
+                    window.location.href = data.data.redirect || '/dashboard';
+                }, 1000);
+            }
         } else {
-            errorBox.textContent   = data.message || 'Something went wrong. Please try again.';
-            errorBox.style.display = 'block';
-            btn.disabled  = false;
-            btn.innerHTML = 'Start Free Trial';
+            errorText.textContent = data.message || 'Something went wrong. Please try again.';
+            errorBox.style.display = 'flex';
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-check-circle"></i> Start Free Trial';
         }
 
     } catch (err) {
-        errorBox.textContent   = 'Network error. Please check your connection.';
-        errorBox.style.display = 'block';
-        btn.disabled  = false;
-        btn.innerHTML = 'Start Free Trial';
+        errorText.textContent = 'Network error. Please check your connection.';
+        errorBox.style.display = 'flex';
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-check-circle"></i> Start Free Trial';
     }
 });
 </script>

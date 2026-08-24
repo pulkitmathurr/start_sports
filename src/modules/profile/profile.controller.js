@@ -5,7 +5,9 @@ const { successResponse } = require('../../utils/response');
 const getProfilePage = async (req, res, next) => {
     try {
         const profile = await profileService.getProfile({
-            user_id: req.user.user_id
+            user_id: req.user.user_id,
+            tenant_id: req.tenant ? req.tenant.id : null,
+            user_role: req.user.role
         });
 
         return res.render('profile/index', {
@@ -13,7 +15,9 @@ const getProfilePage = async (req, res, next) => {
             activePage: 'profile',
             profile,
             success:    req.query.success || null,
-            error:      null
+            error:      null,
+            user: res.locals.user,
+            tenant: req.tenant
         });
 
     } catch (error) {
@@ -28,17 +32,28 @@ const updateProfile = async (req, res, next) => {
             user_id: req.user.user_id,
             name:    req.body.name,
             email:   req.body.email,
-            phone:   req.body.phone
+            phone:   req.body.phone,
+            tenant_id: req.tenant ? req.tenant.id : null,
+            user_role: req.user.role
         });
 
         return res.redirect('/profile?success=profile');
 
     } catch (error) {
         if (error.statusCode === 409) {
-            const profile = await profileService.getProfile({ user_id: req.user.user_id });
+            const profile = await profileService.getProfile({ 
+                user_id: req.user.user_id,
+                tenant_id: req.tenant ? req.tenant.id : null,
+                user_role: req.user.role
+            });
             return res.render('profile/index', {
-                title: 'My Profile', activePage: 'profile',
-                profile, success: null, error: error.message
+                title: 'My Profile', 
+                activePage: 'profile',
+                profile, 
+                success: null, 
+                error: error.message,
+                user: res.locals.user,
+                tenant: req.tenant
             });
         }
         next(error);
@@ -50,16 +65,27 @@ const uploadImage = async (req, res, next) => {
     try {
         // Multer already saved file — req.file has the info
         if (!req.file) {
-            const profile = await profileService.getProfile({ user_id: req.user.user_id });
+            const profile = await profileService.getProfile({ 
+                user_id: req.user.user_id,
+                tenant_id: req.tenant ? req.tenant.id : null,
+                user_role: req.user.role
+            });
             return res.render('profile/index', {
-                title: 'My Profile', activePage: 'profile',
-                profile, success: null, error: 'Please select an image to upload'
+                title: 'My Profile', 
+                activePage: 'profile',
+                profile, 
+                success: null, 
+                error: 'Please select an image to upload',
+                user: res.locals.user,
+                tenant: req.tenant
             });
         }
 
         await profileService.updateProfileImage({
             user_id:  req.user.user_id,
-            filename: req.file.filename
+            filename: req.file.filename,
+            tenant_id: req.tenant ? req.tenant.id : null,
+            user_role: req.user.role
         });
 
         return res.redirect('/profile?success=image');
@@ -75,17 +101,28 @@ const changePassword = async (req, res, next) => {
         await profileService.changePassword({
             user_id:          req.user.user_id,
             current_password: req.body.current_password,
-            new_password:     req.body.new_password
+            new_password:     req.body.new_password,
+            tenant_id:        req.tenant ? req.tenant.id : null,
+            user_role:        req.user.role
         });
 
         return res.redirect('/profile?success=password');
 
     } catch (error) {
-        if (error.statusCode === 400) {
-            const profile = await profileService.getProfile({ user_id: req.user.user_id });
+        if (error.statusCode === 400 || error.statusCode === 403) {
+            const profile = await profileService.getProfile({ 
+                user_id: req.user.user_id,
+                tenant_id: req.tenant ? req.tenant.id : null,
+                user_role: req.user.role
+            });
             return res.render('profile/index', {
-                title: 'My Profile', activePage: 'profile',
-                profile, success: null, error: error.message
+                title: 'My Profile', 
+                activePage: 'profile',
+                profile, 
+                success: null, 
+                error: error.message,
+                user: res.locals.user,
+                tenant: req.tenant
             });
         }
         next(error);

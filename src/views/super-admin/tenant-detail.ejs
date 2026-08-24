@@ -4,216 +4,393 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= title %> - Start Sports</title>
-    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/css/bootstrap.min.css">
-    <link rel="stylesheet" href="/css/style.css">
-    <style>
-        body { background: #0f1923; color: #fff; }
-        .sa-sidebar { width: 220px; min-height: 100vh; background: #1a2332; border-right: 1px solid rgba(255,255,255,0.07); position: fixed; top: 0; left: 0; display: flex; flex-direction: column; padding: 28px 0; }
-        .sa-logo { font-family: 'Rajdhani', sans-serif; font-size: 20px; font-weight: 700; color: #fff; padding: 0 24px 24px; border-bottom: 1px solid rgba(255,255,255,0.07); }
-        .sa-logo span { color: #f39c12; font-size: 11px; display: block; }
-        .sa-nav a { display: flex; align-items: center; gap: 10px; padding: 10px 24px; color: rgba(255,255,255,0.55); text-decoration: none; font-size: 14px; transition: all 0.2s; border-left: 3px solid transparent; }
-        .sa-nav a:hover, .sa-nav a.active { color: #fff; background: rgba(255,255,255,0.05); border-left-color: #f39c12; }
-        .sa-main { margin-left: 220px; padding: 32px; }
-
-        .info-card { background: #1a2332; border: 1px solid rgba(255,255,255,0.07); border-radius: 12px; padding: 24px; margin-bottom: 20px; }
-        .info-card h3 { font-size: 15px; font-weight: 600; color: rgba(255,255,255,0.6); margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px; font-size: 12px; }
-
-        .info-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
-        .info-row:last-child { border-bottom: none; }
-        .info-label { font-size: 13px; color: rgba(255,255,255,0.45); }
-        .info-value { font-size: 14px; color: rgba(255,255,255,0.85); font-weight: 500; }
-
-        .stat-mini { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 20px; }
-        .stat-mini-card { background: #1a2332; border: 1px solid rgba(255,255,255,0.07); border-radius: 10px; padding: 16px; text-align: center; }
-        .stat-mini-card .v { font-size: 24px; font-weight: 700; font-family: 'Rajdhani', sans-serif; }
-        .stat-mini-card .l { font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 4px; }
-
-        .action-btn { border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 9px 18px; font-size: 13px; cursor: pointer; background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.8); transition: all 0.2s; margin-right: 8px; margin-bottom: 8px; }
-        .action-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
-        .action-btn.green  { border-color: rgba(46,204,113,0.4); color: #2ecc71; }
-        .action-btn.red    { border-color: rgba(231,76,60,0.4);  color: #e74c3c; }
-        .action-btn.yellow { border-color: rgba(243,156,18,0.4); color: #f39c12; }
-
-        .badge { border-radius: 20px; padding: 3px 12px; font-size: 12px; font-weight: 600; }
-        .badge-active    { background: rgba(46,204,113,0.15); color: #2ecc71; }
-        .badge-trial     { background: rgba(52,152,219,0.15); color: #3498db; }
-        .badge-suspended { background: rgba(231,76,60,0.15);  color: #e74c3c; }
-        .badge-expired   { background: rgba(149,165,166,0.15); color: #95a5a6; }
-
-        .form-control { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; padding: 8px 12px; font-size: 13px; }
-        .form-control:focus { outline: none; border-color: #f39c12; background: rgba(255,255,255,0.08); }
-        .form-control option { background: #1a2332; }
-
-        .toast-msg { position: fixed; bottom: 24px; right: 24px; background: #1a2332; border: 1px solid rgba(46,204,113,0.4); color: #2ecc71; border-radius: 8px; padding: 12px 20px; font-size: 14px; display: none; z-index: 9999; }
-    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="/css/super-admin.css">
 </head>
 <body>
-
-<div class="sa-sidebar">
-    <div class="sa-logo">START SPORTS<span>SUPER ADMIN</span></div>
-    <nav class="sa-nav">
-        <a href="/super-admin/dashboard">📊 Dashboard</a>
-        <a href="/super-admin/tenants" class="active">🏢 Tenants</a>
-        <a href="/auth/logout" onclick="doLogout(event)">🚪 Logout</a>
-    </nav>
-</div>
+<%- include('../partials/sidebar', {
+    adminType: 'SUPER ADMIN',
+    currentPage: 'tenants',
+    logoutUrl: '/auth/logout',
+    loginUrl: '/auth/login'
+}) %>
 
 <div class="sa-main">
-
-    <!-- Back + Title -->
-    <div style="display:flex;align-items:center;gap:16px;margin-bottom:28px">
-        <a href="/super-admin/tenants" style="color:rgba(255,255,255,0.4);text-decoration:none;font-size:13px">← Back</a>
-        <h1 style="font-family:'Rajdhani',sans-serif;font-size:26px;margin:0"><%= data.tenant.business_name %></h1>
-        <% if (data.tenant.status === 'suspended') { %>
-            <span class="badge badge-suspended">Suspended</span>
-        <% } else if (data.tenant.sub_status === 'active' && data.tenant.billing_cycle === 'trial') { %>
-            <span class="badge badge-trial">Trial</span>
-        <% } else if (data.tenant.sub_status === 'active') { %>
-            <span class="badge badge-active">Active</span>
-        <% } else { %>
-            <span class="badge badge-expired">Expired</span>
-        <% } %>
+    <div class="page-header">
+        <div class="header-left">
+            <a href="/super-admin/tenants" class="back-link"><i class="bi bi-arrow-left"></i> Back</a>
+            <h1 class="tenant-name"><%= data.tenant.business_name %></h1>
+            <% if (data.tenant.status === 'suspended') { %>
+                <span class="badge badge-suspended"><i class="bi bi-ban"></i> Suspended</span>
+            <% } else if (data.tenant.sub_status === 'active' && data.tenant.billing_cycle === 'trial') { %>
+                <span class="badge badge-trial"><i class="bi bi-gift"></i> Free Trial</span>
+            <% } else if (data.tenant.sub_status === 'active') { %>
+                <span class="badge badge-active"><i class="bi bi-check-circle"></i> Active</span>
+            <% } else { %>
+                <span class="badge badge-expired"><i class="bi bi-clock"></i> Expired</span>
+            <% } %>
+        </div>
     </div>
 
-    <!-- Mini stats -->
     <div class="stat-mini">
         <div class="stat-mini-card">
-            <div class="v" style="color:#3498db"><%= data.tenant.total_bookings %></div>
-            <div class="l">Total Bookings</div>
+            <div class="stat-icon"><i class="bi bi-calendar-check"></i></div>
+            <div class="stat-value value-blue"><%= data.tenant.total_bookings %></div>
+            <div class="stat-label">Total Bookings</div>
         </div>
         <div class="stat-mini-card">
-            <div class="v" style="color:#2ecc71"><%= data.tenant.total_grounds %></div>
-            <div class="l">Grounds</div>
+            <div class="stat-icon"><i class="bi bi-geo-alt"></i></div>
+            <div class="stat-value value-green"><%= data.tenant.total_grounds %></div>
+            <div class="stat-label">Grounds</div>
+        </div>
+        <div class="stat-mini-card" style="cursor:pointer;position:relative;" onclick="openCustomerModal(<%= data.tenant.id %>)">
+            <div class="stat-icon"><i class="bi bi-people"></i></div>
+            <div class="stat-value value-purple"><%= data.tenant.total_customers %></div>
+            <div class="stat-label">Customers</div>
+            <div style="margin-top:8px;">
+                <span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;
+                             color:var(--accent);background:rgba(99,102,241,.1);border-radius:20px;
+                             padding:3px 10px;letter-spacing:.4px;text-transform:uppercase;">
+                    <i class="bi bi-eye"></i> View List
+                </span>
+            </div>
         </div>
         <div class="stat-mini-card">
-            <div class="v" style="color:#9b59b6"><%= data.tenant.total_customers %></div>
-            <div class="l">Customers</div>
-        </div>
-        <div class="stat-mini-card">
-            <div class="v" style="color:#f39c12">₹<%= Number(data.tenant.total_revenue || 0).toLocaleString('en-IN') %></div>
-            <div class="l">Their Revenue</div>
+            <div class="stat-icon"><i class="bi bi-currency-rupee"></i></div>
+            <div class="stat-value value-orange">&#8377;<%= Number(data.tenant.total_revenue||0).toLocaleString('en-IN') %></div>
+            <div class="stat-label">Their Revenue</div>
         </div>
     </div>
 
     <div class="row">
-        <div class="col-6">
-            <!-- Owner Info -->
+        <!-- Left -->
+        <div>
+            <% if (data.tenant.status === 'suspended' && data.tenant.suspended_reason) { %>
+            <div class="reason-box"><i class="bi bi-exclamation-triangle-fill"></i><div><strong>Suspension reason:</strong> <%= data.tenant.suspended_reason %></div></div>
+            <% } %>
+
             <div class="info-card">
-                <h3>Owner Details</h3>
+                <div class="card-header"><i class="bi bi-person-circle"></i><h3>Owner Details</h3></div>
                 <div class="info-row"><span class="info-label">Name</span><span class="info-value"><%= data.tenant.owner_name %></span></div>
                 <div class="info-row"><span class="info-label">Email</span><span class="info-value"><%= data.tenant.email %></span></div>
                 <div class="info-row"><span class="info-label">Phone</span><span class="info-value"><%= data.tenant.phone || '—' %></span></div>
                 <div class="info-row"><span class="info-label">City</span><span class="info-value"><%= data.tenant.city || '—' %></span></div>
-                <div class="info-row"><span class="info-label">Joined</span><span class="info-value"><%= new Date(data.tenant.created_at).toLocaleDateString('en-IN') %></span></div>
+                <div class="info-row"><span class="info-label">Joined</span><span class="info-value"><%= new Date(data.tenant.created_at).toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'}) %></span></div>
+                <div class="info-row"><span class="info-label">Slug</span><span class="info-value" style="font-size:12px;color:var(--text-3);font-family:monospace"><%= data.tenant.slug %></span></div>
             </div>
 
-            <!-- Subscription Info -->
             <div class="info-card">
-                <h3>Subscription</h3>
-                <div class="info-row"><span class="info-label">Plan</span><span class="info-value"><%= data.tenant.plan_name || '—' %></span></div>
-                <div class="info-row"><span class="info-label">Billing</span><span class="info-value"><%= data.tenant.billing_cycle || '—' %></span></div>
-                <div class="info-row"><span class="info-label">Started</span><span class="info-value"><%= data.tenant.started_at ? new Date(data.tenant.started_at).toLocaleDateString('en-IN') : '—' %></span></div>
-                <div class="info-row"><span class="info-label">Expires</span><span class="info-value"><%= data.tenant.expires_at ? new Date(data.tenant.expires_at).toLocaleDateString('en-IN') : '—' %></span></div>
-                <div class="info-row"><span class="info-label">Amount Paid</span><span class="info-value" style="color:#2ecc71">₹<%= Number(data.tenant.amount_paid || 0).toLocaleString('en-IN') %></span></div>
+                <div class="card-header"><i class="bi bi-tag"></i><h3>Subscription Details</h3></div>
+                <div class="info-row"><span class="info-label">Current Plan</span><span class="info-value"><%= data.tenant.plan_name || '—' %></span></div>
+                <div class="info-row"><span class="info-label">Billing Cycle</span><span class="info-value" style="text-transform:capitalize"><%= data.tenant.billing_cycle || '—' %></span></div>
+                <div class="info-row"><span class="info-label">Started On</span><span class="info-value"><%= data.tenant.started_at ? new Date(data.tenant.started_at).toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'}) : '—' %></span></div>
+                <div class="info-row">
+                    <span class="info-label">Expires On</span>
+                    <span class="info-value" style="color:<%= new Date(data.tenant.expires_at) < new Date() ? 'var(--red)' : 'var(--green)' %>">
+                        <%= data.tenant.expires_at ? new Date(data.tenant.expires_at).toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'}) : '—' %>
+                    </span>
+                </div>
+                <div class="info-row"><span class="info-label">Amount Paid</span><span class="info-value" style="color:var(--green)">&#8377;<%= Number(data.tenant.amount_paid||0).toLocaleString('en-IN') %></span></div>
+                <div class="info-row">
+                    <span class="info-label">Payment Status</span>
+                    <span class="info-value">
+                        <% if (data.tenant.payment_status === 'paid') { %>
+                            <span style="color:var(--green)"><i class="bi bi-check-circle-fill"></i> Paid</span>
+                        <% } else if (data.tenant.payment_status === 'unpaid') { %>
+                            <span style="color:var(--red)"><i class="bi bi-x-circle-fill"></i> Unpaid</span>
+                        <% } else { %>
+                            <span style="color:var(--accent)">Pending</span>
+                        <% } %>
+                    </span>
+                </div>
+            </div>
+
+            <div class="info-card">
+                <div class="card-header"><i class="bi bi-geo-alt"></i><h3>Grounds (<%= data.grounds.length %>)</h3></div>
+                <% if (data.grounds.length === 0) { %>
+                <div style="text-align:center;padding:20px;color:var(--text-3)"><i class="bi bi-geo-alt" style="font-size:28px;display:block;margin-bottom:8px;opacity:.4"></i>No grounds added</div>
+                <% } else { %>
+                <table class="mini-table">
+                    <thead><tr><th>Name</th><th>Sport</th><th>Peak Rate</th><th>Status</th></tr></thead>
+                    <tbody>
+                        <% data.grounds.forEach(g => { %>
+                        <tr>
+                            <td style="font-weight:600"><%= g.name %></td>
+                            <td style="text-transform:capitalize;color:var(--text-2)"><%= g.sport_type || '—' %></td>
+                            <td>&#8377;<%= Number(g.peak_price||0).toLocaleString('en-IN') %>/hr</td>
+                            <td><span class="bk-status <%= g.status === 'active' ? 'bk-confirmed' : 'bk-cancelled' %>"><%= g.status %></span></td>
+                        </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+                <% } %>
             </div>
         </div>
 
-        <div class="col-6">
-            <!-- Actions -->
+        <!-- Right -->
+        <div>
             <div class="info-card">
-                <h3>Actions</h3>
-
-                <!-- Activate / Suspend -->
-                <div style="margin-bottom:20px">
+                <div class="card-header"><i class="bi bi-gear"></i><h3>Account Actions</h3></div>
+                <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px">
                     <% if (data.tenant.status === 'active') { %>
-                    <button class="action-btn red" onclick="doAction('/super-admin/tenants/<%= data.tenant.id %>/suspend', 'Tenant suspended')">Suspend Account</button>
+                        <button class="action-btn red" onclick="suspendTenantWithReason(<%= data.tenant.id %>)"><i class="bi bi-ban"></i> Suspend</button>
                     <% } else { %>
-                    <button class="action-btn green" onclick="doAction('/super-admin/tenants/<%= data.tenant.id %>/activate', 'Tenant activated')">Activate Account</button>
+                        <button class="action-btn activate" onclick="doAction('/super-admin/tenants/<%= data.tenant.id %>/activate', 'Partner activated')"><i class="bi bi-check-circle"></i> Activate</button>
                     <% } %>
-                    <button class="action-btn red" onclick="confirmDelete(<%= data.tenant.id %>)">Delete Account</button>
+                    <button class="action-btn red" onclick="confirmDelete(<%= data.tenant.id %>)"><i class="bi bi-trash"></i> Delete</button>
                 </div>
 
-                <hr style="border-color:rgba(255,255,255,0.06);margin:16px 0">
+                <hr>
 
-                <!-- Extend subscription -->
                 <div style="margin-bottom:20px">
-                    <div style="font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:10px">Extend subscription manually</div>
-                    <div style="display:flex;gap:10px;align-items:center">
-                        <input type="number" id="extendDays" class="form-control" placeholder="Days" min="1" max="365" style="width:100px">
-                        <button class="action-btn yellow" onclick="extendSub(<%= data.tenant.id %>)">Extend</button>
+                    <div style="font-size:12px;font-weight:600;color:var(--text-2);margin-bottom:10px;text-transform:uppercase;letter-spacing:.8px"><i class="bi bi-calendar-plus"></i> Extend Subscription</div>
+                    <div class="input-group">
+                        <input type="number" id="extendDays" class="form-control" placeholder="Days to add" min="1" max="365">
+                        <button class="action-btn yellow" onclick="extendSub(<%= data.tenant.id %>)"><i class="bi bi-plus-circle"></i> Extend</button>
                     </div>
                 </div>
 
-                <hr style="border-color:rgba(255,255,255,0.06);margin:16px 0">
+                <hr>
 
-                <!-- Change plan -->
-                <div>
-                    <div style="font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:10px">Change plan</div>
-                    <div style="display:flex;gap:10px;align-items:center">
-                        <select id="planSelect" class="form-control" style="flex:1">
+                <div style="margin-bottom:20px">
+                    <div style="font-size:12px;font-weight:600;color:var(--text-2);margin-bottom:10px;text-transform:uppercase;letter-spacing:.8px"><i class="bi bi-arrow-repeat"></i> Change Plan</div>
+                    <div class="input-group">
+                        <select id="planSelect" class="form-control">
                             <% plans.forEach(p => { %>
-                            <option value="<%= p.id %>" <%= data.tenant.plan_id == p.id ? 'selected' : '' %>><%= p.name %> — ₹<%= p.price_monthly %>/mo</option>
+                            <option value="<%= p.id %>" <%= data.tenant.plan_id == p.id ? 'selected' : '' %>><%= p.name %> — &#8377;<%= p.price_monthly %>/mo</option>
                             <% }) %>
                         </select>
-                        <button class="action-btn yellow" onclick="changePlan(<%= data.tenant.id %>)">Change</button>
+                        <button class="action-btn yellow" onclick="changePlan(<%= data.tenant.id %>)"><i class="bi bi-check-lg"></i> Apply</button>
+                    </div>
+                </div>
+
+                <hr>
+
+                <div>
+                    <div style="font-size:12px;font-weight:600;color:var(--text-2);margin-bottom:10px;text-transform:uppercase;letter-spacing:.8px"><i class="bi bi-key"></i> Reset Password</div>
+                    <div class="input-group">
+                        <input type="password" id="newPassword" class="form-control" placeholder="New password (min 8 chars)">
+                        <button class="action-btn blue" onclick="resetPassword(<%= data.tenant.id %>)"><i class="bi bi-shield-check"></i> Reset</button>
                     </div>
                 </div>
             </div>
 
-            <!-- Sub history -->
             <div class="info-card">
-                <h3>Subscription History</h3>
+                <div class="card-header"><i class="bi bi-calendar-check"></i><h3>Recent Bookings</h3></div>
+                <% if (data.recentBookings.length === 0) { %>
+                <div style="text-align:center;padding:20px;color:var(--text-3)"><i class="bi bi-inbox" style="font-size:28px;display:block;margin-bottom:8px;opacity:.4"></i>No bookings yet</div>
+                <% } else { %>
+                <table class="mini-table">
+                    <thead><tr><th>Booking No</th><th>Ground</th><th>Date</th><th>Status</th><th>Amount</th></tr></thead>
+                    <tbody>
+                        <% data.recentBookings.forEach(b => { %>
+                        <tr>
+                            <td style="font-size:11px;color:var(--text-3)">#<%= b.booking_no %></td>
+                            <td style="font-weight:500"><%= b.ground_name || '—' %></td>
+                            <td style="font-size:11px;color:var(--text-3)"><%= b.booking_date ? new Date(b.booking_date).toLocaleDateString('en-IN') : '—' %></td>
+                            <td><span class="bk-status bk-<%= b.booking_status %>"><%= b.booking_status %></span></td>
+                            <td style="color:var(--accent);font-weight:600">&#8377;<%= Number(b.advance_amount||0).toLocaleString('en-IN') %></td>
+                        </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+                <% } %>
+            </div>
+
+            <div class="info-card">
+                <div class="card-header"><i class="bi bi-clock-history"></i><h3>Subscription History</h3></div>
+                <% if (data.subHistory.length > 0) { %>
                 <% data.subHistory.forEach(s => { %>
                 <div class="info-row">
-                    <span class="info-label"><%= s.plan_name %> · <%= s.billing_cycle %></span>
-                    <span class="info-value" style="font-size:12px">
-                        <%= new Date(s.started_at).toLocaleDateString('en-IN') %> →
-                        <%= new Date(s.expires_at).toLocaleDateString('en-IN') %>
-                        <span class="badge <%= s.status === 'active' ? 'badge-active' : 'badge-expired' %>" style="margin-left:6px"><%= s.status %></span>
-                    </span>
+                    <div>
+                        <div style="font-weight:600;font-size:13px"><%= s.plan_name %></div>
+                        <div style="font-size:11px;color:var(--text-3);text-transform:capitalize"><%= s.billing_cycle %></div>
+                    </div>
+                    <div style="text-align:right">
+                        <div style="font-size:12px;color:var(--text-2)"><%= new Date(s.started_at).toLocaleDateString('en-IN') %> &rarr; <%= new Date(s.expires_at).toLocaleDateString('en-IN') %></div>
+                        <span class="badge <%= s.status === 'active' ? 'badge-active' : 'badge-expired' %>" style="margin-top:4px;font-size:10px;padding:2px 8px"><%= s.status === 'active' ? 'Active' : 'Expired' %></span>
+                    </div>
                 </div>
                 <% }) %>
-                <% if (!data.subHistory.length) { %>
-                <p style="color:rgba(255,255,255,0.3);font-size:13px">No history</p>
+                <% } else { %>
+                <div style="text-align:center;padding:20px;color:var(--text-3)"><i class="bi bi-inbox" style="font-size:28px;display:block;margin-bottom:8px;opacity:.4"></i>No history</div>
                 <% } %>
             </div>
         </div>
     </div>
-
 </div>
 
 <div class="toast-msg" id="toast"></div>
 
-<script>
-const tenantId = <%= data.tenant.id %>;
+<!-- ── Shared Modal Overlay ───────────────────────────────────── -->
+<div id="saModalOverlay" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.55);
+     backdrop-filter:blur(3px);z-index:9998;align-items:center;justify-content:center;">
+    <div style="background:#fff;border-radius:16px;padding:28px 28px 22px;max-width:420px;
+                width:90%;box-shadow:0 20px 60px rgba(15,23,42,0.22);position:relative;">
 
-function showToast(msg, isError = false) {
-    const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.style.display = 'block';
-    t.style.borderColor = isError ? 'rgba(231,76,60,0.4)' : 'rgba(46,204,113,0.4)';
-    t.style.color = isError ? '#e74c3c' : '#2ecc71';
-    setTimeout(() => t.style.display = 'none', 3000);
+        <!-- Icon + Title -->
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+            <div id="saModalIconWrap"
+                 style="width:40px;height:40px;border-radius:10px;display:flex;
+                        align-items:center;justify-content:center;flex-shrink:0;font-size:19px;"></div>
+            <h5 id="saModalTitle"
+                style="margin:0;font-size:16px;font-weight:700;color:#0f172a;line-height:1.3;"></h5>
+        </div>
+
+        <!-- Message -->
+        <p id="saModalMessage"
+           style="font-size:13px;color:#475569;margin:0 0 14px;line-height:1.6;"></p>
+
+        <!-- Optional textarea (shown for input modals) -->
+        <textarea id="saModalTextarea" rows="2" placeholder=""
+            style="display:none;width:100%;background:#f8fafc;border:1.5px solid #e2e8f0;
+                   border-radius:10px;padding:9px 12px;font-size:13px;font-family:inherit;
+                   resize:none;outline:none;color:#0f172a;box-sizing:border-box;transition:border-color .2s;"
+            onfocus="this.style.borderColor='#6366f1'"
+            onblur="this.style.borderColor='#e2e8f0'"></textarea>
+
+        <!-- Buttons -->
+        <div style="display:flex;gap:10px;margin-top:18px;justify-content:flex-end;">
+            <button id="saModalCancel"
+                    style="background:transparent;border:1.5px solid #e2e8f0;color:#64748b;
+                           border-radius:9px;padding:8px 18px;font-size:13px;font-weight:600;
+                           cursor:pointer;font-family:inherit;transition:all .18s;"
+                    onmouseover="this.style.borderColor='#94a3b8';this.style.color='#334155'"
+                    onmouseout="this.style.borderColor='#e2e8f0';this.style.color='#64748b'"></button>
+            <button id="saModalConfirm"
+                    style="border:none;color:#fff;border-radius:9px;padding:8px 20px;
+                           font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;
+                           transition:opacity .18s;"
+                    onmouseover="this.style.opacity='.85'"
+                    onmouseout="this.style.opacity='1'"></button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ── Toast ──────────────────────────────────────────────────────
+function showToast(msg, isError=false) {
+    const t=document.getElementById('toast');
+    t.textContent=msg; t.style.display='block';
+    t.style.borderColor=isError?'rgba(231,76,60,.4)':'rgba(46,204,113,.4)';
+    t.style.color=isError?'#e74c3c':'#2ecc71';
+    clearTimeout(t._t); t._t=setTimeout(()=>t.style.display='none',3500);
 }
 
-async function doAction(url, successMsg, body = {}) {
+// ── CSRF ───────────────────────────────────────────────────────
+function getCsrfToken(){
+    const m=document.cookie.match(/(?:^|; )csrf_token=([^;]*)/);
+    return m?decodeURIComponent(m[1]):'';
+}
+
+// ── doAction ───────────────────────────────────────────────────
+async function doAction(url, successMsg, body={}) {
     try {
         const res  = await fetch(url, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type':'application/json', 'X-CSRF-Token': getCsrfToken() },
             body: JSON.stringify(body)
         });
         const data = await res.json();
-        if (data.success) { showToast(successMsg); setTimeout(() => location.reload(), 1200); }
-        else showToast(data.message, true);
+        if (data.success) {
+            showToast(successMsg);
+            setTimeout(() => location.reload(), 1200);
+        } else {
+            showToast(data.message || 'Action failed', true);
+        }
     } catch { showToast('Something went wrong', true); }
 }
 
+// ── _openModal (internal) ──────────────────────────────────────
+// Both showDelModal and showInputModal use this one overlay.
+function _openModal({ title, message, placeholder, confirmText, cancelText,
+                      icon, confirmBg, showTextarea, required, rows }, callback) {
+    const overlay   = document.getElementById('saModalOverlay');
+    const iconWrap  = document.getElementById('saModalIconWrap');
+    const titleEl   = document.getElementById('saModalTitle');
+    const msgEl     = document.getElementById('saModalMessage');
+    const textarea  = document.getElementById('saModalTextarea');
+    const cancelBtn = document.getElementById('saModalCancel');
+    const confirmBtn= document.getElementById('saModalConfirm');
+
+    // Colours
+    const bg = confirmBg || '#f59e0b';
+    const iconBg  = bg + '1a'; // 10% opacity tint
+    iconWrap.style.background = iconBg;
+    iconWrap.style.color      = bg;
+    iconWrap.innerHTML        = `<i class="bi ${icon || 'bi-question-circle'}"></i>`;
+    confirmBtn.style.background = bg;
+
+    titleEl.textContent    = title   || '';
+    msgEl.textContent      = message || '';
+    cancelBtn.textContent  = cancelText  || 'Cancel';
+    confirmBtn.textContent = confirmText || 'Confirm';
+
+    // Textarea
+    if (showTextarea) {
+        textarea.style.display = 'block';
+        textarea.placeholder   = placeholder || '';
+        textarea.rows          = rows || 2;
+        textarea.value         = '';
+        setTimeout(() => textarea.focus(), 60);
+    } else {
+        textarea.style.display = 'none';
+        textarea.value         = '';
+    }
+
+    overlay.style.display = 'flex';
+
+    // Swap out old listeners cleanly
+    const newCancel  = cancelBtn.cloneNode(true);
+    const newConfirm = confirmBtn.cloneNode(true);
+    cancelBtn.parentNode.replaceChild(newCancel,  cancelBtn);
+    confirmBtn.parentNode.replaceChild(newConfirm, confirmBtn);
+    newConfirm.style.background  = bg;
+    newConfirm.onmouseover = () => newConfirm.style.opacity = '.85';
+    newConfirm.onmouseout  = () => newConfirm.style.opacity = '1';
+    newCancel.onmouseover  = () => { newCancel.style.borderColor='#94a3b8'; newCancel.style.color='#334155'; };
+    newCancel.onmouseout   = () => { newCancel.style.borderColor='#e2e8f0'; newCancel.style.color='#64748b'; };
+
+    newCancel.onclick  = () => { overlay.style.display='none'; };
+    newConfirm.onclick = () => {
+        const val = document.getElementById('saModalTextarea').value;
+        if (showTextarea && required && !val.trim()) {
+            document.getElementById('saModalTextarea').style.borderColor = '#ef4444';
+            return;
+        }
+        overlay.style.display = 'none';
+        callback(val);
+    };
+
+    overlay.onclick = (e) => { if (e.target === overlay) overlay.style.display = 'none'; };
+}
+
+// ── showDelModal — simple confirm, no textarea ─────────────────
+function showDelModal({ title, message, confirmText, cancelText, icon, iconClass, confirmClass }, callback) {
+    const isDanger  = iconClass && iconClass.includes('danger');
+    const isWarn    = confirmClass === 'warn' || (iconClass && iconClass.includes('warn'));
+    const confirmBg = isDanger ? '#dc2626' : (isWarn ? '#f59e0b' : '#6366f1');
+    _openModal({ title, message, confirmText, cancelText, icon,
+                 confirmBg, showTextarea: false }, callback);
+}
+
+// ── showInputModal — confirm with optional textarea ────────────
+function showInputModal({ title, message, placeholder, confirmText, cancelText,
+                          icon, iconClass, required, rows }, callback) {
+    const isDanger  = iconClass && iconClass.includes('danger');
+    const confirmBg = isDanger ? '#dc2626' : '#f59e0b';
+    _openModal({ title, message, placeholder, confirmText, cancelText, icon,
+                 confirmBg, showTextarea: true, required, rows }, callback);
+}
+
+// ── Page-level action functions ────────────────────────────────
 function extendSub(id) {
     const days = document.getElementById('extendDays').value;
-    if (!days || days < 1) return showToast('Enter valid days', true);
-    doAction(`/super-admin/tenants/${id}/extend`, `Subscription extended by ${days} days`, { extra_days: parseInt(days) });
+    if (!days || days < 1)   return showToast('Enter valid number of days', true);
+    if (days > 365)           return showToast('Max 365 days', true);
+    doAction(`/super-admin/tenants/${id}/extend`, `Extended by ${days} days`, { extra_days: parseInt(days) });
 }
 
 function changePlan(id) {
@@ -221,18 +398,190 @@ function changePlan(id) {
     doAction(`/super-admin/tenants/${id}/change-plan`, 'Plan updated', { plan_id });
 }
 
+function resetPassword(id) {
+    const pw = document.getElementById('newPassword').value;
+    if (!pw || pw.length < 8) return showToast('Min 8 characters', true);
+    showDelModal({
+        title:        'Reset Password',
+        message:      'Reset password for this partner? They will be logged out of all devices.',
+        confirmText:  'Reset Password',
+        cancelText:   'Cancel',
+        icon:         'bi-key-fill',
+        iconClass:    'del-modal__icon--warn',
+        confirmClass: 'warn'
+    }, () => doAction(`/super-admin/tenants/${id}/reset-password`, 'Password reset', { new_password: pw }));
+}
+
 function confirmDelete(id) {
-    if (confirm('Are you sure? This will soft delete the tenant account.')) {
-        doAction(`/super-admin/tenants/${id}/delete`, 'Tenant deleted');
-        setTimeout(() => window.location.href = '/super-admin/tenants', 1500);
+    showDelModal({
+        title:       'Delete Partner',
+        message:     'Delete this partner? All their data will be removed. This cannot be easily reversed.',
+        confirmText: 'Delete Partner',
+        cancelText:  'Cancel',
+        icon:        'bi-trash3-fill',
+        iconClass:   'del-modal__icon--danger'
+    }, () => {
+        doAction(`/super-admin/tenants/${id}/delete`, 'Partner deleted');
+        setTimeout(() => window.location.href = '/super-admin/tenants', 1600);
+    });
+}
+
+function suspendTenantWithReason(id) {
+    showInputModal({
+        title:       'Suspend Partner',
+        message:     'This partner will be logged out immediately and lose access.',
+        placeholder: 'Reason for suspension (optional)...',
+        confirmText: 'Suspend Partner',
+        cancelText:  'Cancel',
+        icon:        'bi-slash-circle-fill',
+        iconClass:   'del-modal__icon--warn',
+        required:    false,
+        rows:        2
+    }, (reason) => doAction(`/super-admin/tenants/${id}/suspend`, 'Partner suspended', { reason: reason.trim() || null }));
+}
+</script>
+
+<script>
+(function() {
+    function ping() {
+        fetch('/super-admin/keepalive', { method: 'GET', credentials: 'same-origin' }).catch(function() {});
+    }
+    ping();
+    setInterval(ping, 10 * 60 * 1000);
+})();
+</script>
+
+<!-- ── Customer List Modal ───────────────────────────────────── -->
+<div id="customerModal" style="display:none;position:fixed;inset:0;z-index:9999;
+     background:rgba(15,23,42,.6);backdrop-filter:blur(4px);
+     align-items:center;justify-content:center;">
+    <div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:16px;
+                width:min(680px,95vw);max-height:80vh;display:flex;flex-direction:column;
+                box-shadow:0 24px 64px rgba(15,23,42,.18);overflow:hidden;">
+        <div style="display:flex;align-items:center;justify-content:space-between;
+                    padding:18px 24px;background:#1e40af;border-bottom:1px solid #1d3a9e;">
+            <div>
+                <h3 style="margin:0;font-size:15px;font-weight:700;color:#ffffff;">
+                    <i class="bi bi-people" style="margin-right:8px;opacity:.9;"></i>Customer List
+                </h3>
+                <p id="customerModalSub" style="margin:2px 0 0;font-size:12px;color:#bfdbfe;">Loading...</p>
+            </div>
+            <button onclick="closeCustomerModal()"
+                    style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.2);
+                           color:#ffffff;width:32px;height:32px;border-radius:8px;cursor:pointer;
+                           font-size:16px;display:flex;align-items:center;justify-content:center;"
+                    onmouseover="this.style.background='rgba(255,255,255,.28)'"
+                    onmouseout="this.style.background='rgba(255,255,255,.15)'">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <div style="padding:12px 24px;background:#f8faff;border-bottom:1px solid #e2e8f0;">
+            <input type="text" id="customerSearch" placeholder="Search by name or phone..."
+                   oninput="filterCustomers(this.value)"
+                   style="width:100%;background:#ffffff;border:1.5px solid #dbeafe;
+                          border-radius:8px;padding:8px 14px;color:#1e293b;font-size:13px;
+                          box-sizing:border-box;outline:none;"
+                   onfocus="this.style.borderColor='#3b82f6'"
+                   onblur="this.style.borderColor='#dbeafe'">
+        </div>
+        <div style="overflow-y:auto;flex:1;background:#ffffff;">
+            <div id="customerModalBody" style="padding:8px 0;">
+                <div style="text-align:center;padding:40px;color:#94a3b8;">
+                    <div style="font-size:28px;margin-bottom:8px;opacity:.4;">&#8987;</div>
+                    <p>Loading customers...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let _allCustomers = [];
+
+async function openCustomerModal(tenantId) {
+    const modal = document.getElementById('customerModal');
+    modal.style.display = 'flex';
+    document.getElementById('customerSearch').value = '';
+    document.getElementById('customerModalSub').textContent = 'Loading...';
+    document.getElementById('customerModalBody').innerHTML = `
+        <div style="text-align:center;padding:40px;color:#94a3b8;">
+            <div style="font-size:28px;margin-bottom:8px;opacity:.4;">&#8987;</div>
+            <p>Loading customers...</p>
+        </div>`;
+    try {
+        const res  = await fetch(`/super-admin/tenants/${tenantId}/customers`, { credentials: 'same-origin' });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.message);
+        _allCustomers = data.customers;
+        renderCustomers(_allCustomers);
+        document.getElementById('customerModalSub').textContent = `${_allCustomers.length} total customers`;
+    } catch (e) {
+        document.getElementById('customerModalBody').innerHTML =
+            `<div style="text-align:center;padding:40px;color:#ef4444;">Failed to load customers</div>`;
     }
 }
 
-async function doLogout(e) {
-    e.preventDefault();
-    await fetch('/auth/logout', { method: 'POST' });
-    window.location.href = '/auth/login';
+function renderCustomers(list) {
+    const body = document.getElementById('customerModalBody');
+    if (list.length === 0) {
+        body.innerHTML = `<div style="text-align:center;padding:40px;color:#94a3b8;">
+            <div style="font-size:32px;margin-bottom:8px;opacity:.3;"><i class="bi bi-people"></i></div>
+            <p>No customers found</p></div>`;
+        return;
+    }
+    const colors = ['#1e40af','#1d4ed8','#2563eb','#3b82f6','#1e3a8a'];
+    body.innerHTML = list.map((c, i) => `
+        <div style="display:flex;align-items:center;gap:14px;padding:12px 24px;
+                    border-bottom:1px solid #f1f5f9;transition:background .15s;"
+             onmouseover="this.style.background='#f0f7ff'"
+             onmouseout="this.style.background='transparent'">
+            <div style="width:36px;height:36px;border-radius:50%;background:${colors[i%colors.length]};
+                        display:flex;align-items:center;justify-content:center;
+                        font-weight:700;font-size:14px;color:#fff;flex-shrink:0;">
+                ${(c.name||'?').charAt(0).toUpperCase()}
+            </div>
+            <div style="flex:1;min-width:0;">
+                <div style="font-weight:600;font-size:13px;color:#1e293b;
+                            white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${c.name||'—'}</div>
+                <div style="font-size:11px;color:#64748b;margin-top:1px;">
+                    ${c.phone||'—'}${c.email?' · '+c.email:''}
+                </div>
+            </div>
+            <div style="text-align:right;flex-shrink:0;">
+                <div style="font-size:11px;color:#1d4ed8;font-weight:700;background:#eff6ff;
+                            padding:2px 8px;border-radius:20px;border:1px solid #dbeafe;display:inline-block;">
+                    ${c.total_bookings||0} bookings
+                </div>
+                <div style="font-size:10px;color:#94a3b8;margin-top:4px;">
+                    Joined ${new Date(c.created_at).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}
+                </div>
+            </div>
+        </div>`).join('');
 }
+
+function filterCustomers(q) {
+    const filtered = q.trim()
+        ? _allCustomers.filter(c =>
+            (c.name||'').toLowerCase().includes(q.toLowerCase()) ||
+            (c.phone||'').includes(q) ||
+            (c.email||'').toLowerCase().includes(q.toLowerCase()))
+        : _allCustomers;
+    renderCustomers(filtered);
+    document.getElementById('customerModalSub').textContent =
+        filtered.length === _allCustomers.length
+            ? `${_allCustomers.length} total customers`
+            : `${filtered.length} of ${_allCustomers.length} customers`;
+}
+
+function closeCustomerModal() {
+    document.getElementById('customerModal').style.display = 'none';
+    _allCustomers = [];
+}
+
+document.getElementById('customerModal').addEventListener('click', function(e) {
+    if (e.target === this) closeCustomerModal();
+});
 </script>
+
 </body>
 </html>

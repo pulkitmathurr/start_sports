@@ -1,0 +1,210 @@
+<%- include('../../partials/header') %>
+
+<%
+    const errorMsg   = (typeof error   !== 'undefined' && error)
+                       ? (typeof error   === 'string' ? error   : (error.message   || 'Something went wrong'))
+                       : null;
+    const successMsg = (typeof success !== 'undefined' && success)
+                       ? (typeof success === 'string' ? success : (success.message || 'Done'))
+                       : null;
+%>
+
+<div class="row settings-page-header">
+
+    <!-- Page Header - Blue Theme -->
+    <div class="col-12 mb-4">
+        <div class="student-form-header">
+            <div class="student-form-header__left">
+                <div class="student-form-header__icon">
+                    <i class="bi bi-mortarboard"></i>
+                </div>
+                <div>
+                    <h4 class="student-form-header__title">
+                        <%= student && student.id ? 'Edit Student' : 'Add New Student' %>
+                    </h4>
+                    <span class="student-form-header__sub">
+                        <a href="/academy/students" class="student-form-breadcrumb">Students</a>
+                        &rsaquo; <%= student && student.id ? student.name : 'New' %>
+                    </span>
+                </div>
+            </div>
+            <a href="/academy/students" class="student-form-back-btn">
+                <i class="bi bi-arrow-left me-1"></i> Back to Students
+            </a>
+        </div>
+    </div>
+
+    <!-- Toast triggers -->
+    <% if (successMsg) { %>
+    <script>document.addEventListener('DOMContentLoaded',()=>xToast('<%= successMsg.replace(/'/g,"\'") %>','success'));</script>
+    <% } %>
+    <% if (errorMsg) { %>
+    <script>document.addEventListener('DOMContentLoaded',()=>xToast('<%= errorMsg.replace(/'/g,"\'") %>','error'));</script>
+    <% } %>
+
+    <!-- Full width form -->
+    <div class="col-12">
+        <div class="student-form-card">
+            <div class="student-form-card__body">
+
+                <form method="POST"
+                      action="<%= student && student.id ? '/academy/students/' + student.id + '/update' : '/academy/students/create' %>"
+                      enctype="multipart/form-data">
+
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+                    <!-- ── Photo Section ── -->
+                    <div class="student-photo-section">
+                        <div class="student-photo-upload">
+                            <div class="student-photo-preview">
+                                <% if (student && student.photo) { %>
+                                    <img src="/uploads/students/<%= student.photo %>" id="previewImg" class="student-photo-img">
+                                <% } else { %>
+                                    <i class="bi bi-person" id="previewIcon" class="student-photo-placeholder-icon"></i>
+                                    <img id="previewImg" class="student-photo-img" style="display:none;" src="">
+                                <% } %>
+                            </div>
+                            <label for="photo" class="student-photo-camera">
+                                <i class="bi bi-camera-fill"></i>
+                            </label>
+                            <input type="file" id="photo" name="photo" accept="image/jpeg,image/png,image.webp" style="display:none;">
+                        </div>
+                        <div class="student-photo-info">
+                            <div class="student-photo-title">Student Photo</div>
+                            <div class="student-photo-hint">JPG, PNG or WEBP · Max 2MB</div>
+                            <div class="student-photo-hint">Click the camera icon to upload</div>
+                        </div>
+                    </div>
+
+                    <!-- ── Student Information Section ── -->
+                    <div class="student-form-section-title">
+                        <i class="bi bi-person-fill me-2"></i>Student Information
+                    </div>
+
+                    <!-- Row 1: Name + DOB + Gender -->
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label class="student-form-label">
+                                Full Name <span class="student-required">*</span>
+                            </label>
+                            <input type="text" name="name" class="student-form-input"
+                                   placeholder="Enter Full Name"
+                                   value="<%= student ? student.name || '' : '' %>" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="student-form-label">Date of Birth</label>
+                            <input type="date" name="dob" class="student-form-input"
+                                   value="<%= student && student.dob ? new Date(student.dob).toISOString().slice(0,10) : '' %>">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="student-form-label">Gender</label>
+                            <select name="gender" class="student-form-select">
+                                <option value="">Select gender</option>
+                                <option value="male"   <%= student && student.gender === 'male'   ? 'selected' : '' %>>Male</option>
+                                <option value="female" <%= student && student.gender === 'female' ? 'selected' : '' %>>Female</option>
+                                <option value="other"  <%= student && student.gender === 'other'  ? 'selected' : '' %>>Other</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Row 2: Phone + Email + Enrolment date -->
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label class="student-form-label">Student Phone</label>
+                            <input type="tel" name="phone" class="student-form-input"
+                                   placeholder="10-digit number" maxlength="10"
+                                   value="<%= student && student.phone ? student.phone : '' %>">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="student-form-label">Email</label>
+                            <input type="email" name="email" class="student-form-input"
+                                   placeholder="student@example.com"
+                                   value="<%= student && student.email ? student.email : '' %>">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="student-form-label">Enrolment Date</label>
+                            <input type="date" name="enrolled_at" class="student-form-input"
+                                   value="<%= student && student.enrolled_at ? new Date(student.enrolled_at).toISOString().slice(0,10) : new Date().toISOString().slice(0,10) %>">
+                        </div>
+                    </div>
+
+                    <!-- Address -->
+                    <div class="mb-4">
+                        <label class="student-form-label">Address</label>
+                        <textarea name="address" class="student-form-textarea" rows="2"
+                                  placeholder="Student's home address"><%= student && student.address ? student.address : '' %></textarea>
+                    </div>
+
+                    <!-- ── Parent / Guardian Information Section ── -->
+                    <div class="student-form-section-title">
+                        <i class="bi bi-people-fill me-2"></i>Parent / Guardian Information
+                    </div>
+
+                    <div class="row g-3 mb-0">
+                        <div class="col-md-6">
+                            <label class="student-form-label">Parent / Guardian Name</label>
+                            <input type="text" name="parent_name" class="student-form-input"
+                                   placeholder="Enter Full Name"
+                                   value="<%= student && student.parent_name ? student.parent_name : '' %>">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="student-form-label">
+                                Parent WhatsApp Number <span class="student-required">*</span>
+                            </label>
+                            <div class="student-input-group">
+                                <span class="student-input-group-text">
+                                    <i class="bi bi-whatsapp"></i>
+                                </span>
+                                <input type="tel" name="parent_phone" class="student-form-input"
+                                       placeholder="10-digit WhatsApp number" maxlength="10"
+                                       value="<%= student && student.parent_phone ? student.parent_phone : '' %>"
+                                       required>
+                            </div>
+                            <small class="student-form-hint">
+                                <i class="bi bi-info-circle me-1"></i>Attendance alerts will be sent to this number
+                            </small>
+                        </div>
+                    </div>
+
+                    <!-- ── Action Buttons ── -->
+                    <div class="student-form-actions">
+                        <button type="submit" class="student-submit-btn">
+                            <i class="bi bi-check-lg me-1"></i>
+                            <%= student && student.id ? 'Update Student' : 'Add Student' %>
+                        </button>
+                        <a href="/academy/students" class="student-cancel-btn">
+                            Cancel
+                        </a>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+document.getElementById('photo').addEventListener('change', function () {
+    const file = this.files[0];
+    if (!file) return;
+    
+    if (file.size > 2 * 1024 * 1024) {
+        xToast('Image must be under 2MB', 'error');
+        this.value = '';
+        return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = function (e) {
+        const img  = document.getElementById('previewImg');
+        const icon = document.getElementById('previewIcon');
+        img.src = e.target.result;
+        img.style.display = 'block';
+        if (icon) icon.style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+});
+</script>
+
+<%- include('../../partials/footer') %>

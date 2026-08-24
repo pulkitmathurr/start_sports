@@ -1,0 +1,134 @@
+<%- include('../../partials/header') %>
+
+<div class="row settings-page-header">
+
+    <!-- Page Header - Blue Theme -->
+    <div class="col-12 mb-4">
+        <div class="batch-header">
+            <div class="batch-header__left">
+                <div class="batch-header__icon">
+                    <i class="bi bi-layers"></i>
+                </div>
+                <div>
+                    <h4 class="batch-header__title">Manage Batches</h4>
+                    <span class="batch-header__sub">Create batches, assign coaches and enrol students</span>
+                </div>
+            </div>
+            <a href="/academy/batches/new" class="batch-add-btn">
+                <i class="bi bi-plus-lg"></i> Create Batch
+            </a>
+        </div>
+    </div>
+
+    <% if (success) { %>
+    <script>document.addEventListener('DOMContentLoaded',()=>xToast('<%= success.replace(/'/g,"\'") %>','success'));</script>
+    <% } %>
+    <% if (error) { %>
+    <script>document.addEventListener('DOMContentLoaded',()=>xToast('<%= error.replace(/'/g,"\'") %>','error'));</script>
+    <% } %>
+
+    <div class="col-12">
+        <% if (batches.length === 0) { %>
+        <div class="batch-empty">
+            <div class="batch-empty__icon">
+                <i class="bi bi-layers"></i>
+            </div>
+            <p class="batch-empty__title">No batches created yet</p>
+            <small class="batch-empty__sub">Click "Create Batch" to set up your first batch</small>
+        </div>
+        <% } else { %>
+
+        <!-- Batch cards grid -->
+        <div class="row g-3">
+            <% batches.forEach(batch => { 
+                const capacityPct = batch.max_students > 0 ? Math.min(100, Math.round((batch.student_count / batch.max_students) * 100)) : 0;
+                let fillClass = 'batch-capacity-fill--normal';
+                if (capacityPct >= 100) fillClass = 'batch-capacity-fill--full';
+                else if (capacityPct >= 80) fillClass = 'batch-capacity-fill--warning';
+            %>
+            <div class="col-12 col-md-6 col-xl-4">
+                <div class="batch-card">
+                    <div class="batch-card__body">
+
+                        <!-- Header row -->
+                        <div class="batch-card__header">
+                            <div>
+                                <div class="batch-card__name"><%= batch.batch_name %></div>
+                                <% if (batch.sport) { %>
+                                <span class="batch-card__sport-badge"><%= batch.sport %></span>
+                                <% } %>
+                            </div>
+                            <% if (batch.status === 1) { %>
+                                <span class="batch-status-badge batch-status-active">Active</span>
+                            <% } else { %>
+                                <span class="batch-status-badge batch-status-inactive">Inactive</span>
+                            <% } %>
+                        </div>
+
+                        <!-- Info rows -->
+                        <div class="batch-info">
+                            <% if (batch.coach_name) { %>
+                            <div class="batch-info-row">
+                                <i class="bi bi-person-badge"></i>
+                                <span class="batch-coach-name"><%= batch.coach_name %></span>
+                            </div>
+                            <% } %>
+                            <% if (batch.start_time && batch.end_time) { %>
+                            <div class="batch-info-row">
+                                <i class="bi bi-clock"></i>
+                                <span class="batch-time"><%= batch.start_time.slice(0,5) %> — <%= batch.end_time.slice(0,5) %></span>
+                            </div>
+                            <% } %>
+                            <% if (batch.days_of_week) { %>
+                            <div class="batch-info-row">
+                                <i class="bi bi-calendar3"></i>
+                                <span class="batch-days"><%= batch.days_of_week %></span>
+                            </div>
+                            <% } %>
+                            <div class="batch-info-row">
+                                <i class="bi bi-people"></i>
+                                <span class="batch-student-count"><%= batch.student_count %> / <%= batch.max_students || '∞' %> students</span>
+                            </div>
+                        </div>
+
+                        <!-- Capacity bar -->
+                        <% if (batch.max_students > 0) { %>
+                        <div class="batch-capacity-bar">
+                            <div class="batch-capacity-fill <%= fillClass %>" style="width: <%= capacityPct %>%;"></div>
+                        </div>
+                        <% } %>
+
+                        <!-- Actions -->
+                        <div class="batch-actions">
+                            <a href="/academy/batches/<%= batch.id %>" class="batch-action-btn batch-action-view">
+                                <i class="bi bi-eye"></i> View
+                            </a>
+                            <a href="/academy/batches/<%= batch.id %>/edit" class="batch-action-btn batch-action-edit">
+                                <i class="bi bi-pencil"></i> Edit
+                            </a>
+                            <form method="POST" action="/academy/batches/<%= batch.id %>/toggle" style="margin:0;">
+                                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                <button type="submit" class="batch-action-btn batch-action-toggle">
+                                    <%= batch.status === 1 ? 'Deactivate' : 'Activate' %>
+                                </button>
+                            </form>
+                            <form method="POST" action="/academy/batches/<%= batch.id %>/delete" style="margin:0;"
+                                  onsubmit="return confirm('Delete <%= batch.batch_name %>? This cannot be undone.')">
+                                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                <button type="submit" class="batch-action-btn batch-action-delete">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            <% }) %>
+        </div>
+        <% } %>
+    </div>
+
+</div>
+
+<%- include('../../partials/footer') %>

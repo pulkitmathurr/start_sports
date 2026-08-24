@@ -1,284 +1,391 @@
 <%- include('../partials/header') %>
 
-<div class="bs-page">
-    
-    <!-- Premium Header with Gradient -->
-    <div class="bs-header-premium">
-        <div class="bs-header-premium__content">
-            <div class="bs-header-premium__icon">
-                <i class="bi bi-journal-bookmark-fill"></i>
-            </div>
-            <div class="bs-header-premium__text">
-                <h1>Balance Sheet</h1>
-                <p>Profit & Loss Statement - Complete Financial Overview</p>
+    <div class="bs-page">
+
+        <!-- Premium Header with Gradient -->
+        <div class="bs-header-premium">
+            <div class="bs-header-premium__content">
+                <div class="bs-header-premium__icon">
+                    <i class="bi bi-journal-bookmark-fill"></i>
+                </div>
+                <div class="bs-header-premium__text">
+                    <h1>Balance Sheet</h1>
+                    <p>Profit & Loss Statement - Complete Financial Overview</p>
+                </div>
             </div>
         </div>
+
+        <!-- Modern Filter Card -->
+        <div class="bs-filter-card">
+            <div class="bs-filter-card__header">
+                <i class="bi bi-funnel-fill"></i>
+                <span>Filter Report</span>
+            </div>
+            <div class="bs-filter-card__body">
+                <!-- Ground Filter Badge (shows when a ground is selected) -->
+                <div id="groundFilterBadge" class="bs-ground-badge" style="display:none;">
+                    <i class="bi bi-geo-alt-fill"></i>
+                    <span id="groundFilterBadgeText">All Grounds</span>
+                    <button onclick="resetGroundFilter()" class="bs-ground-badge-clear" title="Show all grounds">
+                        <i class="bi bi-x"></i>
+                    </button>
+                </div>
+
+                <div class="bs-filter-group">
+                    <div class="bs-filter-item">
+                        <label class="bs-filter-label">
+                            <i class="bi bi-geo-alt-fill"></i> Ground
+                        </label>
+                        <select id="groundSelect" class="bs-filter-select bs-filter-select--ground">
+                            <option value=""> All Grounds</option>
+                            <% if (typeof grounds !=='undefined' && grounds.length> 0) { %>
+                                <% grounds.forEach(g=> { %>
+                                    <option value="<%= g.id %>">⚽ <%= g.name %>
+                                    </option>
+                                    <% }) %>
+                                        <% } %>
+                        </select>
+                    </div>
+
+                    <div class="bs-filter-item">
+                        <label class="bs-filter-label">
+                            <i class="bi bi-calendar-range"></i> Report Type
+                        </label>
+                        <select id="periodType" class="bs-filter-select">
+                            <option value="yearly">📊 Yearly Statement</option>
+                            <option value="monthly">📅 Monthly Statement</option>
+                        </select>
+                    </div>
+
+                    <div class="bs-filter-item">
+                        <label class="bs-filter-label">
+                            <i class="bi bi-calendar3"></i> Year
+                        </label>
+                        <select id="yearSelect" class="bs-filter-select">
+                            <% years.forEach(y=> { %>
+                                <option value="<%= y %>" <%=y==currentYear ? 'selected' : '' %>><%= y %> - <%= y+1 %>
+                                            Fiscal Year</option>
+                                <% }) %>
+                        </select>
+                    </div>
+
+                    <div class="bs-filter-item" id="monthFilterWrapper">
+                        <label class="bs-filter-label">
+                            <i class="bi bi-calendar-month"></i> Month
+                        </label>
+                        <select id="monthSelect" class="bs-filter-select">
+                            <option value="1">January</option>
+                            <option value="2">February</option>
+                            <option value="3">March</option>
+                            <option value="4">April</option>
+                            <option value="5">May</option>
+                            <option value="6">June</option>
+                            <option value="7">July</option>
+                            <option value="8">August</option>
+                            <option value="9">September</option>
+                            <option value="10">October</option>
+                            <option value="11">November</option>
+                            <option value="12">December</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="bs-filter-actions">
+                    <button id="applyFiltersBtn" class="bs-btn-primary">
+                        <i class="bi bi-check-lg"></i> Apply Filter
+                    </button>
+                    <button id="resetFiltersBtn" class="bs-btn-secondary">
+                        <i class="bi bi-arrow-repeat"></i> Reset
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Balance Sheet Container - Professional Accounting Format -->
+        <div class="bs-container" id="printArea">
+
+            <!-- Title -->
+            <div class="bs-title">
+                <h2>PROFIT & LOSS STATEMENT</h2>
+                <p id="periodDisplay">
+                    <%= balanceData.period.display %>
+                </p>
+                <p style="font-size:18px;color:#2563eb;font-weight:600;margin-top:4px;">
+                    <i class="bi bi-geo-alt-fill"></i>
+                    <span id="balanceSheetGroundTitle">All Grounds</span>
+                </p>
+            </div>
+
+            <!-- Main Balance Sheet - No Gap Between Columns -->
+            <div class="bs-main-table">
+
+                <!-- LEFT SIDE - DEBIT (Expenses) -->
+                <div class="bs-debit-col">
+                    <div class="bs-section-header">
+                        <h3>DEBIT</h3>
+                        <span class="bs-subtitle">(Expenses & Losses)</span>
+                    </div>
+
+                    <!-- Direct Expenses Section -->
+                    <div class="bs-section">
+                        <div class="bs-section-title"
+                            style="display:flex;align-items:center;justify-content:space-between;">
+                            <span>Direct Expenses</span>
+                            <button onclick="openAddCategory('direct_expense')"
+                                style="background:#2563eb;color:#fff;border:none;border-radius:8px;padding:4px 12px;font-size:0.7rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px;">
+                                <i class="bi bi-plus-lg"></i> Add
+                            </button>
+                        </div>
+                        <div class="bs-table-wrapper">
+                            <table class="bs-table" id="directExpensesTable">
+                                <thead>
+                                    <tr>
+                                        <th class="bs-code-col">A/c Code</th>
+                                        <th class="bs-name-col">A/c Name</th>
+                                        <th class="bs-amount-col">Amount (₹)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="directExpensesBody">
+                                    <tr>
+                                        <td colspan="3" class="text-center text-muted">Loading...</td>
+                                    </tr>
+                                </tbody>
+                                <tfoot id="directExpensesTotal"></tfoot>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Indirect Expenses Section -->
+                    <div class="bs-section">
+                        <div class="bs-section-title"
+                            style="display:flex;align-items:center;justify-content:space-between;">
+                            <span>Indirect Expenses</span>
+                            <button onclick="openAddCategory('indirect_expense')"
+                                style="background:#2563eb;color:#fff;border:none;border-radius:8px;padding:4px 12px;font-size:0.7rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px;">
+                                <i class="bi bi-plus-lg"></i> Add
+                            </button>
+                        </div>
+                        <div class="bs-table-wrapper">
+                            <table class="bs-table" id="indirectExpensesTable">
+                                <thead>
+                                    <tr>
+                                        <th class="bs-code-col">A/c Code</th>
+                                        <th class="bs-name-col">A/c Name</th>
+                                        <th class="bs-amount-col">Amount (₹)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="indirectExpensesBody">
+                                    <tr>
+                                        <td colspan="3" class="text-center text-muted">Loading...</td>
+                                    </tr>
+                                </tbody>
+                                <tfoot id="indirectExpensesTotal"></tfoot>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- RIGHT SIDE - CREDIT (Income) -->
+                <div class="bs-credit-col">
+                    <div class="bs-section-header">
+                        <h3>CREDIT</h3>
+                        <span class="bs-subtitle">(Income & Gains)</span>
+                    </div>
+
+                    <!-- Revenue Section -->
+                    <div class="bs-section">
+                        <div class="bs-section-title">Revenue</div>
+                        <div class="bs-table-wrapper">
+                            <table class="bs-table" id="revenueTable">
+                                <thead>
+                                    <tr>
+                                        <th class="bs-code-col">A/c Code</th>
+                                        <th class="bs-name-col">A/c Name</th>
+                                        <th class="bs-amount-col">Amount (₹)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="revenueBody">
+                                    <tr>
+                                        <td colspan="3" class="text-center text-muted">Loading...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Gross Profit Section -->
+                    <div class="bs-section">
+                        <div class="bs-section-title">Gross Profit</div>
+                        <div class="bs-table-wrapper">
+                            <table class="bs-table">
+                                <tbody>
+                                    <tr class="bs-profit-row">
+                                        <td class="bs-code-col"></td>
+                                        <td class="bs-name-col"><strong>By Gross Profit c/d</strong></td>
+                                        <td class="bs-amount-col"><strong id="grossProfitAmount">0</strong></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Additional Income Section -->
+                    <div class="bs-section" id="additionalIncomeSection" style="display: none;">
+                        <div class="bs-section-title"
+                            style="display:flex;align-items:center;justify-content:space-between;">
+                            <span>Additional Income</span>
+                            <button onclick="openAddCategory('income')"
+                                style="background:#2563eb;color:#fff;border:none;border-radius:8px;padding:4px 12px;font-size:0.7rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px;">
+                                <i class="bi bi-plus-lg"></i> Add
+                            </button>
+                        </div>
+                        <div class="bs-table-wrapper">
+                            <table class="bs-table" id="additionalIncomeTable">
+                                <thead>
+                                    <tr>
+                                        <th class="bs-code-col">A/c Code</th>
+                                        <th class="bs-name-col">A/c Name</th>
+                                        <th class="bs-amount-col">Amount (₹)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="additionalIncomeBody"></tbody>
+                                <tfoot id="additionalIncomeTotal"></tfoot>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Net Profit Section -->
+                    <div class="bs-section">
+                        <div class="bs-section-title">Net Profit</div>
+                        <div class="bs-table-wrapper">
+                            <table class="bs-table">
+                                <tbody>
+                                    <tr class="bs-profit-row bs-net-profit">
+                                        <td class="bs-code-col"></td>
+                                        <td class="bs-name-col"><strong>Net Profit / (Loss)</strong></td>
+                                        <td class="bs-amount-col"><strong id="netProfitAmount">0</strong></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Total Debit & Total Credit — Professional Accounting Format -->
+            <div class="bs-totals-row">
+                <div class="bs-grand-total bs-grand-total-debit" id="totalDebitBox">
+                    <div class="bs-grand-total-label">Total Debit</div>
+                    <div class="bs-grand-total-amount" id="totalDebitAmount">0</div>
+                </div>
+                <div class="bs-grand-total bs-grand-total-credit" id="totalCreditBox">
+                    <div class="bs-grand-total-label">Total Credit</div>
+                    <div class="bs-grand-total-amount" id="totalCreditAmount">0</div>
+                </div>
+            </div>
+
+            <!-- Balance Check Indicator -->
+            <div class="bs-balance-check" id="balanceCheck">
+                <i class="bi bi-check-circle-fill"></i>
+                <span>Balance Sheet is Balanced ✓</span>
+            </div>
+
+            <!-- Monthly Profit/Loss Chart -->
+            <div class="bs-card mt-4">
+                <div class="bs-card__header">
+                    <i class="bi bi-bar-chart-line"></i> Monthly Profit/Loss Trend
+                </div>
+                <div class="bs-card__body">
+                    <canvas id="monthlyChart" style="max-height: 350px;"></canvas>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Print Button -->
+        <div class="bs-print-btn-container">
+            <button onclick="printBalanceSheet()" class="bs-print-btn">
+                <i class="bi bi-printer"></i> Print Balance Sheet
+            </button>
+        </div>
+
     </div>
 
-    <!-- Modern Filter Card -->
-    <div class="bs-filter-card">
-        <div class="bs-filter-card__header">
-            <i class="bi bi-funnel-fill"></i>
-            <span>Filter Report</span>
-        </div>
-        <div class="bs-filter-card__body">
-            <div class="bs-filter-group">
-                <div class="bs-filter-item">
-                    <label class="bs-filter-label">
-                        <i class="bi bi-calendar-range"></i> Report Type
-                    </label>
-                    <select id="periodType" class="bs-filter-select">
-                        <option value="yearly">📊 Yearly Statement</option>
-                        <option value="monthly">📅 Monthly Statement</option>
-                    </select>
-                </div>
-                
-                <div class="bs-filter-item">
-                    <label class="bs-filter-label">
-                        <i class="bi bi-calendar3"></i> Year
-                    </label>
-                    <select id="yearSelect" class="bs-filter-select">
-                        <% years.forEach(y => { %>
-                            <option value="<%= y %>" <%= y == currentYear ? 'selected' : '' %>><%= y %> - <%= y+1 %> Fiscal Year</option>
-                        <% }) %>
-                    </select>
-                </div>
-                
-                <div class="bs-filter-item" id="monthFilterWrapper">
-                    <label class="bs-filter-label">
-                        <i class="bi bi-calendar-month"></i> Month
-                    </label>
-                    <select id="monthSelect" class="bs-filter-select">
-                        <option value="1">January</option>
-                        <option value="2">February</option>
-                        <option value="3">March</option>
-                        <option value="4">April</option>
-                        <option value="5">May</option>
-                        <option value="6">June</option>
-                        <option value="7">July</option>
-                        <option value="8">August</option>
-                        <option value="9">September</option>
-                        <option value="10">October</option>
-                        <option value="11">November</option>
-                        <option value="12">December</option>
-                    </select>
-                </div>
-            </div>
-            
-            <div class="bs-filter-actions">
-                <button id="applyFiltersBtn" class="bs-btn-primary">
-                    <i class="bi bi-check-lg"></i> Apply Filter
-                </button>
-                <button id="resetFiltersBtn" class="bs-btn-secondary">
-                    <i class="bi bi-arrow-repeat"></i> Reset
-                </button>
-            </div>
-        </div>
-    </div>
+    <style>
+        .bs-clickable-row {
+            cursor: pointer;
+            transition: background 0.15s;
+        }
 
-    <!-- Balance Sheet Container - Professional Accounting Format -->
-    <div class="bs-container" id="printArea">
-        
-        <!-- Title -->
-        <div class="bs-title">
-            <h2>PROFIT & LOSS STATEMENT</h2>
-            <p id="periodDisplay"><%= balanceData.period.display %></p>
-        </div>
+        .bs-clickable-row:hover {
+            background: #eff6ff !important;
+        }
 
-        <!-- Main Balance Sheet - No Gap Between Columns -->
-        <div class="bs-main-table">
-            
-            <!-- LEFT SIDE - DEBIT (Expenses) -->
-            <div class="bs-debit-col">
-                <div class="bs-section-header">
-                    <h3>DEBIT</h3>
-                    <span class="bs-subtitle">(Expenses & Losses)</span>
-                </div>
-                
-                <!-- Direct Expenses Section -->
-                <div class="bs-section">
-                    <div class="bs-section-title">Direct Expenses</div>
-                    <div class="bs-table-wrapper">
-                        <table class="bs-table" id="directExpensesTable">
-                            <thead>
-                                <tr>
-                                    <th class="bs-code-col">A/c Code</th>
-                                    <th class="bs-name-col">A/c Name</th>
-                                    <th class="bs-amount-col">Amount (₹)</th>
-                                </tr>
-                            </thead>
-                            <tbody id="directExpensesBody">
-                                <tr><td colspan="3" class="text-center text-muted">Loading...</td></tr>
-                            </tbody>
-                            <tfoot id="directExpensesTotal"></tfoot>
-                        </table>
-                    </div>
-                </div>
-                
-                <!-- Indirect Expenses Section -->
-                <div class="bs-section">
-                    <div class="bs-section-title">Indirect Expenses</div>
-                    <div class="bs-table-wrapper">
-                        <table class="bs-table" id="indirectExpensesTable">
-                            <thead>
-                                <tr>
-                                    <th class="bs-code-col">A/c Code</th>
-                                    <th class="bs-name-col">A/c Name</th>
-                                    <th class="bs-amount-col">Amount (₹)</th>
-                                </tr>
-                            </thead>
-                            <tbody id="indirectExpensesBody">
-                                <tr><td colspan="3" class="text-center text-muted">Loading...</td></tr>
-                            </tbody>
-                            <tfoot id="indirectExpensesTotal"></tfoot>
-                        </table>
-                    </div>
-                </div>
-                
-            </div>
-            
-            <!-- RIGHT SIDE - CREDIT (Income) -->
-            <div class="bs-credit-col">
-                <div class="bs-section-header">
-                    <h3>CREDIT</h3>
-                    <span class="bs-subtitle">(Income & Gains)</span>
-                </div>
-                
-                <!-- Revenue Section -->
-                <div class="bs-section">
-                    <div class="bs-section-title">Revenue</div>
-                    <div class="bs-table-wrapper">
-                        <table class="bs-table" id="revenueTable">
-                            <thead>
-                                <tr>
-                                    <th class="bs-code-col">A/c Code</th>
-                                    <th class="bs-name-col">A/c Name</th>
-                                    <th class="bs-amount-col">Amount (₹)</th>
-                                </tr>
-                            </thead>
-                            <tbody id="revenueBody">
-                                <tr><td colspan="3" class="text-center text-muted">Loading...</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                
-                <!-- Gross Profit Section -->
-                <div class="bs-section">
-                    <div class="bs-section-title">Gross Profit</div>
-                    <div class="bs-table-wrapper">
-                        <table class="bs-table">
-                            <tbody>
-                                <tr class="bs-profit-row">
-                                    <td class="bs-code-col"></td>
-                                    <td class="bs-name-col"><strong>By Gross Profit c/d</strong></td>
-                                    <td class="bs-amount-col"><strong id="grossProfitAmount">0</strong></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                
-                <!-- Additional Income Section -->
-                <div class="bs-section" id="additionalIncomeSection" style="display: none;">
-                    <div class="bs-section-title">Additional Income</div>
-                    <div class="bs-table-wrapper">
-                        <table class="bs-table" id="additionalIncomeTable">
-                            <thead>
-                                <tr>
-                                    <th class="bs-code-col">A/c Code</th>
-                                    <th class="bs-name-col">A/c Name</th>
-                                    <th class="bs-amount-col">Amount (₹)</th>
-                                </tr>
-                            </thead>
-                            <tbody id="additionalIncomeBody"></tbody>
-                            <tfoot id="additionalIncomeTotal"></tfoot>
-                        </table>
-                    </div>
-                </div>
-                
-                <!-- Net Profit Section -->
-                <div class="bs-section">
-                    <div class="bs-section-title">Net Profit</div>
-                    <div class="bs-table-wrapper">
-                        <table class="bs-table">
-                            <tbody>
-                                <tr class="bs-profit-row bs-net-profit">
-                                    <td class="bs-code-col"></td>
-                                    <td class="bs-name-col"><strong>Net Profit / (Loss)</strong></td>
-                                    <td class="bs-amount-col"><strong id="netProfitAmount">0</strong></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                
-            </div>
-        </div>
+        .bs-clickable-row:hover .bs-name-col {
+            color: #2563eb;
+            text-decoration: underline;
+        }
 
-        <!-- Total Debit & Total Credit — Professional Accounting Format -->
-        <div class="bs-totals-row">
-            <div class="bs-grand-total bs-grand-total-debit" id="totalDebitBox">
-                <div class="bs-grand-total-label">Total Debit</div>
-                <div class="bs-grand-total-amount" id="totalDebitAmount">0</div>
-            </div>
-            <div class="bs-grand-total bs-grand-total-credit" id="totalCreditBox">
-                <div class="bs-grand-total-label">Total Credit</div>
-                <div class="bs-grand-total-amount" id="totalCreditAmount">0</div>
-            </div>
-        </div>
-        
-        <!-- Balance Check Indicator -->
-        <div class="bs-balance-check" id="balanceCheck">
-            <i class="bi bi-check-circle-fill"></i>
-            <span>Balance Sheet is Balanced ✓</span>
-        </div>
-        
-        <!-- Monthly Profit/Loss Chart -->
-        <div class="bs-card mt-4">
-            <div class="bs-card__header">
-                <i class="bi bi-bar-chart-line"></i> Monthly Profit/Loss Trend
-            </div>
-            <div class="bs-card__body">
-                <canvas id="monthlyChart" style="max-height: 350px;"></canvas>
-            </div>
-        </div>
-        
-    </div>
-    
-    <!-- Print Button -->
-    <div class="bs-print-btn-container">
-        <button onclick="printBalanceSheet()" class="bs-print-btn">
-            <i class="bi bi-printer"></i> Print Balance Sheet
-        </button>
-    </div>
-    
-</div>
+        .bs-drill-hint {
+            display: inline-block;
+            margin-left: 6px;
+            font-size: 10px;
+            color: #2563eb;
+            opacity: 0;
+            transition: opacity 0.15s;
+        }
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<script>
-let monthlyChart;
+        .bs-clickable-row:hover .bs-drill-hint {
+            opacity: 1;
+        }
+    </style>
 
-// Format numbers as Indian currency
-function formatCurrency(amount) {
-    return new Intl.NumberFormat('en-IN', {
-        maximumFractionDigits: 0,
-        minimumFractionDigits: 0
-    }).format(amount);
-}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script>
+        let monthlyChart;
 
-// Print function - works with print styles
-function printBalanceSheet() {
-    const printContent = document.getElementById('printArea').cloneNode(true);
-    const originalTitle = document.title;
-    
-    // Create print window
-    const printWindow = window.open('', '_blank');
-    printWindow.document.write(`
+        // Format numbers as Indian currency
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('en-IN', {
+                maximumFractionDigits: 0,
+                minimumFractionDigits: 0
+            }).format(amount);
+        }
+
+        // Print function - works with print styles
+        function printBalanceSheet() {
+            const printContent = document.getElementById('printArea').cloneNode(true);
+
+            // ── Resolve ground label ──────────────────────────────────
+            const groundSel = document.getElementById('groundSelect');
+            const groundVal = groundSel ? groundSel.value : '';
+            const groundLabel = groundVal
+                ? groundSel.options[groundSel.selectedIndex].text.replace('⚽ ', '')
+                : 'All Grounds (Consolidated)';
+
+            const period = document.getElementById('periodDisplay').innerText;
+
+            // ── Inject ground line below period in the cloned print area ──
+            const periodEl = printContent.querySelector('#periodDisplay');
+            if (periodEl) {
+                const groundLine = document.createElement('p');
+                groundLine.style.cssText = 'font-size:20px;color:#2563eb;font-weight:600;margin-top:4px;';
+                groundLine.innerHTML = `&#128205; Ground: <strong>${groundLabel}</strong>`;
+                periodEl.insertAdjacentElement('afterend', groundLine);
+            }
+
+            // ── Remove the balanceSheetGroundTitle span (already shown above now) ──
+            const existingGroundTitle = printContent.querySelector('#balanceSheetGroundTitle');
+            if (existingGroundTitle) existingGroundTitle.parentElement.style.display = 'none';
+
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
         <!DOCTYPE html>
         <html>
         <head>
-            <title>Balance Sheet - ${document.getElementById('periodDisplay').innerText}</title>
+            <title>Balance Sheet - ${period} - ${groundLabel}</title>
             <meta charset="UTF-8">
             <style>
                 * {
@@ -300,17 +407,17 @@ function printBalanceSheet() {
                     text-align: center;
                     margin-bottom: 30px;
                     padding-bottom: 20px;
-                    border-bottom: 2px solid #1B4332;
+                    border-bottom: 2px solid #2563eb;
                 }
                 .bs-title h2 {
                     font-size: 24px;
                     font-weight: 700;
-                    color: #1B4332;
+                    color: #1e293b;
                     margin-bottom: 8px;
                 }
                 .bs-title p {
                     color: #6b7280;
-                    font-size: 14px;
+                    font-size: 20px;
                 }
                 .bs-main-table {
                     display: flex;
@@ -331,7 +438,7 @@ function printBalanceSheet() {
                 .bs-section-header h3 {
                     font-size: 18px;
                     font-weight: 700;
-                    color: #1B4332;
+                    color: #1e293b;
                 }
                 .bs-subtitle {
                     font-size: 11px;
@@ -369,7 +476,7 @@ function printBalanceSheet() {
                     border-top: 1px solid #e5e7eb;
                 }
                 .bs-profit-row td {
-                    background: #f0fdf4;
+                    background: #eff6ff;
                     font-weight: 700;
                 }
                 .bs-totals-row {
@@ -380,7 +487,7 @@ function printBalanceSheet() {
                 }
                 .bs-grand-total {
                     flex: 1;
-                    background: #1B4332;
+                    background: #2563eb;
                     color: white;
                     padding: 12px 20px;
                     display: flex;
@@ -402,9 +509,9 @@ function printBalanceSheet() {
                     text-align: center;
                     padding: 12px;
                     margin-top: 20px;
-                    background: #f0fdf4;
-                    color: #1B4332;
-                    border: 1px solid #bbf7d0;
+                    background: #ecfdf5;
+                    color: #059669;
+                    border: 1px solid #a7f3d0;
                     border-radius: 8px;
                 }
                 @media print {
@@ -436,252 +543,517 @@ function printBalanceSheet() {
         </body>
         </html>
     `);
-    printWindow.document.close();
-}
+            printWindow.document.close();
+        }
 
-// Render Direct Expenses Table
-function renderDirectExpenses(expenses, total) {
-    const tbody = document.getElementById('directExpensesBody');
-    const tfoot = document.getElementById('directExpensesTotal');
-    
-    if (expenses.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="3" class="text-center text-muted">No direct expenses recorded</td></tr>';
-        tfoot.innerHTML = '';
-    } else {
-        tbody.innerHTML = expenses.map(exp => `
-            <tr>
+        // Render Direct Expenses Table
+        function getDetailUrl(accountCode, incomeType = 0) {
+            const periodType = document.getElementById('periodType').value;
+            const year = document.getElementById('yearSelect').value;
+            const month = document.getElementById('monthSelect').value;
+            const groundId = document.getElementById('groundSelect').value;
+            let url = `/balance-sheet/expense-detail/page?account_code=${accountCode}&period_type=${periodType}&year=${year}&income_type=${incomeType}`;
+            if (periodType === 'monthly') url += `&month=${month}`;
+            if (groundId) url += `&ground_id=${groundId}`;
+            return url;
+        }
+
+        function getSalesUrl() {
+            const periodType = document.getElementById('periodType').value;
+            const year = document.getElementById('yearSelect').value;
+            const month = document.getElementById('monthSelect').value;
+            const groundId = document.getElementById('groundSelect').value;
+            // Link to bookings history page with same filters
+            let url = `/bookings?status=confirmed&year=${year}`;
+            if (periodType === 'monthly') url += `&month=${month}`;
+            if (groundId) url += `&ground_id=${groundId}`;
+            return url;
+        }
+
+        function renderDirectExpenses(expenses, total) {
+            const tbody = document.getElementById('directExpensesBody');
+            const tfoot = document.getElementById('directExpensesTotal');
+
+            if (expenses.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" class="text-center text-muted">No direct expenses recorded</td></tr>';
+                tfoot.innerHTML = '';
+            } else {
+                tbody.innerHTML = expenses.map(exp => `
+            <tr class="bs-clickable-row" onclick="window.location.href='${getDetailUrl(exp.account_code)}'" title="Click to see all ${exp.account_name} entries">
                 <td class="bs-code-col">${exp.account_code}</td>
-                <td class="bs-name-col">${exp.account_name}</td>
-                <td class="bs-amount-col">${formatCurrency(exp.total_amount)}</td>
+                <td class="bs-name-col">
+                    ${exp.account_name}
+                    <span class="bs-drill-hint"><i class="bi bi-box-arrow-up-right"></i></span>
+                </td>
+                <td class="bs-amount-col" style="display:flex;align-items:center;justify-content:flex-end;gap:8px;">
+                    <span>${formatCurrency(exp.total_amount)}</span>
+                    ${parseInt(exp.account_code) >= 400 ? `<button onclick="event.stopPropagation();deleteCategory('${exp.account_code}','${exp.account_name}')" style="background:#fee2e2;border:1px solid #fecaca;color:#dc2626;border-radius:6px;padding:1px 7px;font-size:0.68rem;cursor:pointer;" title="Delete category"><i class="bi bi-trash3"></i></button>` : ''}
+                </td>
             </tr>
         `).join('');
-        tfoot.innerHTML = `
+                tfoot.innerHTML = `
             <tr class="bs-total-row">
                 <td colspan="2"><strong>Total Direct Expenses</strong></td>
                 <td class="bs-amount-col"><strong>${formatCurrency(total)}</strong></td>
             </tr>
         `;
-    }
-}
+            }
+        }
 
-// Render Indirect Expenses Table
-function renderIndirectExpenses(expenses, total) {
-    const tbody = document.getElementById('indirectExpensesBody');
-    const tfoot = document.getElementById('indirectExpensesTotal');
-    
-    if (expenses.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="3" class="text-center text-muted">No indirect expenses recorded</td></tr>';
-        tfoot.innerHTML = '';
-    } else {
-        tbody.innerHTML = expenses.map(exp => `
-            <tr>
+        // Render Indirect Expenses Table
+        function renderIndirectExpenses(expenses, total) {
+            const tbody = document.getElementById('indirectExpensesBody');
+            const tfoot = document.getElementById('indirectExpensesTotal');
+
+            if (expenses.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" class="text-center text-muted">No indirect expenses recorded</td></tr>';
+                tfoot.innerHTML = '';
+            } else {
+                tbody.innerHTML = expenses.map(exp => `
+            <tr class="bs-clickable-row" onclick="window.location.href='${getDetailUrl(exp.account_code)}'" title="Click to see all ${exp.account_name} entries">
                 <td class="bs-code-col">${exp.account_code}</td>
-                <td class="bs-name-col">${exp.account_name}</td>
-                <td class="bs-amount-col">${formatCurrency(exp.total_amount)}</td>
+                <td class="bs-name-col">
+                    ${exp.account_name}
+                    <span class="bs-drill-hint"><i class="bi bi-box-arrow-up-right"></i></span>
+                </td>
+                <td class="bs-amount-col" style="display:flex;align-items:center;justify-content:flex-end;gap:8px;">
+                    <span>${formatCurrency(exp.total_amount)}</span>
+                    ${parseInt(exp.account_code) >= 400 ? `<button onclick="event.stopPropagation();deleteCategory('${exp.account_code}','${exp.account_name}')" style="background:#fee2e2;border:1px solid #fecaca;color:#dc2626;border-radius:6px;padding:1px 7px;font-size:0.68rem;cursor:pointer;" title="Delete category"><i class="bi bi-trash3"></i></button>` : ''}
+                </td>
             </tr>
         `).join('');
-        tfoot.innerHTML = `
+                tfoot.innerHTML = `
             <tr class="bs-total-row">
                 <td colspan="2"><strong>Total Indirect Expenses</strong></td>
                 <td class="bs-amount-col"><strong>${formatCurrency(total)}</strong></td>
             </tr>
         `;
-    }
-}
+            }
+        }
 
-// Render Revenue Section
-function renderRevenue(sales, closingStock) {
-    const tbody = document.getElementById('revenueBody');
-    let html = `
+        // Render Revenue Section
+        function renderRevenue(sales, closingStock) {
+            const tbody = document.getElementById('revenueBody');
+            const bookingsUrl = getSalesUrl();
+            let html = `
         <tr>
-            <td class="bs-code-col">${sales.account_code}</td>
-            <td class="bs-name-col">${sales.account_name}</td>
-            <td class="bs-amount-col">${formatCurrency(sales.total_amount)}</td>
-        </tr>
+    <td class="bs-code-col">${sales.account_code}</td>
+    <td class="bs-name-col">${sales.account_name}</td>
+    <td class="bs-amount-col">${formatCurrency(sales.total_amount)}</td>
+    </tr>
     `;
-    
-    if (closingStock.total_amount > 0) {
-        html += `
-            <tr>
+
+            if (closingStock.total_amount > 0) {
+                const stockUrl = getDetailUrl(closingStock.account_code);
+                html += `
+            <tr class="bs-clickable-row" onclick="window.location.href='${stockUrl}'" title="Click to view stock entries">
                 <td class="bs-code-col">${closingStock.account_code}</td>
-                <td class="bs-name-col">${closingStock.account_name}</td>
+                <td class="bs-name-col">
+                    ${closingStock.account_name}
+                    <span class="bs-drill-hint"><i class="bi bi-box-arrow-up-right"></i></span>
+                </td>
                 <td class="bs-amount-col">${formatCurrency(closingStock.total_amount)}</td>
             </tr>
         `;
-    }
-    
-    const subTotal = sales.total_amount + closingStock.total_amount;
-    html += `
+            }
+
+            const subTotal = sales.total_amount + closingStock.total_amount;
+            html += `
         <tr class="bs-total-row">
             <td colspan="2"><strong>Sub Total</strong></td>
             <td class="bs-amount-col"><strong>${formatCurrency(subTotal)}</strong></td>
         </tr>
     `;
-    
-    tbody.innerHTML = html;
-}
 
-// Render Additional Income
-function renderAdditionalIncome(income, total) {
-    const section = document.getElementById('additionalIncomeSection');
-    const tbody = document.getElementById('additionalIncomeBody');
-    const tfoot = document.getElementById('additionalIncomeTotal');
-    
-    if (income.length === 0) {
-        section.style.display = 'none';
-    } else {
-        section.style.display = 'block';
-        tbody.innerHTML = income.map(inc => `
-            <tr>
+            tbody.innerHTML = html;
+        }
+
+        // Render Additional Income
+        function renderAdditionalIncome(income, total) {
+            const section = document.getElementById('additionalIncomeSection');
+            const tbody = document.getElementById('additionalIncomeBody');
+            const tfoot = document.getElementById('additionalIncomeTotal');
+
+            if (income.length === 0) {
+                section.style.display = 'none';
+            } else {
+                section.style.display = 'block';
+                tbody.innerHTML = income.map(inc => `
+            <tr class="bs-clickable-row" onclick="window.location.href='${getDetailUrl(inc.account_code, 1)}'" title="Click to see all ${inc.account_name} entries">
                 <td class="bs-code-col">${inc.account_code}</td>
-                <td class="bs-name-col">${inc.account_name}</td>
-                <td class="bs-amount-col">${formatCurrency(inc.total_amount)}</td>
+                <td class="bs-name-col">
+                    ${inc.account_name}
+                    <span class="bs-drill-hint"><i class="bi bi-box-arrow-up-right"></i></span>
+                </td>
+                <td class="bs-amount-col" style="display:flex;align-items:center;justify-content:flex-end;gap:8px;">
+                    <span>${formatCurrency(inc.total_amount)}</span>
+                    ${parseInt(inc.account_code) >= 600 ? `<button onclick="event.stopPropagation();deleteCategory('${inc.account_code}','${inc.account_name}')" style="background:#fee2e2;border:1px solid #fecaca;color:#dc2626;border-radius:6px;padding:1px 7px;font-size:0.68rem;cursor:pointer;" title="Delete category"><i class="bi bi-trash3"></i></button>` : ''}
+                </td>
             </tr>
         `).join('');
-        tfoot.innerHTML = `
+                tfoot.innerHTML = `
             <tr class="bs-total-row">
                 <td colspan="2"><strong>Total Additional Income</strong></td>
                 <td class="bs-amount-col"><strong>${formatCurrency(total)}</strong></td>
             </tr>
         `;
-    }
-}
-
-// Update all values on the page
-function updateBalanceSheet(data) {
-    document.getElementById('periodDisplay').textContent = data.period.display;
-    
-    renderDirectExpenses(data.direct_expenses, data.total_direct_expenses);
-    renderIndirectExpenses(data.indirect_expenses, data.total_indirect_expenses);
-    renderRevenue(data.sales, data.closing_stock);
-    
-    document.getElementById('grossProfitAmount').textContent = formatCurrency(data.gross_profit);
-    const grossProfitEl = document.getElementById('grossProfitAmount');
-    grossProfitEl.style.color = data.gross_profit >= 0 ? '#1B4332' : '#dc2626';
-    
-    renderAdditionalIncome(data.additional_income, data.total_additional_income);
-    
-    document.getElementById('netProfitAmount').textContent = formatCurrency(data.net_profit);
-    const netProfitEl = document.getElementById('netProfitAmount');
-    netProfitEl.style.color = data.net_profit >= 0 ? '#1B4332' : '#dc2626';
-    
-    document.getElementById('totalDebitAmount').textContent = formatCurrency(data.total_debit);
-    document.getElementById('totalCreditAmount').textContent = formatCurrency(data.total_credit);
-    
-    const balanceCheck = document.getElementById('balanceCheck');
-    if (data.is_balanced) {
-        balanceCheck.innerHTML = '<i class="bi bi-check-circle-fill"></i><span>Balance Sheet is Balanced ✓</span>';
-        balanceCheck.className = 'bs-balance-check balanced';
-    } else {
-        balanceCheck.innerHTML = '<i class="bi bi-exclamation-triangle-fill"></i><span>Balance Sheet is NOT Balanced! Difference: ₹' + 
-            formatCurrency(Math.abs(data.total_debit - data.total_credit)) + '</span>';
-        balanceCheck.className = 'bs-balance-check unbalanced';
-    }
-}
-
-// Load data for selected period
-async function loadBalanceSheet() {
-    const periodType = document.getElementById('periodType').value;
-    const year = document.getElementById('yearSelect').value;
-    const month = document.getElementById('monthSelect').value;
-    
-    let url = `/balance-sheet/api/data?period_type=${periodType}&year=${year}`;
-    if (periodType === 'monthly') {
-        url += `&month=${month}`;
-    }
-    
-    try {
-        const res = await fetch(url);
-        const result = await res.json();
-        
-        if (result.success) {
-            updateBalanceSheet(result.data);
-            
-            const monthlyRes = await fetch(`/balance-sheet/api/monthly?year=${year}`);
-            const monthlyResult = await monthlyRes.json();
-            
-            if (monthlyResult.success) {
-                updateMonthlyChart(monthlyResult.data);
             }
         }
-    } catch (err) {
-        console.error('Error loading balance sheet:', err);
-    }
-}
 
-// Update monthly profit/loss chart
-function updateMonthlyChart(monthlyData) {
-    const ctx = document.getElementById('monthlyChart').getContext('2d');
-    
-    if (monthlyChart) monthlyChart.destroy();
-    
-    const months = monthlyData.map(m => m.month_short);
-    const profits = monthlyData.map(m => m.profit);
-    
-    monthlyChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: months,
-            datasets: [{
-                label: 'Profit/Loss',
-                data: profits,
-                borderColor: '#1B4332',
-                backgroundColor: 'rgba(27, 67, 50, 0.1)',
-                fill: true,
-                tension: 0.4,
-                pointBackgroundColor: (ctx) => {
-                    const value = ctx.raw;
-                    return value >= 0 ? '#1B4332' : '#dc2626';
-                },
-                pointBorderColor: '#fff',
-                pointRadius: 5,
-                pointHoverRadius: 7
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            plugins: {
-                tooltip: {
-                    callbacks: {
-                        label: (ctx) => `Profit/Loss: ${ctx.raw >= 0 ? '₹' : '-₹'}${Math.abs(ctx.raw).toLocaleString('en-IN')}`
-                    }
-                },
-                legend: { position: 'top' }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: { callback: (val) => '₹' + val.toLocaleString('en-IN') }
+        // Update all values on the page
+        function updateBalanceSheet(data) {
+            document.getElementById('periodDisplay').textContent = data.period.display;
+
+            renderDirectExpenses(data.direct_expenses, data.total_direct_expenses);
+            renderIndirectExpenses(data.indirect_expenses, data.total_indirect_expenses);
+            renderRevenue(data.sales, data.closing_stock);
+
+            document.getElementById('grossProfitAmount').textContent = formatCurrency(data.gross_profit);
+            const grossProfitEl = document.getElementById('grossProfitAmount');
+            grossProfitEl.style.color = data.gross_profit >= 0 ? '#2563eb' : '#dc2626';
+
+            renderAdditionalIncome(data.additional_income, data.total_additional_income);
+
+            document.getElementById('netProfitAmount').textContent = formatCurrency(data.net_profit);
+            const netProfitEl = document.getElementById('netProfitAmount');
+            netProfitEl.style.color = data.net_profit >= 0 ? '#2563eb' : '#dc2626';
+
+            document.getElementById('totalDebitAmount').textContent = formatCurrency(data.total_debit);
+            document.getElementById('totalCreditAmount').textContent = formatCurrency(data.total_credit);
+
+            const balanceCheck = document.getElementById('balanceCheck');
+            if (data.is_balanced) {
+                balanceCheck.innerHTML = '<i class="bi bi-check-circle-fill"></i><span>Balance Sheet is Balanced ✓</span>';
+                balanceCheck.className = 'bs-balance-check balanced';
+            } else {
+                balanceCheck.innerHTML = '<i class="bi bi-exclamation-triangle-fill"></i><span>Balance Sheet is NOT Balanced! Difference: ₹' +
+                    formatCurrency(Math.abs(data.total_debit - data.total_credit)) + '</span>';
+                balanceCheck.className = 'bs-balance-check unbalanced';
+            }
+        }
+
+        // ── Ground filter badge helpers ───────────────────────────────
+        function updateGroundBadge() {
+            const sel = document.getElementById('groundSelect');
+            const badge = document.getElementById('groundFilterBadge');
+            const badgeText = document.getElementById('groundFilterBadgeText');
+            const titleEl = document.getElementById('balanceSheetGroundTitle');
+
+            if (sel.value) {
+                const groundName = sel.options[sel.selectedIndex].text.replace('⚽ ', '');
+                badge.style.display = 'flex';
+                badgeText.textContent = groundName;
+                if (titleEl) titleEl.textContent = `${groundName}`;
+            } else {
+                badge.style.display = 'none';
+                if (titleEl) titleEl.textContent = 'All Grounds';
+            }
+        }
+
+        function resetGroundFilter() {
+            document.getElementById('groundSelect').value = '';
+            updateGroundBadge();
+            loadBalanceSheet();
+        }
+
+        // Load data for selected period + ground
+        async function loadBalanceSheet() {
+            const periodType = document.getElementById('periodType').value;
+            const year = document.getElementById('yearSelect').value;
+            const month = document.getElementById('monthSelect').value;
+            const groundId = document.getElementById('groundSelect').value;
+
+            updateGroundBadge();
+
+            let url = `/balance-sheet/api/data?period_type=${periodType}&year=${year}`;
+            if (periodType === 'monthly') url += `&month=${month}`;
+            if (groundId) url += `&ground_id=${groundId}`;
+
+            // Show loading state
+            ['directExpensesBody', 'indirectExpensesBody', 'revenueBody', 'additionalIncomeBody'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.innerHTML = '<tr><td colspan="3" class="text-center text-muted py-2"><i class="bi bi-arrow-repeat spin-icon"></i> Loading...</td></tr>';
+            });
+
+            try {
+                const res = await fetch(url);
+                const result = await res.json();
+
+                if (result.success) {
+                    updateBalanceSheet(result.data);
+
+                    let monthlyUrl = `/balance-sheet/api/monthly?year=${year}`;
+                    if (groundId) monthlyUrl += `&ground_id=${groundId}`;
+                    const monthlyRes = await fetch(monthlyUrl);
+                    const monthlyResult = await monthlyRes.json();
+                    if (monthlyResult.success) updateMonthlyChart(monthlyResult.data);
                 }
+            } catch (err) {
+                console.error('Error loading balance sheet:', err);
             }
         }
-    });
-}
 
-// Event Listeners
-document.getElementById('periodType').addEventListener('change', function() {
-    const monthWrapper = document.getElementById('monthFilterWrapper');
-    if (this.value === 'monthly') {
-        monthWrapper.style.display = 'block';
-    } else {
-        monthWrapper.style.display = 'none';
-    }
-    loadBalanceSheet();
-});
+        // Update monthly profit/loss chart
+        function updateMonthlyChart(monthlyData) {
+            const ctx = document.getElementById('monthlyChart').getContext('2d');
+            if (monthlyChart) monthlyChart.destroy();
+            const months = monthlyData.map(m => m.month_short);
+            const profits = monthlyData.map(m => m.profit);
 
-document.getElementById('applyFiltersBtn').addEventListener('click', loadBalanceSheet);
-document.getElementById('resetFiltersBtn').addEventListener('click', function() {
-    document.getElementById('periodType').value = 'yearly';
-    document.getElementById('yearSelect').value = '<%= currentYear %>';
-    document.getElementById('monthSelect').value = '1';
-    document.getElementById('monthFilterWrapper').style.display = 'none';
-    loadBalanceSheet();
-});
+            monthlyChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: months,
+                    datasets: [{
+                        label: 'Profit/Loss',
+                        data: profits,
+                        borderColor: '#2563eb',
+                        backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: (ctx) => ctx.raw >= 0 ? '#2563eb' : '#dc2626',
+                        pointBorderColor: '#fff',
+                        pointRadius: 5,
+                        pointHoverRadius: 7
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: (ctx) => `Profit/Loss: ${ctx.raw >= 0 ? '₹' : '-₹'}${Math.abs(ctx.raw).toLocaleString('en-IN')}`
+                            }
+                        },
+                        legend: { position: 'top' }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { callback: (val) => '₹' + val.toLocaleString('en-IN') }
+                        }
+                    }
+                }
+            });
+        }
 
-// Initialize
-document.getElementById('monthFilterWrapper').style.display = 'none';
-loadBalanceSheet();
-</script>
+        // Event Listeners
+        document.getElementById('periodType').addEventListener('change', function () {
+            document.getElementById('monthFilterWrapper').style.display = this.value === 'monthly' ? 'block' : 'none';
+            loadBalanceSheet();
+        });
 
-<%- include('../partials/footer') %>
+        document.getElementById('groundSelect').addEventListener('change', function () {
+            updateGroundBadge();
+        });
+
+        document.getElementById('applyFiltersBtn').addEventListener('click', loadBalanceSheet);
+        document.getElementById('resetFiltersBtn').addEventListener('click', function () {
+            document.getElementById('periodType').value = 'yearly';
+            document.getElementById('yearSelect').value = '<%= currentYear %>';
+            document.getElementById('monthSelect').value = '1';
+            document.getElementById('groundSelect').value = '';
+            document.getElementById('monthFilterWrapper').style.display = 'none';
+            updateGroundBadge();
+            loadBalanceSheet();
+        });
+
+        // Initialize
+        document.getElementById('monthFilterWrapper').style.display = 'none';
+        updateGroundBadge();
+        loadBalanceSheet();
+    </script>
+
+
+    <!-- ══ ADD CATEGORY MODAL ══════════════════════════════════════ -->
+    <div id="addCatOverlay" onclick="closeAddCategory()"
+        style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1040;"></div>
+    <div id="addCatModal" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+     background:#fff;border-radius:16px;padding:28px 32px;width:420px;max-width:90vw;z-index:1050;
+     box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+            <div>
+                <div style="font-family:'Rajdhani',sans-serif;font-weight:700;font-size:1.1rem;color:#2563eb;"
+                    id="addCatModalTitle">Add Category</div>
+                <div style="font-size:0.72rem;color:#9ca3af;" id="addCatModalSub">New category will appear in balance
+                    sheet and expense form</div>
+            </div>
+            <button onclick="closeAddCategory()"
+                style="background:#f3f4f6;border:none;border-radius:8px;width:32px;height:32px;cursor:pointer;font-size:1rem;color:#6b7280;">×</button>
+        </div>
+        <div style="margin-bottom:16px;">
+            <label
+                style="display:block;font-size:0.75rem;font-weight:600;color:#374151;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Category
+                Name *</label>
+            <input type="text" id="addCatName" placeholder="e.g. Coaching Staff, Prize Money..." maxlength="80"
+                style="width:100%;border:1.5px solid #e5e7eb;border-radius:9px;padding:9px 12px;font-size:0.85rem;color:#111827;box-sizing:border-box;"
+                onfocus="this.style.borderColor='#2563eb'" onblur="this.style.borderColor='#e5e7eb'">
+            <div id="addCatError" style="display:none;color:#dc2626;font-size:0.75rem;margin-top:5px;"></div>
+        </div>
+        <div style="display:flex;gap:10px;">
+            <button onclick="closeAddCategory()"
+                style="flex:1;padding:10px;background:#f3f4f6;border:none;border-radius:9px;font-size:0.85rem;font-weight:600;color:#374151;cursor:pointer;">Cancel</button>
+            <button onclick="submitAddCategory()" id="addCatSubmitBtn"
+                style="flex:1;padding:10px;background:#2563eb;border:none;border-radius:9px;font-size:0.85rem;font-weight:700;color:#fff;cursor:pointer;">
+                <i class="bi bi-plus-lg me-1"></i> Add Category
+            </button>
+        </div>
+    </div>
+
+    <!-- ══ DELETE CATEGORY CONFIRMATION MODAL ═══════════════════════ -->
+    <div id="delCatOverlay" onclick="closeDeleteCategory()"
+        style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1040;"></div>
+    <div id="delCatModal" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+     background:#fff;border-radius:16px;padding:28px 32px;width:440px;max-width:90vw;z-index:1050;
+     box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+        <div style="text-align:center;margin-bottom:20px;">
+            <div
+                style="width:56px;height:56px;background:#fef2f2;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:1.5rem;color:#dc2626;">
+                <i class="bi bi-trash3-fill"></i>
+            </div>
+            <div
+                style="font-family:'Rajdhani',sans-serif;font-weight:700;font-size:1.1rem;color:#111827;margin-bottom:6px;">
+                Delete Category</div>
+            <div id="delCatMsg" style="font-size:0.82rem;color:#6b7280;line-height:1.5;"></div>
+        </div>
+        <div style="display:flex;gap:10px;">
+            <button onclick="closeDeleteCategory()"
+                style="flex:1;padding:10px;background:#f3f4f6;border:none;border-radius:9px;font-size:0.85rem;font-weight:600;color:#374151;cursor:pointer;">Cancel</button>
+            <button onclick="confirmDeleteCategory()" id="delCatConfirmBtn"
+                style="flex:1;padding:10px;background:#dc2626;border:none;border-radius:9px;font-size:0.85rem;font-weight:700;color:#fff;cursor:pointer;">
+                <i class="bi bi-trash3 me-1"></i> Delete
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // ── Category Management ──────────────────────────────────────
+        let _addCatType = null;
+        let _delCatCode = null;
+        let _delCatName = null;
+        let _delCatForce = false;
+
+        function openAddCategory(account_type) {
+            _addCatType = account_type;
+            const labels = { direct_expense: 'Direct Expense', indirect_expense: 'Indirect Expense', income: 'Additional Income' };
+            document.getElementById('addCatModalTitle').textContent = 'Add ' + (labels[account_type] || '') + ' Category';
+            document.getElementById('addCatName').value = '';
+            document.getElementById('addCatError').style.display = 'none';
+            document.getElementById('addCatSubmitBtn').disabled = false;
+            document.getElementById('addCatSubmitBtn').innerHTML = '<i class="bi bi-plus-lg me-1"></i> Add Category';
+            document.getElementById('addCatOverlay').style.display = 'block';
+            document.getElementById('addCatModal').style.display = 'block';
+            setTimeout(() => document.getElementById('addCatName').focus(), 100);
+        }
+
+        function closeAddCategory() {
+            document.getElementById('addCatOverlay').style.display = 'none';
+            document.getElementById('addCatModal').style.display = 'none';
+        }
+
+        async function submitAddCategory() {
+            const name = document.getElementById('addCatName').value.trim();
+            const errEl = document.getElementById('addCatError');
+            if (!name) { errEl.textContent = 'Please enter a category name'; errEl.style.display = 'block'; return; }
+            if (name.length < 2) { errEl.textContent = 'Name must be at least 2 characters'; errEl.style.display = 'block'; return; }
+
+            const btn = document.getElementById('addCatSubmitBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i> Adding...';
+            errEl.style.display = 'none';
+
+            try {
+                const res = await fetch('/balance-sheet/api/accounts', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ account_name: name, account_type: _addCatType })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    closeAddCategory();
+                    // Reload balance sheet data to show new category
+                    document.getElementById('applyFiltersBtn').click();
+                } else {
+                    errEl.textContent = data.message || 'Failed to add category';
+                    errEl.style.display = 'block';
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="bi bi-plus-lg me-1"></i> Add Category';
+                }
+            } catch (e) {
+                errEl.textContent = 'Connection error. Please try again.';
+                errEl.style.display = 'block';
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-plus-lg me-1"></i> Add Category';
+            }
+        }
+
+        function deleteCategory(code, name) {
+            _delCatCode = code;
+            _delCatName = name;
+            _delCatForce = false;
+            document.getElementById('delCatMsg').textContent = `Are you sure you want to delete the "${name}" category? This cannot be undone.`;
+            document.getElementById('delCatConfirmBtn').innerHTML = '<i class="bi bi-trash3 me-1"></i> Delete';
+            document.getElementById('delCatOverlay').style.display = 'block';
+            document.getElementById('delCatModal').style.display = 'block';
+        }
+
+        function closeDeleteCategory() {
+            document.getElementById('delCatOverlay').style.display = 'none';
+            document.getElementById('delCatModal').style.display = 'none';
+            _delCatCode = null;
+            _delCatName = null;
+            _delCatForce = false;
+        }
+
+        async function confirmDeleteCategory() {
+            if (!_delCatCode) return;
+            const btn = document.getElementById('delCatConfirmBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i> Deleting...';
+
+            try {
+                const res = await fetch(`/balance-sheet/api/accounts/${_delCatCode}/delete`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ force: _delCatForce })
+                });
+                const data = await res.json();
+
+                if (data.requiresConfirmation) {
+                    // Has entries — show warning and ask again with force=true
+                    _delCatForce = true;
+                    document.getElementById('delCatMsg').innerHTML =
+                        `<strong style="color:#dc2626;">⚠ Warning:</strong> The "<strong>${_delCatName}</strong>" category has <strong>${data.entryCount} expense entries</strong>.<br><br>` +
+                        `Deleting this category will <strong>permanently remove all ${data.entryCount} entries</strong> from the expense tracker and balance sheet.<br><br>` +
+                        `Are you absolutely sure?`;
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="bi bi-trash3 me-1"></i> Yes, Delete Everything';
+                    return;
+                }
+
+                if (data.success) {
+                    closeDeleteCategory();
+                    document.getElementById('applyFiltersBtn').click();
+                } else {
+                    alert(data.message || 'Failed to delete category');
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="bi bi-trash3 me-1"></i> Delete';
+                }
+            } catch (e) {
+                alert('Connection error. Please try again.');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-trash3 me-1"></i> Delete';
+            }
+        }
+
+        // Close modals on Escape
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') {
+                closeAddCategory();
+                closeDeleteCategory();
+            }
+        });
+    </script>
+
+    <%- include('../partials/footer') %>

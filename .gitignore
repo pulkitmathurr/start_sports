@@ -1,0 +1,9 @@
+.env
+node_modules/
+logs/
+src/public/uploads/avatars/*
+src/public/uploads/grounds/*
+!src/public/uploads/avatars/.gitkeep
+!src/public/uploads/grounds/.gitkeep
+*.log
+.DS_Store

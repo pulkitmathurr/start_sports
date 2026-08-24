@@ -9,8 +9,68 @@
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/bootstrap.min.css">
     <link rel="stylesheet" href="/css/style.css">
+    <style>
+        /* Additional style overrides for the signup section */
+        .signup-section {
+            margin-top: 1.8rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e2e8f0;
+            text-align: center;
+        }
+        
+        .signup-text {
+            font-size: 0.85rem;
+            color: #64748b;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .signup-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.85rem;
+            padding: 0.5rem 1.2rem;
+            border-radius: 30px;
+            margin-left: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+            letter-spacing: 0.3px;
+        }
+        
+        .signup-link:hover {
+            background: linear-gradient(135deg, #1d4ed8, #1e40af);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+            color: white;
+            text-decoration: none;
+        }
+        
+        .signup-link svg {
+            transition: transform 0.2s ease;
+        }
+        
+        .signup-link:hover svg {
+            transform: translateX(3px);
+        }
+        
+        @media (max-width: 640px) {
+            .dual-card-right {
+                padding: 1.8rem 1.5rem;
+            }
+            .signup-section {
+                margin-top: 1.5rem;
+            }
+            .signup-link {
+                padding: 0.4rem 1rem;
+                font-size: 0.8rem;
+            }
+        }
+    </style>
 </head>
-
 <body>
 <main>
 
@@ -21,12 +81,12 @@
 <div class="login-wrapper">
     <div class="dual-card">
 
-        <!-- LEFT — Image Panel -->
+        <!-- LEFT — Image Panel (Blue Theme) -->
         <div class="dual-card-left">
             <div class="image-panel-content">
                 <div class="image-panel-tag">WELCOME TO</div>
                 <h2 class="image-panel-title">START<br>SPORTS</h2>
-                <p class="image-panel-sub">The ultimate platform for cricket ground management. Book slots, track payments, manage bookings.</p>
+                <p class="image-panel-sub">The ultimate platform for sports ground management. Book slots, track payments, manage bookings.</p>
                 <div class="image-panel-stats">
                     <div class="image-panel-stat">
                         <span class="image-panel-stat-num">12K+</span>
@@ -51,24 +111,22 @@
         <div class="dual-card-right">
 
             <div style="margin-bottom:1.5rem;">
-                <div style="font-family:'Rajdhani',sans-serif; font-size:1.4rem; font-weight:800; color:#003366; letter-spacing:3px; text-transform:uppercase;">
-                    START SPORTS
-                </div>
-                <div style="width:40px; height:3px; background:linear-gradient(90deg,#003366,#D90429); border-radius:2px; margin-top:6px;"></div>
+                <img src="/images/AdminLogo2.png" alt="Logo" style="height:70px; width:auto; object-fit:contain;">
             </div>
 
             <h1 class="login-title">Welcome Back</h1>
             <p class="login-subtitle">Sign in to your admin account</p>
 
             <% if (error) { %>
-                <div class="error-banner show">
-                    <span>⚠</span> <%= error %>
-                </div>
+            <script>window.addEventListener('load',()=>xToast('<%= error.replace(/'/g,"\'") %>','error'));</script>
             <% } %>
-
-            <div class="error-banner" id="errorBanner">
-                <span>⚠</span> <span id="errorText"></span>
-            </div>
+            <script>
+            window.addEventListener('load',()=>{
+                const p=new URLSearchParams(location.search);
+                if(p.get('pending')==='1') xToast('Your account is pending approval from the administrator. You will be notified once approved.','warning');
+                if(p.get('suspended')==='1') xToast('Your account has been suspended. Please contact support.','error');
+            });
+            </script>
 
             <form id="loginForm" novalidate autocomplete="off">
 
@@ -107,18 +165,21 @@
                     </div>
                 </div>
 
-                <!-- <div class="options-row">
-                    <label class="remember-wrap">
-                        <input type="checkbox" id="rememberMe">
-                        <span>Remember me</span>
-                    </label>
-                    <a href="/forgot-password" class="forgot-link">Forgot password?</a>
-                </div> -->
-
                 <button type="submit" class="btn-login" id="submitBtn">
                     <span id="btnText">SIGN IN</span>
                     <span class="spinner d-none" id="btnSpinner"></span>
                 </button>
+
+                <!-- SIGNUP SECTION - Blue Theme -->
+                <div class="signup-section">
+                    <span class="signup-text">Don't have an account?</span>
+                    <a href="/tenant/signup" class="signup-link">
+                        Sign Up
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8z"/>
+                        </svg>
+                    </a>
+                </div>
 
             </form>
 
@@ -127,6 +188,26 @@
 </div>
 
 <script>
+// ── Auth guard on login page ───────────────────────────────
+// When the user is redirected here after logout:
+// 1. Replace the login entry in history so Back from login
+//    cannot return to a protected page.
+// 2. If the browser restores this page from bfcache, reload it
+//    so the server confirms the session is truly gone.
+(function () {
+  // Replace history so Back from login goes nowhere protected
+  if (window.history && window.history.replaceState) {
+    window.history.replaceState(null, '', '/auth/login');
+  }
+
+  // bfcache guard on login page itself
+  window.addEventListener('pageshow', function (e) {
+    if (e.persisted) {
+      window.location.reload();
+    }
+  });
+})();
+
 document.getElementById('togglePwd').addEventListener('click', function () {
     const input      = document.getElementById('password');
     const openIcon   = document.getElementById('eyeOpenIcon');
@@ -140,7 +221,7 @@ document.getElementById('togglePwd').addEventListener('click', function () {
     } else {
         openIcon.style.display   = 'none';
         closedIcon.style.display = '';
-        this.style.color = '#003366';
+        this.style.color = '#2563eb';
     }
 });
 
@@ -149,13 +230,9 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     const submitBtn   = document.getElementById('submitBtn');
     const btnText     = document.getElementById('btnText');
     const spinner     = document.getElementById('btnSpinner');
-    const errorBanner = document.getElementById('errorBanner');
-    const errorText   = document.getElementById('errorText');
-
     submitBtn.disabled = true;
     btnText.textContent = 'SIGNING IN';
     spinner.classList.remove('d-none');
-    errorBanner.classList.remove('show');
 
     const formData = {
         email:    document.getElementById('email').value.trim(),
@@ -163,25 +240,24 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     };
 
     try {
+        // Read CSRF token from cookie (set by server on page load)
+        const csrfToken = (document.cookie.match(/(?:^|; )csrf_token=([^;]*)/) || [])[1] || '';
         const response = await fetch('/auth/login', {
             method:  'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': decodeURIComponent(csrfToken) },
             body:    JSON.stringify(formData)
         });
         const data = await response.json();
 
         if (data.success) {
-            localStorage.setItem('access_token',  data.data.access_token);
-            localStorage.setItem('refresh_token', data.data.refresh_token);
             btnText.textContent = '✓ REDIRECTING';
             spinner.classList.add('d-none');
-            submitBtn.style.background = 'linear-gradient(135deg,#1a4a35,#2D6A4F)';
+            submitBtn.style.background = 'linear-gradient(135deg, #1d4ed8, #1e40af)';
             const role = data.data.user.role;
             const redirectTo = (role === 'super_admin') ? '/super-admin/dashboard' : '/dashboard';
-            setTimeout(() => { window.location.href = redirectTo; }, 500);
+            setTimeout(() => { window.location.replace(redirectTo); }, 500);
         } else {
-            errorText.textContent = data.message || 'Invalid email or password.';
-            errorBanner.classList.add('show');
+            xToast(data.message || 'Invalid email or password.', 'error');
             submitBtn.disabled  = false;
             btnText.textContent = 'SIGN IN';
             spinner.classList.add('d-none');
@@ -189,8 +265,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
             setTimeout(() => { document.getElementById('loginForm').style.animation = ''; }, 400);
         }
     } catch (err) {
-        errorText.textContent = 'Connection error. Please try again.';
-        errorBanner.classList.add('show');
+        xToast('Connection error. Please try again.', 'error');
         submitBtn.disabled  = false;
         btnText.textContent = 'SIGN IN';
         spinner.classList.add('d-none');
@@ -222,10 +297,41 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     60% { transform: translateX(-5px); }
     80% { transform: translateX(5px); }
 }
+
+/* ── Toast ── */
+.xtoast {
+  position:fixed; bottom:1.5rem; right:1.5rem; z-index:99999;
+  background:#fff; border-radius:12px; padding:.82rem 1.15rem;
+  display:flex; align-items:center; gap:.65rem;
+  box-shadow:0 8px 32px rgba(0,0,0,.16);
+  transform:translateY(18px) scale(.96); opacity:0;
+  transition:all .24s cubic-bezier(.22,.9,.36,1.1);
+  min-width:260px; max-width:380px; border-left:4px solid #e2e8f0;
+}
+.xtoast.show { transform:none; opacity:1; }
+.xtoast.error   { border-left-color:#dc2626; }
+.xtoast.warning { border-left-color:#d97706; }
+.xtoast.success { border-left-color:#2563eb; }
+.xtoast i { font-size:1.05rem; flex-shrink:0; }
+.xtoast.error i   { color:#dc2626; }
+.xtoast.warning i { color:#d97706; }
+.xtoast.success i { color:#2563eb; }
+.xtoast span { font-size:.82rem; font-weight:500; color:#1e293b; }
 </style>
 
 </main>
 <script src="/js/bootstrap.bundle.min.js"></script>
 <script src="/js/main.js"></script>
+<script>
+function xToast(msg, type='error') {
+    const icons = { error:'exclamation-triangle-fill', warning:'exclamation-circle-fill', success:'check-circle-fill' };
+    const t = document.createElement('div');
+    t.className = `xtoast ${type}`;
+    t.innerHTML = `<i class="bi bi-${icons[type]||icons.error}"></i><span>${msg}</span>`;
+    document.body.appendChild(t);
+    setTimeout(()=>t.classList.add('show'),10);
+    setTimeout(()=>{t.classList.remove('show');setTimeout(()=>t.remove(),300);},3800);
+}
+</script>
 </body>
 </html>

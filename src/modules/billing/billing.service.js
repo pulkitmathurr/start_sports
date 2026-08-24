@@ -1,7 +1,7 @@
 const db = require('../../config/db.config');
 
 // ── Get all active plans ──────────────────────────────────────
-const getPlans = async () => {
+const getPlans = async (tenant_id = null, user_role = 'admin') => {
     const [plans] = await db.promise().query(
         'SELECT * FROM tbl_plans WHERE is_active = 1 ORDER BY price_monthly ASC'
     );
@@ -9,7 +9,12 @@ const getPlans = async () => {
 };
 
 // ── Get tenant's current subscription ────────────────────────
-const getCurrentSubscription = async (tenant_id) => {
+const getCurrentSubscription = async (tenant_id, user_role = 'admin') => {
+    // If user is super_admin, they don't have a tenant
+    if (user_role === 'super_admin') {
+        return null;
+    }
+    
     const [rows] = await db.promise().query(`
         SELECT s.*, p.name AS plan_name, p.price_monthly, p.price_yearly, p.max_grounds
         FROM tbl_subscriptions s
@@ -22,7 +27,12 @@ const getCurrentSubscription = async (tenant_id) => {
 };
 
 // ── Get subscription history ──────────────────────────────────
-const getSubHistory = async (tenant_id) => {
+const getSubHistory = async (tenant_id, user_role = 'admin') => {
+    // If user is super_admin, they don't have a tenant
+    if (user_role === 'super_admin') {
+        return [];
+    }
+    
     const [rows] = await db.promise().query(`
         SELECT s.*, p.name AS plan_name
         FROM tbl_subscriptions s
@@ -35,7 +45,26 @@ const getSubHistory = async (tenant_id) => {
 
 // ── Upgrade / Renew subscription (manual / demo payment) ─────
 // In a real app this would be triggered after Razorpay/Stripe webhook
-const activateSubscription = async ({ tenant_id, plan_id, billing_cycle, payment_ref = null }) => {
+const activateSubscription = async ({ tenant_id, plan_id, billing_cycle, payment_ref = null, user_role = 'admin' }) => {
+    // If user is super_admin, they cannot subscribe
+    if (user_role === 'super_admin') {
+        const err = new Error('Super admin cannot subscribe to plans');
+        err.statusCode = 403;
+        throw err;
+    }
+    
+    // Verify tenant exists and belongs to this user
+    const [tenantCheck] = await db.promise().query(
+        'SELECT id FROM tbl_tenants WHERE id = ? AND status != "deleted"',
+        [tenant_id]
+    );
+    
+    if (tenantCheck.length === 0) {
+        const err = new Error('Tenant not found');
+        err.statusCode = 404;
+        throw err;
+    }
+    
     // Get plan details
     const [[plan]] = await db.promise().query(
         'SELECT * FROM tbl_plans WHERE id = ? AND is_active = 1 LIMIT 1',
@@ -60,24 +89,37 @@ const activateSubscription = async ({ tenant_id, plan_id, billing_cycle, payment
 
     const fmt = (d) => d.toISOString().split('T')[0];
 
-    // Expire old subscription
-    await db.promise().query(
-        `UPDATE tbl_subscriptions SET status = 'expired' WHERE tenant_id = ? AND status = 'active'`,
-        [tenant_id]
-    );
+    // Wrap all three writes in a transaction — if any step fails the DB
+    // is not left in a half-updated state (e.g. old expired, new not created).
+    const conn = await db.promise().getConnection();
+    await conn.beginTransaction();
+    try {
+        // Expire old subscription
+        await conn.query(
+            `UPDATE tbl_subscriptions SET status = 'expired' WHERE tenant_id = ? AND status = 'active'`,
+            [tenant_id]
+        );
 
-    // Insert new subscription
-    await db.promise().query(`
-        INSERT INTO tbl_subscriptions
-            (tenant_id, plan_id, billing_cycle, status, started_at, expires_at, amount_paid, payment_ref)
-        VALUES (?, ?, ?, 'active', ?, ?, ?, ?)
-    `, [tenant_id, plan_id, billing_cycle, fmt(started_at), fmt(expires_at), amount_paid, payment_ref]);
+        // Insert new subscription
+        await conn.query(`
+            INSERT INTO tbl_subscriptions
+                (tenant_id, plan_id, billing_cycle, status, started_at, expires_at, amount_paid, payment_ref)
+            VALUES (?, ?, ?, 'active', ?, ?, ?, ?)
+        `, [tenant_id, plan_id, billing_cycle, fmt(started_at), fmt(expires_at), amount_paid, payment_ref]);
 
-    // Activate tenant in case it was suspended/expired
-    await db.promise().query(
-        `UPDATE tbl_tenants SET status = 'active' WHERE id = ?`,
-        [tenant_id]
-    );
+        // Activate tenant in case it was suspended/expired
+        await conn.query(
+            `UPDATE tbl_tenants SET status = 'active' WHERE id = ?`,
+            [tenant_id]
+        );
+
+        await conn.commit();
+    } catch (txErr) {
+        await conn.rollback();
+        throw txErr;
+    } finally {
+        conn.release();
+    }
 
     return { plan, expires_at: fmt(expires_at), amount_paid };
 };

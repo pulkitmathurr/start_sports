@@ -1,0 +1,173 @@
+<%- include('../../partials/header') %>
+<% const errorMsg   = (typeof error   !== 'undefined' && error)   ? (typeof error   === 'string' ? error   : (error.message||'Error')) : null; %>
+<% const successMsg = (typeof success !== 'undefined' && success) ? (typeof success === 'string' ? success : 'Done')                  : null; %>
+
+<div class="row settings-page-header">
+
+    <!-- Page Header -->
+    <div class="col-12 mb-4">
+        <div class="fee-plans-header">
+            <div class="fee-plans-header__left">
+                <div class="fee-plans-header__icon">
+                    <i class="bi bi-card-list"></i>
+                </div>
+                <div>
+                    <h4 class="fee-plans-header__title">Fee Plans</h4>
+                    <span class="fee-plans-header__sub">Create reusable fee templates to assign to students</span>
+                </div>
+            </div>
+            <a href="/academy/fees" class="fee-plans-back-btn">
+                <i class="bi bi-arrow-left"></i> Back to Fees
+            </a>
+        </div>
+    </div>
+
+    <% if (successMsg) { %><script>document.addEventListener('DOMContentLoaded',()=>xToast('<%= successMsg.replace(/'/g,"\'") %>','success'));</script><% } %>
+    <% if (errorMsg)   { %><script>document.addEventListener('DOMContentLoaded',()=>xToast('<%= errorMsg.replace(/'/g,"\'") %>','error'));</script><% } %>
+
+    <!-- Create Plan Form -->
+    <div class="col-12 col-lg-5 mb-4">
+        <div class="fee-plans-form-card">
+            <div class="fee-plans-form-card__body">
+                <div class="fee-plans-form-title" id="form-title">
+                    <i class="bi bi-plus-circle"></i> <span id="form-title-text">Create New Plan</span>
+                </div>
+                <form method="POST" id="plan-form" action="/academy/fees/plans/create">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                    <input type="hidden" name="_plan_id" id="plan-id-field" value="">
+
+                    <div class="fee-plans-form-group">
+                        <label class="fee-plans-label">Plan Name <span class="fee-plans-required">*</span></label>
+                        <input type="text" name="plan_name" id="field-plan_name" class="fee-plans-input" placeholder="e.g. Monthly Cricket Fee" required>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="fee-plans-form-group">
+                                <label class="fee-plans-label">Amount (₹) <span class="fee-plans-required">*</span></label>
+                                <input type="number" name="amount" id="field-amount" class="fee-plans-input" placeholder="0" min="1" step="0.01" required>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="fee-plans-form-group">
+                                <label class="fee-plans-label">Frequency</label>
+                                <select name="frequency" id="field-frequency" class="fee-plans-select">
+                                    <option value="monthly">Monthly</option>
+                                    <option value="quarterly">Quarterly</option>
+                                    <option value="yearly">Yearly</option>
+                                    <option value="one-time">One-time</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="fee-plans-form-group">
+                        <label class="fee-plans-label">Sport</label>
+                        <input type="text" name="sport" id="field-sport" class="fee-plans-input" placeholder="e.g. Cricket">
+                    </div>
+
+                    <div class="fee-plans-form-group">
+                        <label class="fee-plans-label">Description</label>
+                        <textarea name="description" id="field-description" class="fee-plans-textarea" rows="2" placeholder="Optional notes..."></textarea>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="fee-plans-submit-btn flex-grow-1" id="submit-btn">
+                            <i class="bi bi-plus-lg"></i> <span id="submit-btn-text">Create Plan</span>
+                        </button>
+                        <button type="button" class="btn btn-secondary" id="cancel-edit-btn" style="display:none;" onclick="resetForm()">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Plans List -->
+    <div class="col-12 col-lg-7 mb-4">
+        <div class="fee-plans-list-card">
+            <div class="fee-plans-list-header">
+                <div class="fee-plans-list-title">
+                    <i class="bi bi-grid-3x3-gap-fill"></i> Existing Plans
+                </div>
+            </div>
+            <% if (plans.length === 0) { %>
+            <div class="fee-plans-empty">
+                <div class="fee-plans-empty__icon"><i class="bi bi-receipt"></i></div>
+                <p>No plans yet. Create one on the left.</p>
+            </div>
+            <% } else { %>
+            <div class="table-responsive">
+                <table class="fee-plans-table">
+                    <thead>
+                        <tr>
+                            <th>Plan</th>
+                            <th>Amount</th>
+                            <th>Frequency</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% plans.forEach(plan => { %>
+                        <tr id="plan-row-<%= plan.id %>">
+                            <td>
+                                <div class="fee-plans-plan-name"><%= plan.plan_name %></div>
+                                <% if (plan.sport) { %><div class="fee-plans-plan-sport"><%= plan.sport %></div><% } %>
+                                <% if (plan.description) { %><div class="text-muted small"><%= plan.description %></div><% } %>
+                            </td>
+                            <td class="fee-plans-amount">₹<%= parseFloat(plan.amount).toLocaleString('en-IN') %></td>
+                            <td><span class="fee-plans-frequency-badge"><%= plan.frequency %></span></td>
+                            <td>
+                                <div class="d-flex gap-1">
+                                    <button type="button" class="btn btn-sm btn-outline-primary"
+                                        onclick="editPlan(<%= plan.id %>, '<%= (plan.plan_name||'').replace(/'/g,"\\'") %>', '<%= plan.amount %>', '<%= plan.frequency %>', '<%= (plan.sport||'').replace(/'/g,"\\'") %>', '<%= (plan.description||'').replace(/'/g,"\\'") %>')">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <form method="POST" action="/academy/fees/plans/<%= plan.id %>/delete"
+                                          onsubmit="return confirm('Delete <%= (plan.plan_name||'').replace(/'/g,"\\'") %>?')" style="margin:0;">
+                                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+            <% } %>
+        </div>
+    </div>
+
+</div>
+
+<script>
+function editPlan(id, name, amount, frequency, sport, description) {
+    document.getElementById('plan-form').action = `/academy/fees/plans/${id}/update`;
+    document.getElementById('plan-id-field').value = id;
+    document.getElementById('field-plan_name').value = name;
+    document.getElementById('field-amount').value = amount;
+    document.getElementById('field-frequency').value = frequency;
+    document.getElementById('field-sport').value = sport;
+    document.getElementById('field-description').value = description;
+    document.getElementById('form-title-text').textContent = 'Edit Plan';
+    document.getElementById('submit-btn-text').textContent = 'Update Plan';
+    document.getElementById('cancel-edit-btn').style.display = 'block';
+    document.getElementById('field-plan_name').focus();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function resetForm() {
+    document.getElementById('plan-form').action = '/academy/fees/plans/create';
+    document.getElementById('plan-id-field').value = '';
+    document.getElementById('plan-form').reset();
+    document.getElementById('form-title-text').textContent = 'Create New Plan';
+    document.getElementById('submit-btn-text').textContent = 'Create Plan';
+    document.getElementById('cancel-edit-btn').style.display = 'none';
+}
+</script>
+
+<%- include('../../partials/footer') %>

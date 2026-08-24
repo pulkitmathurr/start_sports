@@ -46,26 +46,15 @@ const signup = async (req, res, next) => {
             req
         });
 
-        // Auto login after signup — set cookies
-        res.cookie('access_token', result.access_token, {
-            maxAge:   15 * 60 * 1000,
-            httpOnly: false,
-            path:     '/',
-            sameSite: 'lax'
-        });
-
-        res.cookie('session_id', result.session_id, {
-            maxAge:   7 * 24 * 60 * 60 * 1000,
-            httpOnly: false,
-            path:     '/',
-            sameSite: 'lax'
-        });
-
-        return res.status(201).json(successResponse('Account created successfully! Redirecting...', {
-            redirect:      '/dashboard',
-            trial_expires: result.trial_expires,
-            tenant:        result.tenant
-        }));
+        // Account submitted for SA approval — do NOT set session cookies
+        return res.status(201).json(successResponse(
+            'Account request submitted! Our team will review and approve your account. You will be notified once approved.',
+            {
+                pending_approval: true,
+                redirect: '/auth/login?pending=1',
+                tenant: result.tenant
+            }
+        ));
 
     } catch (error) {
         // Handle duplicate email nicely

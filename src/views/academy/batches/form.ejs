@@ -1,0 +1,246 @@
+<%- include('../../partials/header') %>
+
+<div class="row settings-page-header">
+
+    <!-- Page Header - Blue Theme -->
+    <div class="col-12 mb-4">
+        <div class="batch-form-header">
+            <div class="batch-form-header__left">
+                <div class="batch-form-header__icon">
+                    <i class="bi bi-layers"></i>
+                </div>
+                <div>
+                    <h4 class="batch-form-header__title">
+                        <%= batch && batch.id ? 'Edit Batch' : 'Create New Batch' %>
+                    </h4>
+                    <span class="batch-form-header__sub">
+                        <a href="/academy/batches" class="batch-form-breadcrumb">Batches</a>
+                        &rsaquo; <%= batch && batch.id ? batch.batch_name : 'New' %>
+                    </span>
+                </div>
+            </div>
+            <a href="/academy/batches" class="batch-form-back-btn">
+                <i class="bi bi-arrow-left"></i> Back to Batches
+            </a>
+        </div>
+    </div>
+
+    <% if (typeof error !== 'undefined' && error) { %>
+    <script>document.addEventListener('DOMContentLoaded',()=>xToast('<%= error.replace(/'/g,"\'") %>','error'));</script>
+    <% } %>
+
+    <div class="col-12">
+        <div class="batch-form-card">
+            <div class="batch-form-card__body">
+
+                <form method="POST"
+                      action="<%= batch && batch.id ? '/academy/batches/' + batch.id + '/update' : '/academy/batches/create' %>">
+
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+                    <!-- Batch Information Section -->
+                    <div class="batch-form-section-title">
+                        <i class="bi bi-info-circle me-2"></i>Batch Information
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label class="batch-form-label">
+                                Batch Name <span class="batch-required">*</span>
+                            </label>
+                            <input type="text" name="batch_name" class="batch-form-input"
+                                   placeholder="e.g. Morning Cricket Batch"
+                                   value="<%= batch ? batch.batch_name || '' : '' %>" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="batch-form-label">Sport</label>
+                            <input type="text" name="sport" class="batch-form-input"
+                                   placeholder="e.g. Cricket, Football, Badminton"
+                                   value="<%= batch && batch.sport ? batch.sport : '' %>">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="batch-form-label">Assign Coach</label>
+                            <select name="coach_id" class="batch-form-select">
+                                <option value="">-- Select Coach --</option>
+                                <% coaches.forEach(coach => { %>
+                                <option value="<%= coach.id %>"
+                                    <%= batch && batch.coach_id == coach.id ? 'selected' : '' %>>
+                                    <%= coach.name %> <% if (coach.specialization) { %>(<%= coach.specialization %>)<% } %>
+                                </option>
+                                <% }) %>
+                            </select>
+                            <% if (coaches.length === 0) { %>
+                            <small class="batch-warning-hint">
+                                <i class="bi bi-exclamation-triangle me-1"></i>
+                                No coaches found. <a href="/academy/coaches/new">Add a coach first</a>
+                            </small>
+                            <% } %>
+                        </div>
+                    </div>
+
+                    <%
+                        // Pre-compute start time parts for dropdowns
+                        var sRaw = (batch && batch.start_time) ? batch.start_time.slice(0,5) : '06:00';
+                        var sHH  = parseInt(sRaw.split(':')[0]);
+                        var sMM  = sRaw.split(':')[1] || '00';
+                        var sH12 = sHH % 12 || 12;
+                        var sAMPM = sHH < 12 ? 'AM' : 'PM';
+
+                        // Pre-compute end time parts for dropdowns
+                        var eRaw = (batch && batch.end_time) ? batch.end_time.slice(0,5) : '19:00';
+                        var eHH  = parseInt(eRaw.split(':')[0]);
+                        var eMM  = eRaw.split(':')[1] || '00';
+                        var eH12 = eHH % 12 || 12;
+                        var eAMPM = eHH < 12 ? 'AM' : 'PM';
+                    %>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label class="batch-form-label">Start Time</label>
+                            <div style="display:flex;gap:6px;align-items:center;">
+                                <select id="start_hour" class="batch-form-select" style="flex:1" onchange="syncTime()">
+                                    <% for(var h=1; h<=12; h++){ %>
+                                    <option value="<%= h %>" <%= sH12 === h ? 'selected' : '' %>><%= h %></option>
+                                    <% } %>
+                                </select>
+                                <select id="start_min" class="batch-form-select" style="flex:1" onchange="syncTime()">
+                                    <% ['00','15','30','45'].forEach(function(m){ %>
+                                    <option value="<%= m %>" <%= sMM === m ? 'selected' : '' %>><%= m %></option>
+                                    <% }); %>
+                                </select>
+                                <select id="start_ampm" class="batch-form-select" style="flex:1" onchange="syncTime()">
+                                    <option value="AM" <%= sAMPM === 'AM' ? 'selected' : '' %>>AM</option>
+                                    <option value="PM" <%= sAMPM === 'PM' ? 'selected' : '' %>>PM</option>
+                                </select>
+                            </div>
+                            <input type="hidden" name="start_time" id="start_time_hidden" value="<%= sRaw %>">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="batch-form-label">End Time</label>
+                            <div style="display:flex;gap:6px;align-items:center;">
+                                <select id="end_hour" class="batch-form-select" style="flex:1" onchange="syncTime()">
+                                    <% for(var h=1; h<=12; h++){ %>
+                                    <option value="<%= h %>" <%= eH12 === h ? 'selected' : '' %>><%= h %></option>
+                                    <% } %>
+                                </select>
+                                <select id="end_min" class="batch-form-select" style="flex:1" onchange="syncTime()">
+                                    <% ['00','15','30','45'].forEach(function(m){ %>
+                                    <option value="<%= m %>" <%= eMM === m ? 'selected' : '' %>><%= m %></option>
+                                    <% }); %>
+                                </select>
+                                <select id="end_ampm" class="batch-form-select" style="flex:1" onchange="syncTime()">
+                                    <option value="AM" <%= eAMPM === 'AM' ? 'selected' : '' %>>AM</option>
+                                    <option value="PM" <%= eAMPM === 'PM' ? 'selected' : '' %>>PM</option>
+                                </select>
+                            </div>
+                            <input type="hidden" name="end_time" id="end_time_hidden" value="<%= eRaw %>">
+                            <div id="time_warning" style="display:none;font-size:11px;color:#f59e0b;margin-top:4px;">
+                                <i class="bi bi-info-circle"></i> End time is before start time — will be treated as next day
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="batch-form-label">Max Students</label>
+                            <input type="number" name="max_students" class="batch-form-input"
+                                   placeholder="30" min="1" max="500"
+                                   value="<%= batch ? batch.max_students || 30 : 30 %>">
+                        </div>
+                    </div>
+
+                    <!-- Schedule Section -->
+                    <div class="batch-form-section-title">
+                        <i class="bi bi-calendar-week me-2"></i>Schedule — Days of Week
+                    </div>
+
+                    <%
+                        const selectedDays = batch && batch.days_of_week
+                            ? batch.days_of_week.split(',').map(d => d.trim())
+                            : [];
+                        const allDays = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+                    %>
+                    <div class="d-flex flex-wrap gap-2 mb-4">
+                        <% allDays.forEach(day => { %>
+                        <label style="cursor:pointer;">
+                            <input type="checkbox" name="days_of_week" value="<%= day %>"
+                                   <%= selectedDays.includes(day) ? 'checked' : '' %>
+                                   style="display:none;" class="day-checkbox" id="day-<%= day %>">
+                            <div class="batch-day-pill <%= selectedDays.includes(day) ? 'batch-day-pill--selected' : '' %>"
+                                 onclick="toggleDay('<%= day %>')">
+                                <%= day %>
+                            </div>
+                        </label>
+                        <% }) %>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="mb-4">
+                        <label class="batch-form-label">Description / Notes</label>
+                        <textarea name="description" class="batch-form-textarea" rows="2"
+                                  placeholder="Any additional notes about this batch..."><%= batch && batch.description ? batch.description : '' %></textarea>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="batch-form-actions">
+                        <button type="submit" class="batch-submit-btn">
+                            <i class="bi bi-check-lg me-1"></i>
+                            <%= batch && batch.id ? 'Update Batch' : 'Create Batch' %>
+                        </button>
+                        <a href="/academy/batches" class="batch-cancel-btn">
+                            Cancel
+                        </a>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+function toggleDay(day) {
+    const cb   = document.getElementById('day-' + day);
+    const pill = cb.nextElementSibling;
+    cb.checked = !cb.checked;
+    if (cb.checked) {
+        pill.classList.add('batch-day-pill--selected');
+    } else {
+        pill.classList.remove('batch-day-pill--selected');
+    }
+}
+
+// ── Convert 12hr dropdowns → hidden 24hr HH:MM inputs ────────
+function to24(h, m, ampm) {
+    let hour = parseInt(h);
+    if (ampm === 'AM' && hour === 12) hour = 0;
+    if (ampm === 'PM' && hour !== 12) hour += 12;
+    return String(hour).padStart(2,'0') + ':' + m;
+}
+
+function syncTime() {
+    const sH = document.getElementById('start_hour').value;
+    const sM = document.getElementById('start_min').value;
+    const sA = document.getElementById('start_ampm').value;
+    const eH = document.getElementById('end_hour').value;
+    const eM = document.getElementById('end_min').value;
+    const eA = document.getElementById('end_ampm').value;
+
+    const start24 = to24(sH, sM, sA);
+    const end24   = to24(eH, eM, eA);
+
+    document.getElementById('start_time_hidden').value = start24;
+    document.getElementById('end_time_hidden').value   = end24;
+
+    // Warn if end time <= start time (next-day scenario)
+    const warn = document.getElementById('time_warning');
+    if (end24 <= start24) {
+        warn.style.display = 'block';
+    } else {
+        warn.style.display = 'none';
+    }
+}
+
+// Run once on page load to sync hidden fields
+document.addEventListener('DOMContentLoaded', syncTime);
+</script>
+
+<%- include('../../partials/footer') %>

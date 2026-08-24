@@ -1,0 +1,176 @@
+<%- include('../../partials/header') %>
+
+<%
+    const errorMsg   = (typeof error   !== 'undefined' && error)
+                       ? (typeof error   === 'string' ? error   : (error.message   || 'Something went wrong'))
+                       : null;
+    const successMsg = (typeof success !== 'undefined' && success)
+                       ? (typeof success === 'string' ? success : (success.message || 'Done'))
+                       : null;
+%>
+
+<div class="row settings-page-header">
+
+    <!-- Page Header - Blue Theme -->
+    <div class="col-12 mb-4">
+        <div class="coach-form-header">
+            <div class="coach-form-header__left">
+                <div class="coach-form-header__icon">
+                    <i class="bi bi-person-badge"></i>
+                </div>
+                <div>
+                    <h4 class="coach-form-header__title">
+                        <%= (typeof coach !== 'undefined' && coach && coach.id) ? 'Edit Coach' : 'Add New Coach' %>
+                    </h4>
+                    <span class="coach-form-header__sub">
+                        <a href="/academy/coaches" class="coach-form-breadcrumb">Coaches</a>
+                        &rsaquo; <%= (typeof coach !== 'undefined' && coach && coach.id) ? coach.name : 'New' %>
+                    </span>
+                </div>
+            </div>
+            <a href="/academy/coaches" class="coach-form-back-btn">
+                <i class="bi bi-arrow-left me-1"></i> Back to Coaches
+            </a>
+        </div>
+    </div>
+
+    <% if (successMsg) { %>
+    <script>document.addEventListener('DOMContentLoaded',()=>xToast('<%= successMsg.replace(/'/g,"\'") %>','success'));</script>
+    <% } %>
+    <% if (errorMsg) { %>
+    <script>document.addEventListener('DOMContentLoaded',()=>xToast('<%= errorMsg.replace(/'/g,"\'") %>','error'));</script>
+    <% } %>
+
+    <div class="col-12">
+        <div class="coach-form-card">
+            <div class="coach-form-card__body">
+
+                <form method="POST"
+                      action="<%= (typeof coach !== 'undefined' && coach && coach.id) ? '/academy/coaches/' + coach.id + '/update' : '/academy/coaches/create' %>"
+                      enctype="multipart/form-data">
+
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+                    <!-- Photo hero row -->
+                    <div class="coach-photo-section">
+                        <div class="coach-photo-upload">
+                            <div class="coach-photo-preview">
+                                <% if (typeof coach !== 'undefined' && coach && coach.photo) { %>
+                                    <img src="/uploads/coaches/<%= coach.photo %>" id="previewImg" class="coach-photo-img">
+                                <% } else { %>
+                                    <i class="bi bi-person" id="previewIcon" class="coach-photo-placeholder-icon"></i>
+                                    <img id="previewImg" class="coach-photo-img" style="display:none;" src="">
+                                <% } %>
+                            </div>
+                            <label for="photo" class="coach-photo-camera">
+                                <i class="bi bi-camera-fill"></i>
+                            </label>
+                            <input type="file" id="photo" name="photo" accept="image/jpeg,image/png,image/webp" style="display:none;">
+                        </div>
+                        <div class="coach-photo-info">
+                            <div class="coach-photo-title">Coach Photo</div>
+                            <div class="coach-photo-hint">JPG, PNG or WEBP · Max 2MB</div>
+                            <div class="coach-photo-hint">Click the camera icon to upload</div>
+                        </div>
+                    </div>
+
+                    <!-- Basic Information Section -->
+                    <div class="coach-form-section-title">
+                        Basic Information
+                    </div>
+
+                    <!-- Row 1: Name + Phone + Email -->
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label class="coach-form-label">
+                                Coach Name <span class="coach-required">*</span>
+                            </label>
+                            <input type="text" name="name" class="coach-form-input"
+                                   placeholder="Enter Name"
+                                   value="<%= (typeof coach !== 'undefined' && coach) ? (coach.name || '') : '' %>" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="coach-form-label">
+                                Phone <span class="coach-required">*</span>
+                            </label>
+                            <input type="tel" name="phone" class="coach-form-input"
+                                   placeholder="10-digit mobile number" maxlength="10"
+                                   value="<%= (typeof coach !== 'undefined' && coach) ? (coach.phone || '') : '' %>" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="coach-form-label">Email</label>
+                            <input type="email" name="email" class="coach-form-input"
+                                   placeholder="coach@example.com"
+                                   value="<%= (typeof coach !== 'undefined' && coach && coach.email) ? coach.email : '' %>">
+                        </div>
+                    </div>
+
+                    <!-- Row 2: Specialization + Experience -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="coach-form-label">Specialization</label>
+                            <input type="text" name="specialization" class="coach-form-input"
+                                   placeholder="e.g. Cricket, Football, Badminton"
+                                   value="<%= (typeof coach !== 'undefined' && coach && coach.specialization) ? coach.specialization : '' %>">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="coach-form-label">Experience (years)</label>
+                            <input type="number" name="experience_years" class="coach-form-input"
+                                   placeholder="0" min="0" max="50"
+                                   value="<%= (typeof coach !== 'undefined' && coach) ? (coach.experience_years || 0) : 0 %>">
+                        </div>
+                    </div>
+
+                    <!-- Additional Details Section -->
+                    <div class="coach-form-section-title">
+                        Additional Details
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="coach-form-label">Bio / Notes</label>
+                        <textarea name="bio" class="coach-form-textarea" rows="3"
+                                  placeholder="Short description, achievements, or notes about this coach..."><%= (typeof coach !== 'undefined' && coach && coach.bio) ? coach.bio : '' %></textarea>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="coach-form-actions">
+                        <button type="submit" class="coach-submit-btn">
+                            <i class="bi bi-check-lg me-1"></i>
+                            <%= (typeof coach !== 'undefined' && coach && coach.id) ? 'Update Coach' : 'Add Coach' %>
+                        </button>
+                        <a href="/academy/coaches" class="coach-cancel-btn">
+                            Cancel
+                        </a>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+document.getElementById('photo').addEventListener('change', function () {
+    const file = this.files[0];
+    if (!file) return;
+    
+    if (file.size > 2 * 1024 * 1024) {
+        xToast('Image must be under 2MB', 'error');
+        this.value = '';
+        return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = function (e) {
+        const img  = document.getElementById('previewImg');
+        const icon = document.getElementById('previewIcon');
+        img.src = e.target.result;
+        img.style.display = 'block';
+        if (icon) icon.style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+});
+</script>
+
+<%- include('../../partials/footer') %>

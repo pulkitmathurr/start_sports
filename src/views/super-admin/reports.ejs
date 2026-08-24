@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> - Start Sports</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="/css/super-admin.css">
+</head>
+<body>
+<%- include('../partials/sidebar', {
+    adminType:   'SUPER ADMIN',
+    currentPage: 'sa-reports',
+    logoutUrl:   '/auth/logout',
+    loginUrl:    '/auth/login'
+}) %>
+
+<main class="sa-main rp-page">
+
+    <!-- Topbar -->
+    <div class="rp-topbar">
+        <div class="rp-title-block">
+            <h1>Platform Reports</h1>
+            <p>Full analytics across all partners, revenue and bookings</p>
+        </div>
+        <div class="rp-badge"><i class="bi bi-bar-chart-line-fill"></i> Analytics</div>
+    </div>
+
+    <!-- Action Bar -->
+    <div class="rp-action-bar">
+        <button class="rp-export-btn primary" onclick="exportCSV('tenants')">
+            <i class="bi bi-download"></i> Export Tenants CSV
+        </button>
+        <button class="rp-export-btn" onclick="exportCSV('revenue')">
+            <i class="bi bi-download"></i> Export Revenue CSV
+        </button>
+        <div class="rp-spacer"></div>
+        <span class="rp-ts">Generated: <%= new Date().toLocaleString('en-IN', {timeZone:'Asia/Kolkata'}) %></span>
+    </div>
+
+    <!-- ── SECTION 1: Platform Overview ──────────────────────────── -->
+    <div class="rp-section">
+        <div class="rp-section-label"><i class="bi bi-grid-3x3"></i> Platform Overview</div>
+        <div class="rp-stat-grid">
+
+            <div class="rp-stat green">
+                <div class="rp-stat-label">Total Revenue</div>
+                <div class="rp-stat-val green">₹<%= Number(data.overview.total_revenue || 0).toLocaleString('en-IN') %></div>
+                <div class="rp-stat-sub">All time collected</div>
+                <%
+                    const mRev   = data.overview.this_month_revenue || 0;
+                    const lRev   = data.overview.last_month_revenue || 0;
+                    const revPct = lRev > 0 ? Math.round(((mRev - lRev) / lRev) * 100) : null;
+                %>
+                <% if (revPct !== null) { %>
+                <span class="rp-stat-trend <%= revPct >= 0 ? 'up' : 'down' %>">
+                    <i class="bi bi-arrow-<%= revPct >= 0 ? 'up' : 'down' %>"></i>
+                    <%= Math.abs(revPct) %>% vs last month
+                </span>
+                <% } %>
+            </div>
+
+            <div class="rp-stat green">
+                <div class="rp-stat-label">This Month Revenue</div>
+                <div class="rp-stat-val green">₹<%= Number(data.overview.this_month_revenue || 0).toLocaleString('en-IN') %></div>
+                <div class="rp-stat-sub">Last month: ₹<%= Number(data.overview.last_month_revenue || 0).toLocaleString('en-IN') %></div>
+            </div>
+
+            <div class="rp-stat accent">
+                <div class="rp-stat-label">Total Partners</div>
+                <div class="rp-stat-val accent"><%= data.overview.total_tenants || 0 %></div>
+                <div class="rp-stat-sub"><%= data.overview.active_tenants || 0 %> active</div>
+            </div>
+
+            <div class="rp-stat accent">
+                <div class="rp-stat-label">New This Month</div>
+                <div class="rp-stat-val accent"><%= data.overview.signups_this_month || 0 %></div>
+                <div class="rp-stat-sub">Last month: <%= data.overview.signups_last_month || 0 %></div>
+                <%
+                    const sNow = data.overview.signups_this_month || 0;
+                    const sLst = data.overview.signups_last_month || 0;
+                    const sPct = sLst > 0 ? Math.round(((sNow - sLst) / sLst) * 100) : null;
+                %>
+                <% if (sPct !== null) { %>
+                <span class="rp-stat-trend <%= sPct >= 0 ? 'up' : 'down' %>">
+                    <i class="bi bi-arrow-<%= sPct >= 0 ? 'up' : 'down' %>"></i> <%= Math.abs(sPct) %>%
+                </span>
+                <% } %>
+            </div>
+
+            <div class="rp-stat blue">
+                <div class="rp-stat-label">On Trial</div>
+                <div class="rp-stat-val blue"><%= data.overview.trial_tenants || 0 %></div>
+                <div class="rp-stat-sub">Free trial accounts</div>
+            </div>
+
+            <div class="rp-stat amber">
+                <div class="rp-stat-label">Suspended</div>
+                <div class="rp-stat-val amber"><%= data.overview.suspended_tenants || 0 %></div>
+                <div class="rp-stat-sub">Needs attention</div>
+            </div>
+
+            <div class="rp-stat red">
+                <div class="rp-stat-label">Expired</div>
+                <div class="rp-stat-val red"><%= data.overview.expired_tenants || 0 %></div>
+                <div class="rp-stat-sub">Subscription lapsed</div>
+            </div>
+
+            <div class="rp-stat blue">
+                <div class="rp-stat-label">Platform Bookings</div>
+                <div class="rp-stat-val blue"><%= Number(data.bookingActivity.total_bookings || 0).toLocaleString('en-IN') %></div>
+                <div class="rp-stat-sub"><%= data.bookingActivity.last_30d || 0 %> in last 30d</div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ── SECTION 2: Revenue + Signups Charts ───────────────────── -->
+    <div class="rp-section">
+        <div class="rp-section-label"><i class="bi bi-graph-up"></i> Revenue & Growth Trends</div>
+        <div class="rp-two-col">
+            <div class="rp-card">
+                <div class="rp-card-head">
+                    <div class="rp-card-title"><i class="bi bi-currency-rupee"></i> Monthly Revenue</div>
+                    <span class="rp-card-pill">12 months</span>
+                </div>
+                <canvas id="revenueChart" height="180"></canvas>
+            </div>
+            <div class="rp-card">
+                <div class="rp-card-head">
+                    <div class="rp-card-title"><i class="bi bi-people"></i> New Partner Signups</div>
+                    <span class="rp-card-pill">12 months</span>
+                </div>
+                <canvas id="signupChart" height="180"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── SECTION 3: Booking Activity + Plan Breakdown ──────────── -->
+    <div class="rp-section">
+        <div class="rp-section-label"><i class="bi bi-calendar-check"></i> Booking Activity & Plan Breakdown</div>
+        <div class="rp-two-col">
+
+            <div class="rp-card">
+                <div class="rp-card-head">
+                    <div class="rp-card-title"><i class="bi bi-calendar3"></i> Booking Status Breakdown</div>
+                </div>
+                <%
+                    const bTotal = data.bookingActivity.total_bookings || 0;
+                    const bConf  = data.bookingActivity.confirmed || 0;
+                    const bPend  = data.bookingActivity.pending   || 0;
+                    const bCanc  = data.bookingActivity.cancelled || 0;
+                %>
+                <div class="rp-booking-grid">
+                    <div class="rp-booking-box">
+                        <div class="rp-booking-box-label">Today</div>
+                        <div class="rp-booking-box-val"><%= data.bookingActivity.today || 0 %></div>
+                    </div>
+                    <div class="rp-booking-box">
+                        <div class="rp-booking-box-label">Last 7 Days</div>
+                        <div class="rp-booking-box-val"><%= data.bookingActivity.last_7d || 0 %></div>
+                    </div>
+                    <div class="rp-booking-box">
+                        <div class="rp-booking-box-label">Last 30 Days</div>
+                        <div class="rp-booking-box-val"><%= data.bookingActivity.last_30d || 0 %></div>
+                    </div>
+                    <div class="rp-booking-box accent">
+                        <div class="rp-booking-box-label">All Time</div>
+                        <div class="rp-booking-box-val accent"><%= Number(bTotal).toLocaleString('en-IN') %></div>
+                    </div>
+                </div>
+                <% if (bTotal > 0) { %>
+                <div class="rp-mini-bar-row">
+                    <span class="rp-mini-bar-label rp-label-green">Confirmed</span>
+                    <div class="rp-mini-bar-track"><div class="rp-mini-bar-fill rp-fill-green" style="width:<%= Math.round((bConf/bTotal)*100) %>%"></div></div>
+                    <span class="rp-mini-bar-val"><%= bConf %></span>
+                </div>
+                <div class="rp-mini-bar-row">
+                    <span class="rp-mini-bar-label rp-label-amber">Pending</span>
+                    <div class="rp-mini-bar-track"><div class="rp-mini-bar-fill rp-fill-amber" style="width:<%= Math.round((bPend/bTotal)*100) %>%"></div></div>
+                    <span class="rp-mini-bar-val"><%= bPend %></span>
+                </div>
+                <div class="rp-mini-bar-row">
+                    <span class="rp-mini-bar-label rp-label-red">Cancelled</span>
+                    <div class="rp-mini-bar-track"><div class="rp-mini-bar-fill rp-fill-red" style="width:<%= Math.round((bCanc/bTotal)*100) %>%"></div></div>
+                    <span class="rp-mini-bar-val"><%= bCanc %></span>
+                </div>
+                <% } %>
+            </div>
+
+            <div class="rp-card">
+                <div class="rp-card-head">
+                    <div class="rp-card-title"><i class="bi bi-layers"></i> Revenue by Plan</div>
+                </div>
+                <% const maxPlanRev = Math.max(...data.revenueByPlan.map(p => p.total_revenue || 0), 1); %>
+                <% data.revenueByPlan.forEach((plan, i) => { %>
+                <div class="rp-mini-bar-row">
+                    <span class="rp-mini-bar-label"><%= plan.plan_name %></span>
+                    <div class="rp-mini-bar-track">
+                        <div class="rp-mini-bar-fill rp-fill-<%= i===0?'accent':i===1?'green':i===2?'blue':'amber' %>"
+                             style="width:<%= Math.round(((plan.total_revenue||0)/maxPlanRev)*100) %>%"></div>
+                    </div>
+                    <span class="rp-mini-bar-val">₹<%= Number(plan.total_revenue||0).toLocaleString('en-IN') %></span>
+                </div>
+                <div class="rp-plan-meta"><%= plan.sub_count %> subscriptions · ₹<%= Number(plan.price_monthly||0).toLocaleString('en-IN') %>/mo</div>
+                <% }) %>
+                <% if (!data.revenueByPlan.length) { %><div class="rp-empty">No plan data</div><% } %>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ── SECTION 4: Top Tenants + Upcoming Renewals ────────────── -->
+    <div class="rp-section">
+        <div class="rp-section-label"><i class="bi bi-trophy"></i> Top Partners & Upcoming Renewals</div>
+        <div class="rp-two-col">
+
+            <div class="rp-card">
+                <div class="rp-card-head">
+                    <div class="rp-card-title"><i class="bi bi-bar-chart"></i> Most Active (Last 30 Days)</div>
+                    <span class="rp-card-pill">by bookings</span>
+                </div>
+                <% const maxBook = Math.max(...data.topTenants.map(t => t.bookings || 0), 1); %>
+                <% data.topTenants.forEach((t, i) => { %>
+                <div class="rp-mini-bar-row">
+                    <span class="rp-mini-bar-label">
+                        <span class="rp-rank">#<%= i+1 %></span> <%= t.business_name %>
+                    </span>
+                    <div class="rp-mini-bar-track">
+                        <div class="rp-mini-bar-fill" style="width:<%= Math.round(((t.bookings||0)/maxBook)*100) %>%"></div>
+                    </div>
+                    <span class="rp-mini-bar-val"><%= t.bookings %></span>
+                </div>
+                <% }) %>
+                <% if (!data.topTenants.length) { %><div class="rp-empty">No bookings in last 30 days</div><% } %>
+            </div>
+
+            <div class="rp-card">
+                <div class="rp-card-head">
+                    <div class="rp-card-title"><i class="bi bi-clock-history"></i> Upcoming Renewals</div>
+                    <span class="rp-card-pill">next 30 days</span>
+                </div>
+                <% data.upcomingRenewals.forEach(r => { %>
+                <div class="rp-renewal-row">
+                    <div>
+                        <div class="rp-renewal-name"><%= r.business_name %></div>
+                        <div class="rp-renewal-meta"><%= r.plan_name %> · <%= r.city %></div>
+                    </div>
+                    <div class="rp-renewal-right">
+                        <div class="rp-renewal-days <%= r.days_left <= 3 ? 'urgent' : r.days_left <= 10 ? 'soon' : 'ok' %>">
+                            <%= r.days_left %>d left
+                        </div>
+                        <div class="rp-renewal-amount">₹<%= Number(r.amount_paid||0).toLocaleString('en-IN') %></div>
+                    </div>
+                </div>
+                <% }) %>
+                <% if (!data.upcomingRenewals.length) { %><div class="rp-empty">No renewals in next 30 days</div><% } %>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ── SECTION 5: Full Partner Table ─────────────────────────── -->
+    <div class="rp-section rp-full">
+        <div class="rp-section-label"><i class="bi bi-table"></i> All Partner Performance</div>
+        <div class="rp-card rp-card-flush">
+            <div class="rp-table-header">
+                <div class="rp-card-title"><i class="bi bi-building"></i> Partner Directory</div>
+                <input type="text" placeholder="Filter partners..." id="tenantSearch"
+                       oninput="filterTable(this.value)" class="rp-table-search">
+            </div>
+            <div class="rp-table-wrap">
+                <table class="rp-table" id="tenantTable">
+                    <thead>
+                        <tr>
+                            <th>Partner</th>
+                            <th>City</th>
+                            <th>Plan</th>
+                            <th>Status</th>
+                            <th>Grounds</th>
+                            <th>Total Bookings</th>
+                            <th>Last 30d</th>
+                            <th>Customers</th>
+                            <th>Expires</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <% data.tenantPerformance.forEach(t => { %>
+                        <tr class="tenant-row" data-name="<%= (t.business_name||'').toLowerCase() %>">
+                            <td>
+                                <div class="rp-partner-name"><%= t.business_name %></div>
+                                <div class="rp-partner-owner"><%= t.owner_name %></div>
+                            </td>
+                            <td class="muted"><%= t.city || '—' %></td>
+                            <td><span class="rp-plan-name"><%= t.plan_name || '—' %></span></td>
+                            <td>
+                                <span class="rp-chip <%= t.sub_status === 'active' ? (t.billing_cycle === 'trial' ? 'trial' : 'active') : t.sub_status === 'expired' ? 'expired' : 'suspended' %>">
+                                    <%= t.sub_status === 'active' && t.billing_cycle === 'trial' ? 'Trial' : t.sub_status || '—' %>
+                                </span>
+                            </td>
+                            <td class="mono rp-center"><%= t.grounds_count || 0 %></td>
+                            <td class="mono rp-center rp-accent-val"><%= Number(t.total_bookings||0).toLocaleString('en-IN') %></td>
+                            <td class="mono rp-center"><%= t.bookings_30d || 0 %></td>
+                            <td class="mono rp-center"><%= t.total_customers || 0 %></td>
+                            <td>
+                                <% if (t.expires_at) { %>
+                                    <% const dLeft = Math.ceil((new Date(t.expires_at) - new Date()) / 86400000); %>
+                                    <span class="rp-expiry-date <%= dLeft <= 7 ? 'urgent' : dLeft <= 30 ? 'soon' : '' %>">
+                                        <%= new Date(t.expires_at).toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'}) %>
+                                    </span>
+                                <% } else { %><span class="muted">—</span><% } %>
+                            </td>
+                        </tr>
+                    <% }) %>
+                    <% if (!data.tenantPerformance.length) { %>
+                        <tr><td colspan="9"><div class="rp-empty">No partners found</div></td></tr>
+                    <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<script>
+Chart.defaults.color = '#9ca3af';
+Chart.defaults.borderColor = 'rgba(0,0,0,0.06)';
+Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
+Chart.defaults.font.size = 10;
+
+// Revenue Chart
+const revData = <%- JSON.stringify(data.revenueByMonth) %>;
+new Chart(document.getElementById('revenueChart'), {
+    type: 'bar',
+    data: {
+        labels: revData.map(r => r.label),
+        datasets: [{ label: 'Revenue (₹)', data: revData.map(r => r.revenue),
+            backgroundColor: 'rgba(22,163,74,0.12)', borderColor: 'rgba(22,163,74,0.8)',
+            borderWidth: 1.5, borderRadius: 4, borderSkipped: false }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { display: false },
+            tooltip: { callbacks: { label: ctx => '₹' + Number(ctx.raw).toLocaleString('en-IN') } } },
+        scales: {
+            x: { grid: { display: false } },
+            y: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { callback: v => '₹' + Number(v).toLocaleString('en-IN') } }
+        }
+    }
+});
+
+// Signup Chart
+const rawSignups = <%- JSON.stringify(data.tenantPerformance || []) %>;
+const monthMap = {};
+rawSignups.forEach(t => {
+    if (!t.created_at) return;
+    const d = new Date(t.created_at);
+    const key = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+    monthMap[key] = monthMap[key] || { label: d.toLocaleString('en-IN', {month:'short',year:'numeric'}), count: 0 };
+    monthMap[key].count++;
+});
+const signupMonths = Object.keys(monthMap).sort().slice(-12);
+new Chart(document.getElementById('signupChart'), {
+    type: 'line',
+    data: {
+        labels: signupMonths.map(k => monthMap[k].label),
+        datasets: [{ label: 'New Partners', data: signupMonths.map(k => monthMap[k].count),
+            borderColor: 'rgba(29,78,216,0.9)', backgroundColor: 'rgba(29,78,216,0.07)',
+            borderWidth: 2, pointRadius: 3, pointBackgroundColor: '#1d4ed8', tension: 0.4, fill: true }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: { x: { grid: { display: false } }, y: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { stepSize: 1 } } }
+    }
+});
+
+function filterTable(q) {
+    q = q.toLowerCase();
+    document.querySelectorAll('.tenant-row').forEach(r => {
+        r.style.display = r.dataset.name.includes(q) ? '' : 'none';
+    });
+}
+
+const tenantData  = <%- JSON.stringify(data.tenantPerformance) %>;
+const revenueData = <%- JSON.stringify(data.revenueByMonth) %>;
+function exportCSV(type) {
+    let rows, filename;
+    if (type === 'tenants') {
+        rows = [['Business Name','City','Plan','Status','Grounds','Total Bookings','30d Bookings','Customers','Expires'],
+            ...tenantData.map(t => [t.business_name,t.city||'',t.plan_name||'',t.sub_status||'',
+                t.grounds_count||0,t.total_bookings||0,t.bookings_30d||0,t.total_customers||0,
+                t.expires_at?new Date(t.expires_at).toLocaleDateString('en-IN'):''])];
+        filename = 'partners_report.csv';
+    } else {
+        rows = [['Month','Revenue (₹)','Subscriptions'],...revenueData.map(r=>[r.label,r.revenue,r.subscriptions])];
+        filename = 'revenue_report.csv';
+    }
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([rows.map(r=>r.map(v=>`"${v}"`).join(',')).join('\n')],{type:'text/csv'}));
+    a.download = filename; a.click();
+}
+// Keep sa_access_token alive
+function ping() {
+    fetch('/super-admin/keepalive', { method: 'GET', credentials: 'same-origin' }).catch(function(){});
+}
+ping();
+setInterval(ping, 10 * 60 * 1000);
+</script>
+</body>
+</html>

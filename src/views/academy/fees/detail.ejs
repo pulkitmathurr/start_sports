@@ -1,0 +1,791 @@
+<%- include('../../partials/header') %>
+<% const errorMsg   = (typeof error   !== 'undefined' && error)   ? (typeof error   === 'string' ? error   : (error.message||'Error')) : null; %>
+<% const successMsg = (typeof success !== 'undefined' && success) ? (typeof success === 'string' ? success : 'Done')                  : null; %>
+
+<div class="row settings-page-header">
+
+    <!-- Page Header - Blue Theme -->
+    <div class="col-12 mb-4">
+        <div class="fee-detail-header">
+            <div class="fee-detail-header__left">
+                <div class="fee-detail-header__icon">
+                    <i class="bi bi-receipt"></i>
+                </div>
+                <div>
+                    <h4 class="fee-detail-header__title">Fee Detail</h4>
+                    <span class="fee-detail-header__sub">
+                        <a href="/academy/fees" class="fee-detail-breadcrumb">Fees</a>
+                        &rsaquo; <%= fee.student_name %>
+                    </span>
+                </div>
+            </div>
+            <a href="/academy/fees" class="fee-detail-back-btn">
+                <i class="bi bi-arrow-left"></i> Back to Fees
+            </a>
+        </div>
+    </div>
+
+    <% if (successMsg) { %><script>document.addEventListener('DOMContentLoaded',()=>xToast('<%= successMsg.replace(/'/g,"\'") %>','success'));</script><% } %>
+    <% if (errorMsg)   { %><script>document.addEventListener('DOMContentLoaded',()=>xToast('<%= errorMsg.replace(/'/g,"\'") %>','error'));</script><% } %>
+
+    <!-- Left: Fee Summary + Record Payment -->
+    <div class="col-12 col-lg-4 mb-4">
+
+        <!-- Fee Summary Card -->
+        <div class="fee-summary-card mb-3">
+            <div class="fee-summary-card__header">
+                <i class="bi bi-calculator"></i> Fee Summary
+            </div>
+            <div class="fee-summary-card__body">
+
+                <div class="fee-student-info">
+                    <div class="fee-student-avatar">
+                        <%= fee.student_name.charAt(0).toUpperCase() %>
+                    </div>
+                    <div>
+                        <div class="fee-student-name"><%= fee.student_name %></div>
+                        <div class="fee-student-whatsapp">
+                            <i class="bi bi-whatsapp"></i> <%= fee.parent_phone %>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="fee-details">
+                    <% if (fee.batch_name) { %>
+                    <div class="fee-detail-row">
+                        <span>Batch</span>
+                        <span><%= fee.batch_name %></span>
+                    </div>
+                    <% } %>
+                    <% if (fee.plan_name) { %>
+                    <div class="fee-detail-row">
+                        <span>Plan</span>
+                        <span><%= fee.plan_name %></span>
+                    </div>
+                    <% } %>
+                    <div class="fee-detail-row">
+                        <span>Due Date</span>
+                        <span><%= new Date(fee.due_date).toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'}) %></span>
+                    </div>
+                    
+                    <div class="fee-divider"></div>
+                    
+                    <div class="fee-detail-row fee-total">
+                        <span>Total Fee</span>
+                        <span>₹<%= parseFloat(fee.amount).toLocaleString('en-IN') %></span>
+                    </div>
+                    <div class="fee-detail-row fee-paid">
+                        <span>Paid</span>
+                        <span>₹<%= parseFloat(fee.paid_amount).toLocaleString('en-IN') %></span>
+                    </div>
+                    <div class="fee-detail-row fee-balance">
+                        <span>Balance</span>
+                        <span class="<%= parseFloat(fee.balance) > 0 ? 'fee-balance-due' : 'fee-balance-zero' %>">
+                            ₹<%= parseFloat(fee.balance).toLocaleString('en-IN') %>
+                        </span>
+                    </div>
+
+                    <% const pct = fee.amount > 0 ? Math.min(100, Math.round((fee.paid_amount / fee.amount) * 100)) : 0; %>
+                    <div class="fee-progress-bar">
+                        <div class="fee-progress-fill" style="width: <%= pct %>%;"></div>
+                    </div>
+                    <div class="fee-progress-label"><%= pct %>% paid</div>
+
+                    <div class="fee-status-badge fee-status-<%= fee.status %>">
+                        <%= fee.status %>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Record Payment Card -->
+        <% if (fee.status !== 'paid') { %>
+        <div class="fee-payment-card">
+            <div class="fee-payment-card__header">
+                <i class="bi bi-cash-stack"></i> Record Payment
+            </div>
+            <div class="fee-payment-card__body">
+                <form method="POST" action="/academy/fees/<%= fee.id %>/pay">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                    
+                    <div class="fee-payment-group">
+                        <label class="fee-payment-label">Amount (₹) <span class="text-danger">*</span></label>
+                        <input type="number" name="amount" class="fee-payment-input"
+                               placeholder="Enter amount" min="1" step="0.01"
+                               value="<%= parseFloat(fee.balance).toFixed(2) %>" required>
+                    </div>
+                    
+                    <div class="fee-payment-group">
+                        <label class="fee-payment-label">Payment Mode</label>
+                        <select name="payment_mode" class="fee-payment-select">
+                            <option value="cash">Cash</option>
+                            <option value="upi">UPI</option>
+                            <option value="card">Card</option>
+                            <option value="bank_transfer">Bank Transfer</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    
+                    <div class="fee-payment-group">
+                        <label class="fee-payment-label">Payment Date</label>
+                        <input type="date" name="payment_date" class="fee-payment-input"
+                               value="<%= new Date().toISOString().slice(0,10) %>">
+                    </div>
+                    
+                    <div class="fee-payment-group">
+                        <label class="fee-payment-label">Note</label>
+                        <input type="text" name="note" class="fee-payment-input" placeholder="Optional">
+                    </div>
+                    
+                    <button type="submit" class="fee-payment-btn">
+                        <i class="bi bi-check-lg"></i> Record Payment
+                        <span class="fee-whatsapp-hint">+ WhatsApp</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+        <% } else { %>
+        <div class="fee-paid-card">
+            <div class="fee-paid-card__icon">✅</div>
+            <p class="fee-paid-card__title">Fully Paid</p>
+            <small class="fee-paid-card__sub">No outstanding balance</small>
+        </div>
+        <% } %>
+    </div>
+
+    <!-- Right: Payment History -->
+    <div class="col-12 col-lg-8 mb-4">
+        <div class="fee-history-card">
+            <div class="fee-history-card__header">
+                <i class="bi bi-clock-history"></i> Payment History
+                <span class="fee-history-count"><%= payments.length %></span>
+            </div>
+
+            <% if (payments.length === 0) { %>
+            <div class="fee-history-empty">
+                <div class="fee-history-empty__icon">
+                    <i class="bi bi-credit-card"></i>
+                </div>
+                <p>No payments recorded yet</p>
+            </div>
+            <% } else { %>
+            <div class="table-responsive">
+                <table class="fee-history-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Date</th>
+                            <th>Amount</th>
+                            <th>Mode</th>
+                            <th>Note</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% payments.forEach((pay, index) => { %>
+                        <tr>
+                            <td class="fee-history-num"><%= index + 1 %></td>
+                            <td class="fee-history-date">
+                                <%= new Date(pay.payment_date).toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'}) %>
+                            </td>
+                            <td class="fee-history-amount">₹<%= parseFloat(pay.amount).toLocaleString('en-IN') %></td>
+                            <td>
+                                <span class="fee-payment-mode-badge"><%= pay.payment_mode %></span>
+                            </td>
+                            <td class="fee-history-note"><%= pay.note || '—' %></td>
+                        </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+            <div class="fee-history-footer">
+                <span>Total Collected</span>
+                <span class="fee-history-total">
+                    ₹<%= payments.reduce((sum, p) => sum + parseFloat(p.amount), 0).toLocaleString('en-IN') %>
+                </span>
+            </div>
+            <% } %>
+        </div>
+    </div>
+
+</div>
+
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   FEE DETAIL PAGE - Blue/White Theme
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Page Header - Blue Theme */
+.fee-detail-header {
+    background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 45%, #1e40af 100%);
+    border-radius: 20px;
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.2);
+}
+
+.fee-detail-header::before {
+    content: '';
+    position: absolute;
+    top: -50px;
+    right: -50px;
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(96, 165, 250, 0.12) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.fee-detail-header__left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    position: relative;
+    z-index: 2;
+}
+
+.fee-detail-header__icon {
+    width: 46px;
+    height: 46px;
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.fee-detail-header__title {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #fff;
+    margin: 0;
+    line-height: 1.3;
+    letter-spacing: -0.3px;
+}
+
+.fee-detail-header__sub {
+    font-size: 0.68rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin-top: 2px;
+    display: block;
+}
+
+.fee-detail-breadcrumb {
+    color: rgba(255, 255, 255, 0.7);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.fee-detail-breadcrumb:hover {
+    color: #fff;
+}
+
+.fee-detail-back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 7px 16px;
+    border-radius: 10px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.fee-detail-back-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
+    color: #fff;
+}
+
+/* Fee Summary Card */
+.fee-summary-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    overflow: hidden;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+}
+
+.fee-summary-card__header {
+    padding: 14px 18px;
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 0.78rem;
+    letter-spacing: 1px;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.fee-summary-card__header i {
+    color: #2563eb;
+}
+
+.fee-summary-card__body {
+    padding: 18px;
+}
+
+.fee-student-info {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 18px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.fee-student-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: 700;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.fee-student-name {
+    font-weight: 700;
+    color: #1e293b;
+    font-size: 0.9rem;
+}
+
+.fee-student-whatsapp {
+    font-size: 0.75rem;
+    color: #2563eb;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.fee-details {
+    font-size: 0.85rem;
+}
+
+.fee-detail-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.fee-detail-row span:first-child {
+    color: #64748b;
+}
+
+.fee-detail-row span:last-child {
+    font-weight: 500;
+    color: #1e293b;
+}
+
+.fee-total span:last-child {
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.fee-paid span:last-child {
+    color: #059669;
+    font-weight: 600;
+}
+
+.fee-balance span:last-child {
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.fee-balance-due {
+    color: #dc2626;
+}
+
+.fee-balance-zero {
+    color: #059669;
+}
+
+.fee-divider {
+    height: 1px;
+    background: #e2e8f0;
+    margin: 12px 0;
+}
+
+.fee-progress-bar {
+    background: #e2e8f0;
+    border-radius: 4px;
+    height: 6px;
+    margin: 12px 0 6px;
+    overflow: hidden;
+}
+
+.fee-progress-fill {
+    height: 6px;
+    border-radius: 4px;
+    background: linear-gradient(90deg, #2563eb, #60a5fa);
+    transition: width 0.3s ease;
+}
+
+.fee-progress-label {
+    text-align: right;
+    font-size: 0.7rem;
+    color: #64748b;
+}
+
+.fee-status-badge {
+    display: inline-block;
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-top: 12px;
+    text-transform: capitalize;
+}
+
+.fee-status-paid {
+    background: #ecfdf5;
+    color: #059669;
+    border: 1px solid #a7f3d0;
+}
+
+.fee-status-partial {
+    background: #fffbeb;
+    color: #d97706;
+    border: 1px solid #fde68a;
+}
+
+.fee-status-due {
+    background: #eff6ff;
+    color: #2563eb;
+    border: 1px solid #bfdbfe;
+}
+
+.fee-status-overdue {
+    background: #fef2f2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+}
+
+/* Payment Card */
+.fee-payment-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+}
+
+.fee-payment-card__header {
+    padding: 14px 18px;
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 0.78rem;
+    letter-spacing: 1px;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.fee-payment-card__header i {
+    color: #2563eb;
+}
+
+.fee-payment-card__body {
+    padding: 18px;
+}
+
+.fee-payment-group {
+    margin-bottom: 16px;
+}
+
+.fee-payment-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    display: block;
+    margin-bottom: 6px;
+}
+
+.fee-payment-input,
+.fee-payment-select {
+    width: 100%;
+    padding: 9px 12px;
+    background: #f8fafc;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 0.82rem;
+    color: #1e293b;
+    transition: all 0.2s;
+}
+
+.fee-payment-input:focus,
+.fee-payment-select:focus {
+    outline: none;
+    border-color: #2563eb;
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.fee-payment-btn {
+    width: 100%;
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 10px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.fee-payment-btn:hover {
+    background: linear-gradient(135deg, #1d4ed8, #1e40af);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.fee-whatsapp-hint {
+    font-size: 0.7rem;
+    opacity: 0.8;
+}
+
+/* Paid Card */
+.fee-paid-card {
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    border-radius: 18px;
+    text-align: center;
+    padding: 30px 20px;
+}
+
+.fee-paid-card__icon {
+    font-size: 2.5rem;
+    margin-bottom: 8px;
+}
+
+.fee-paid-card__title {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    color: #059669;
+    margin-bottom: 4px;
+}
+
+.fee-paid-card__sub {
+    font-size: 0.75rem;
+    color: #64748b;
+}
+
+/* Payment History Card */
+.fee-history-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+}
+
+.fee-history-card__header {
+    padding: 14px 18px;
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 0.78rem;
+    letter-spacing: 1px;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.fee-history-card__header i {
+    color: #2563eb;
+}
+
+.fee-history-count {
+    margin-left: auto;
+    background: #eff6ff;
+    color: #2563eb;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+.fee-history-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+}
+
+.fee-history-table thead th {
+    padding: 10px 14px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #64748b;
+    border-bottom: 1px solid #e2e8f0;
+    background: #f8fafc;
+}
+
+.fee-history-table tbody tr {
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.fee-history-table tbody td {
+    padding: 10px 14px;
+    vertical-align: middle;
+}
+
+.fee-history-num {
+    color: #94a3b8;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.fee-history-date {
+    color: #475569;
+    font-size: 0.78rem;
+}
+
+.fee-history-amount {
+    font-weight: 600;
+    color: #059669;
+}
+
+.fee-payment-mode-badge {
+    display: inline-block;
+    background: #f1f5f9;
+    color: #475569;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 500;
+    text-transform: capitalize;
+}
+
+.fee-history-note {
+    color: #64748b;
+}
+
+.fee-history-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 18px;
+    border-top: 2px solid #e2e8f0;
+    background: #f8fafc;
+    font-size: 0.82rem;
+    font-weight: 600;
+}
+
+.fee-history-total {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #059669;
+}
+
+/* Empty State */
+.fee-history-empty {
+    text-align: center;
+    padding: 50px 20px;
+}
+
+.fee-history-empty__icon {
+    width: 60px;
+    height: 60px;
+    background: #f1f5f9;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 12px;
+}
+
+.fee-history-empty__icon i {
+    font-size: 1.5rem;
+    color: #94a3b8;
+}
+
+.fee-history-empty p {
+    font-size: 0.82rem;
+    color: #64748b;
+    margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .fee-detail-header {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 14px 18px;
+    }
+    
+    .fee-detail-header__icon {
+        width: 38px;
+        height: 38px;
+        font-size: 1.1rem;
+    }
+    
+    .fee-detail-header__title {
+        font-size: 1.1rem;
+    }
+    
+    .fee-detail-back-btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .fee-summary-card__body,
+    .fee-payment-card__body {
+        padding: 14px;
+    }
+    
+    .fee-history-table {
+        min-width: 500px;
+    }
+}
+</style>
+
+
+                    <!-- Cancel Fee -->
+                    <% if (fee.status !== 'paid' && fee.status !== 'cancelled') { %>
+                    <div class="mt-3 pt-3 border-top">
+                        <form method="POST" action="/academy/fees/<%= fee.id %>/cancel"
+                              onsubmit="return confirm('Cancel this fee? This cannot be undone.')">
+                            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                            <button type="submit" class="btn btn-sm btn-outline-danger w-100">
+                                <i class="bi bi-x-circle"></i> Cancel This Fee
+                            </button>
+                        </form>
+                    </div>
+                    <% } %>
+
+<%- include('../../partials/footer') %>

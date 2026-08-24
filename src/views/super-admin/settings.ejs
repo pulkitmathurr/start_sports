@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> - Start Sports</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="/css/super-admin.css">
+</head>
+<body>
+<%- include('../partials/sidebar', {
+    adminType: 'SUPER ADMIN',
+    currentPage: 'settings',
+    logoutUrl: '/auth/logout',
+    loginUrl: '/auth/login'
+}) %>
+
+<main class="sa-main">
+    <div class="sa-topbar">
+        <div class="page-title">
+            <h1>App Settings</h1>
+            <p>Configure platform behaviour without touching code</p>
+        </div>
+        <div class="topbar-right">
+            <div class="admin-badge"><i class="bi bi-shield-lock-fill"></i><span>Super Admin</span></div>
+        </div>
+    </div>
+
+    <div class="sas-grid">
+
+        <!-- ── LEFT COLUMN ── -->
+        <div class="sas-col">
+
+            <!-- Trial & Grace Period -->
+            <div class="sas-card">
+                <div class="sas-card-header">
+                    <div class="sas-card-icon sas-icon-green"><i class="bi bi-gift"></i></div>
+                    <div>
+                        <div class="sas-card-title">Trial & Grace Period</div>
+                        <div class="sas-card-sub">Controls new signup trial and expiry buffer</div>
+                    </div>
+                </div>
+                <div class="sas-card-body">
+
+                    <div class="sas-setting-row">
+                        <div class="sas-setting-info">
+                            <div class="sas-setting-label">Free Trial Duration</div>
+                            <div class="sas-setting-desc">Days new signups get before needing to upgrade</div>
+                        </div>
+                        <div class="sas-setting-control">
+                            <div class="sas-input-suffix-wrap">
+                                <input type="number" class="sas-input" id="free_trial_days"
+                                    value="<%= settingsMap.free_trial_days ? settingsMap.free_trial_days.setting_value : 14 %>"
+                                    min="0" max="90" style="width:80px">
+                                <span class="sas-input-suffix">days</span>
+                            </div>
+                            <button class="sas-save-btn-sm" onclick="saveSetting('free_trial_days', 'free_trial_days')">
+                                <i class="bi bi-check-lg"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="sas-setting-row">
+                        <div class="sas-setting-info">
+                            <div class="sas-setting-label">Grace Period After Expiry</div>
+                            <div class="sas-setting-desc">Days allowed after subscription expires before lockout</div>
+                        </div>
+                        <div class="sas-setting-control">
+                            <div class="sas-input-suffix-wrap">
+                                <input type="number" class="sas-input" id="grace_period_days"
+                                    value="<%= settingsMap.grace_period_days ? settingsMap.grace_period_days.setting_value : 3 %>"
+                                    min="0" max="30" style="width:80px">
+                                <span class="sas-input-suffix">days</span>
+                            </div>
+                            <button class="sas-save-btn-sm" onclick="saveSetting('grace_period_days', 'grace_period_days')">
+                                <i class="bi bi-check-lg"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Maintenance Mode -->
+            <div class="sas-card">
+                <div class="sas-card-header">
+                    <div class="sas-card-icon sas-icon-orange"><i class="bi bi-cone-striped"></i></div>
+                    <div style="flex:1">
+                        <div class="sas-card-title">Maintenance Mode</div>
+                        <div class="sas-card-sub">Partners see a notice instead of the app</div>
+                    </div>
+                    <label class="sas-toggle">
+                        <input type="checkbox" id="maintenance_toggle"
+                            <%= settingsMap.maintenance_mode && settingsMap.maintenance_mode.setting_value === '1' ? 'checked' : '' %>
+                            onchange="saveToggle('maintenance_mode', this.checked)">
+                        <span class="sas-toggle-slider"></span>
+                    </label>
+                </div>
+
+                <% if (settingsMap.maintenance_mode && settingsMap.maintenance_mode.setting_value === '1') { %>
+                <div class="sas-maintenance-banner">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    <div><strong>Maintenance mode is ON.</strong> Partners cannot access the platform right now.</div>
+                </div>
+                <% } %>
+
+                <div class="sas-card-body">
+                    <div class="sas-field">
+                        <label class="sas-label">Maintenance Message</label>
+                        <textarea class="sas-textarea" id="maintenance_message" rows="3"
+                            placeholder="Message shown to partners during maintenance..."><%= settingsMap.maintenance_message ? settingsMap.maintenance_message.setting_value : '' %></textarea>
+                        <button class="sas-action-btn" style="margin-top:10px" onclick="saveSetting('maintenance_message', 'maintenance_message')">
+                            <i class="bi bi-check-lg"></i> Save Message
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ── RIGHT COLUMN ── -->
+        <div class="sas-col">
+
+            <!-- Support Contact -->
+            <div class="sas-card">
+                <div class="sas-card-header">
+                    <div class="sas-card-icon sas-icon-green"><i class="bi bi-headset"></i></div>
+                    <div>
+                        <div class="sas-card-title">Support Contact</div>
+                        <div class="sas-card-sub">Shown to tenant admins in their sidebar</div>
+                    </div>
+                </div>
+                <div class="sas-card-body">
+                    <div class="sas-field">
+                        <label class="sas-label">Support Email</label>
+                        <input type="email" class="sas-input" id="val-support_email"
+                               value="<%= settingsMap.support_email ? settingsMap.support_email.setting_value : '' %>"
+                               placeholder="support@yourdomain.com">
+                        <small class="sas-hint">Pre-filled subject: "Support Request – [Business Name]"</small>
+                        <button class="sas-action-btn" style="margin-top:8px;" onclick="saveContactSetting('support_email', document.getElementById('val-support_email').value)">
+                            <i class="bi bi-check-lg me-1"></i> Save Email
+                        </button>
+                    </div>
+                    <div class="sas-field" style="margin-top:14px;">
+                        <label class="sas-label">Support Phone (WhatsApp)</label>
+                        <input type="tel" class="sas-input" id="val-support_phone"
+                               value="<%= settingsMap.support_phone ? settingsMap.support_phone.setting_value : '' %>"
+                               placeholder="9876543210 (10 digits, no country code)">
+                        <small class="sas-hint">Opens WhatsApp chat directly when tapped</small>
+                        <button class="sas-action-btn" style="margin-top:8px;" onclick="saveContactSetting('support_phone', document.getElementById('val-support_phone').value)">
+                            <i class="bi bi-check-lg me-1"></i> Save Phone
+                        </button>
+                    </div>
+                    <!-- <div class="sas-field" style="margin-top:14px;">
+                        <label class="sas-label">Support Hours</label>
+                        <input type="text" class="sas-input" id="val-support_hours"
+                               value="<%= settingsMap.support_hours ? settingsMap.support_hours.setting_value : '' %>"
+                               placeholder="e.g. Mon–Sat, 9AM–6PM">
+                        <button class="sas-action-btn" style="margin-top:8px;" onclick="saveContactSetting('support_hours', document.getElementById('val-support_hours').value)">
+                            <i class="bi bi-check-lg me-1"></i> Save Hours
+                        </button>
+                    </div> -->
+                </div>
+            </div>
+
+            <!-- Announcements -->
+            <div class="sas-card">
+                <div class="sas-card-header">
+                    <div class="sas-card-icon sas-icon-blue"><i class="bi bi-megaphone"></i></div>
+                    <div>
+                        <div class="sas-card-title">Announcements</div>
+                        <div class="sas-card-sub">Broadcast messages to all partners</div>
+                    </div>
+                </div>
+                <div class="sas-card-body">
+
+                    <!-- Existing announcements -->
+                    <% if (announcements.length === 0) { %>
+                    <div class="sas-empty">
+                        <i class="bi bi-megaphone" style="font-size:28px;opacity:.3"></i>
+                        <span>No announcements yet</span>
+                    </div>
+                    <% } else { %>
+                    <div class="sas-ann-list">
+                        <% announcements.forEach(a => { %>
+                        <div class="sas-ann-item sas-ann-<%= a.type %>">
+                            <div style="flex:1">
+                                <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+                                    <span class="sas-ann-badge sas-ann-badge-<%= a.type %>"><%= a.type %></span>
+                                    <% if (a.is_active) { %><span class="sas-ann-active">Active</span><% } else { %><span class="sas-ann-inactive">Inactive</span><% } %>
+                                </div>
+                                <div style="font-weight:600;font-size:13px;color:var(--text);margin-bottom:3px"><%= a.title %></div>
+                                <div style="font-size:12px;color:var(--text-2);margin-bottom:5px"><%= a.message %></div>
+                                <div style="font-size:11px;color:var(--text-3)">
+                                    <i class="bi bi-calendar3"></i>
+                                    <%= new Date(a.show_from).toLocaleDateString('en-IN') %>
+                                    <% if (a.show_until) { %> → <%= new Date(a.show_until).toLocaleDateString('en-IN') %><% } else { %> · forever<% } %>
+                                </div>
+                            </div>
+                            <button class="sas-delete-btn" onclick="deleteAnnouncement(<%= a.id %>)" title="Delete">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                        <% }) %>
+                    </div>
+                    <% } %>
+
+                    <!-- Create new announcement -->
+                    <div class="sas-divider">New Announcement</div>
+                    <div class="sas-ann-form">
+                        <div class="sas-field">
+                            <label class="sas-label">Title</label>
+                            <input type="text" class="sas-input" id="annTitle" placeholder="Announcement title">
+                        </div>
+                        <div class="sas-field">
+                            <label class="sas-label">Message</label>
+                            <textarea class="sas-textarea" id="annMessage" rows="2" placeholder="Announcement body text..."></textarea>
+                        </div>
+                        <div class="sas-ann-form-row">
+                            <div class="sas-field">
+                                <label class="sas-label">Type</label>
+                                <select class="sas-input" id="annType">
+                                    <option value="info">Info</option>
+                                    <option value="warning">Warning</option>
+                                    <option value="danger">Danger</option>
+                                    <option value="success">Success</option>
+                                </select>
+                            </div>
+                            <div class="sas-field">
+                                <label class="sas-label">Show From</label>
+                                <input type="date" class="sas-input" id="annFrom">
+                            </div>
+                            <div class="sas-field">
+                                <label class="sas-label">Show Until <span style="font-weight:400;font-size:10px;text-transform:none;color:var(--text-3)"></span></label>
+                                <input type="date" class="sas-input" id="annUntil">
+                            </div>
+                        </div>
+                        <button class="sas-action-btn sas-action-btn-full" onclick="createAnnouncement()">
+                            <i class="bi bi-plus-lg"></i> Post Announcement
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Other Settings (excluding known keys shown above) -->
+            <%
+                const knownKeys = ['free_trial_days', 'grace_period_days', 'maintenance_mode', 'maintenance_message', 'support_email', 'support_phone', 'support_hours'];
+                const otherSettings = settings.filter(s => !knownKeys.includes(s.setting_key));
+            %>
+            <% if (otherSettings.length > 0) { %>
+            <div class="sas-card">
+                <div class="sas-card-header">
+                    <div class="sas-card-icon sas-icon-purple"><i class="bi bi-sliders"></i></div>
+                    <div>
+                        <div class="sas-card-title">Other Settings</div>
+                        <div class="sas-card-sub">Additional platform configuration keys</div>
+                    </div>
+                </div>
+                <div class="sas-card-body">
+                    <% otherSettings.forEach(s => { %>
+                    <div class="sas-setting-row">
+                        <div class="sas-setting-info">
+                            <div class="sas-setting-label" style="font-family:monospace;color:var(--accent)"><%= s.setting_key %></div>
+                            <div class="sas-setting-desc"><%= s.description || '—' %></div>
+                        </div>
+                        <div class="sas-setting-control">
+                            <input type="text" class="sas-input" id="raw_<%= s.setting_key %>" value="<%= s.setting_value %>" style="width:120px">
+                            <button class="sas-save-btn-sm" onclick="saveSetting('<%= s.setting_key %>', 'raw_<%= s.setting_key %>')">
+                                <i class="bi bi-check-lg"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <% }) %>
+                </div>
+            </div>
+            <% } %>
+
+        </div>
+    </div>
+</main>
+
+<div id="toast" style="display:none"><i class="bi bi-check-circle-fill" id="toastIcon"></i><span id="toastMessage"></span></div>
+
+<script>
+document.getElementById('annFrom').value = new Date().toISOString().split('T')[0];
+function getCsrfToken() { const m = document.cookie.match(/(?:^|; )csrf_token=([^;]*)/); return m ? decodeURIComponent(m[1]) : ''; }
+function showToast(msg, isError=false) {
+    const t = document.getElementById('toast');
+    document.getElementById('toastMessage').textContent = msg;
+    document.getElementById('toastIcon').className = isError ? 'bi bi-x-circle-fill' : 'bi bi-check-circle-fill';
+    t.style.display='flex'; t.style.borderColor=isError?'rgba(231,76,60,.4)':'rgba(46,204,113,.4)'; t.style.color=isError?'#e74c3c':'#2ecc71';
+    clearTimeout(t._t); t._t=setTimeout(()=>t.style.display='none',3500);
+}
+document.getElementById('toast').addEventListener('click', function(){ this.style.display='none'; });
+async function saveSetting(key, inputId) {
+    const el = document.getElementById(inputId); if (!el) return;
+    try { const res=await fetch('/super-admin/settings/update',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':getCsrfToken()},body:JSON.stringify({key,value:el.value})}); const data=await res.json(); if(data.success)showToast('Setting saved'); else showToast(data.message,true); } catch{showToast('Network error',true);}
+}
+async function saveContactSetting(key, value) {
+    try {
+        const res = await fetch('/super-admin/settings/update', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCsrfToken() },
+            body: JSON.stringify({ key, value })
+        });
+        const data = await res.json();
+        if (data.success) showToast('Saved successfully ✓');
+        else showToast(data.message || 'Failed to save', true);
+    } catch { showToast('Network error', true); }
+}
+async function saveToggle(key, checked) {
+    try { const res=await fetch('/super-admin/settings/update',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':getCsrfToken()},body:JSON.stringify({key,value:checked?'1':'0'})}); const data=await res.json(); if(data.success){showToast(checked?'Maintenance mode ON':'Maintenance mode OFF');setTimeout(()=>location.reload(),1200);}else showToast(data.message,true);} catch{showToast('Network error',true);}
+}
+async function createAnnouncement() {
+    const title=document.getElementById('annTitle').value.trim(), message=document.getElementById('annMessage').value.trim();
+    if(!title||!message)return showToast('Title and message are required',true);
+    try{const res=await fetch('/super-admin/settings/announcements/create',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':getCsrfToken()},body:JSON.stringify({title,message,type:document.getElementById('annType').value,show_from:document.getElementById('annFrom').value,show_until:document.getElementById('annUntil').value||null,is_active:1})});const data=await res.json();if(data.success){showToast('Announcement posted');setTimeout(()=>location.reload(),1200);}else showToast(data.message,true);}catch{showToast('Network error',true);}
+}
+async function deleteAnnouncement(id) {
+    if (!confirm('Delete this announcement? This cannot be undone.')) return;
+    try {
+        const res = await fetch('/super-admin/settings/announcements/' + id + '/delete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCsrfToken() }
+        });
+        const data = await res.json();
+        if (data.success) { showToast('Announcement deleted'); setTimeout(() => location.reload(), 1200); }
+        else showToast(data.message, true);
+    } catch(e) { showToast('Network error: ' + e.message, true); }
+}
+</script>
+<script>
+(function() {
+    function ping() { fetch('/super-admin/keepalive',{method:'GET',credentials:'same-origin'}).catch(function(){}); }
+    ping(); setInterval(ping, 10*60*1000);
+})();
+</script>
+</body>
+</html>

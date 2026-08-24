@@ -1,0 +1,465 @@
+<!-- ── Ground Block Drawer — Overlay ─────────────── -->
+<div id="gb-overlay" onclick="closeGroundBlock()" style="display:none; position:fixed; inset:0;
+     background:rgba(0,0,0,0.5); backdrop-filter:blur(4px); z-index:1040; opacity:0; transition:opacity 0.3s ease;"></div>
+
+<!-- ── Ground Block Drawer — Panel ───────────────── -->
+<div id="gb-drawer" style="position:fixed; top:0; right:0; height:100vh; width:480px; max-width:100vw;
+     background:#ffffff; border-left:none;
+     box-shadow:-8px 0 32px rgba(0,0,0,0.15); z-index:1050;
+     transform:translateX(100%); transition:transform 0.35s cubic-bezier(0.4,0,0.2,1);
+     display:flex; flex-direction:column; overflow:hidden;">
+
+    <!-- Top accent bar (Blue + Orange) -->
+    <div style="height:3px; background:linear-gradient(90deg, #2563eb, #f59e0b, #2563eb); background-size:200% 100%; animation: drawerAccentPulse 3s ease-in-out infinite; flex-shrink:0;"></div>
+
+    <!-- Header -->
+    <div style="padding:18px 22px 14px; border-bottom:1px solid #e2e8f0;
+                display:flex; align-items:center; justify-content:space-between; flex-shrink:0; background:#fff;">
+    <div>
+            <div style="font-family:'Rajdhani',sans-serif; font-weight:700;
+                        font-size:1rem; letter-spacing:2px; color:#1e293b;">
+                <i class="bi bi-cone-striped me-2" style="color:#f59e0b;"></i>BLOCK GROUND
+            </div>
+            <small id="gb-ground-name" style="color:#94a3b8; font-size:0.65rem; letter-spacing:1px; text-transform:uppercase;"></small>
+        </div>
+        <button onclick="closeGroundBlock()" style="background:#f8fafc; border:1px solid #e2e8f0;
+               color:#64748b; border-radius:10px; width:36px; height:36px; cursor:pointer;
+               display:flex; align-items:center; justify-content:center; transition:all 0.2s;"
+            onmouseover="this.style.background='#fee2e2'; this.style.borderColor='#fecaca'; this.style.color='#dc2626'"
+            onmouseout="this.style.background='#f8fafc'; this.style.borderColor='#e2e8f0'; this.style.color='#64748b'">
+            <i class="bi bi-x-lg" style="font-size:0.85rem;"></i>
+        </button>
+    </div>
+
+    <!-- Body -->
+    <div style="flex:1; overflow-y:auto; min-height:0; padding:20px 22px; background:#f8fafc;">
+
+        <!-- Alert -->
+        <div id="gb-alert" style="display:none; margin-bottom:14px; padding:10px 14px; border-radius:10px; font-size:0.8rem; font-weight:500;"></div>
+
+        <!-- Info banner -->
+        <div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:12px; padding:12px 16px; margin-bottom:20px;">
+            <div style="font-size:0.75rem; color:#1e40af; font-weight:700; margin-bottom:3px; display:flex; align-items:center; gap:6px;">
+                <i class="bi bi-info-circle-fill" style="color:#2563eb;"></i> How blocking works
+            </div>
+            <div style="font-size:0.72rem; color:#475569; line-height:1.5;">
+                Blocked slots show as <strong style="color:#f59e0b;">🔧 Under Maintenance</strong> to customers — visible but not bookable.
+                The ground remains active and visible on all other dates.
+            </div>
+        </div>
+
+        <!-- ── ADD NEW BLOCK FORM ── -->
+        <div style="background:#fff; border:1px solid #e2e8f0; border-radius:14px; padding:18px; margin-bottom:20px;">
+            <div style="font-size:0.75rem; font-weight:700; color:#1e293b; letter-spacing:1px;
+                        text-transform:uppercase; margin-bottom:14px; display:flex; align-items:center; gap:6px;">
+                <i class="bi bi-plus-circle" style="color:#2563eb;"></i> Add New Block
+            </div>
+
+            <!-- Block Type Toggle -->
+            <div style="margin-bottom:16px;">
+                <label style="display:block; font-size:0.7rem; font-weight:700; color:#475569;
+                              text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px;">Block Type</label>
+                <div style="display:flex; gap:8px;">
+                    <button type="button" id="gb-type-fullday" onclick="gbSetType('full_day')"
+                            style="flex:1; padding:8px; border-radius:10px; font-size:0.75rem; font-weight:700;
+                                   border:2px solid #2563eb; background:#2563eb; color:#fff; cursor:pointer;
+                                   transition:all 0.15s; font-family:'Rajdhani',sans-serif; letter-spacing:0.5px;">
+                        <i class="bi bi-calendar-x me-1"></i> Full Day(s)
+                    </button>
+                    <button type="button" id="gb-type-timerange" onclick="gbSetType('time_range')"
+                            style="flex:1; padding:8px; border-radius:10px; font-size:0.75rem; font-weight:700;
+                                   border:2px solid #e2e8f0; background:#fff; color:#64748b; cursor:pointer;
+                                   transition:all 0.15s; font-family:'Rajdhani',sans-serif; letter-spacing:0.5px;">
+                        <i class="bi bi-clock-history me-1"></i> Specific Time Slots
+                    </button>
+                </div>
+            </div>
+
+            <!-- Date Range -->
+            <div style="display:flex; gap:10px; margin-bottom:14px;">
+                <div style="flex:1;">
+                    <label style="display:block; font-size:0.68rem; font-weight:700; color:#475569;
+                                  text-transform:uppercase; letter-spacing:0.5px; margin-bottom:5px;">
+                        From Date <span style="color:#ef4444;">*</span>
+                    </label>
+                    <input type="date" id="gb-start-date"
+                           style="width:100%; padding:8px 12px; border:1.5px solid #e2e8f0; border-radius:10px;
+                                  font-size:0.82rem; color:#1e293b; background:#fff; box-sizing:border-box; transition:all 0.2s;"
+                           onfocus="this.style.borderColor='#2563eb'; this.style.boxShadow='0 0 0 3px rgba(37,99,235,0.1)'"
+                           onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none'">
+                </div>
+                <div style="flex:1;">
+                    <label style="display:block; font-size:0.68rem; font-weight:700; color:#475569;
+                                  text-transform:uppercase; letter-spacing:0.5px; margin-bottom:5px;">
+                        To Date <span style="color:#ef4444;">*</span>
+                    </label>
+                    <input type="date" id="gb-end-date"
+                           style="width:100%; padding:8px 12px; border:1.5px solid #e2e8f0; border-radius:10px;
+                                  font-size:0.82rem; color:#1e293b; background:#fff; box-sizing:border-box; transition:all 0.2s;"
+                           onfocus="this.style.borderColor='#2563eb'; this.style.boxShadow='0 0 0 3px rgba(37,99,235,0.1)'"
+                           onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none'">
+                </div>
+            </div>
+
+            <!-- Time Range (shown only for time_range type) -->
+            <div id="gb-time-section" style="display:none; margin-bottom:14px;">
+                <label style="display:block; font-size:0.68rem; font-weight:700; color:#475569;
+                              text-transform:uppercase; letter-spacing:0.5px; margin-bottom:5px;">
+                    Block Slots Between <span style="color:#ef4444;">*</span>
+                </label>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <!-- From time picker -->
+                    <div style="flex:1;">
+                        <div style="display:flex; align-items:center; gap:3px; background:#fff;
+                                    border:1.5px solid #e2e8f0; border-radius:10px; padding:6px 10px;"
+                             id="gb-start-time-wrap">
+                            <select id="gb-start-hour" onchange="gbSyncTime()"
+                                    style="border:none; outline:none; background:transparent; font-size:0.82rem;
+                                           font-weight:600; color:#1e293b; cursor:pointer; padding:0; width:36px;">
+                            </select>
+                            <span style="font-weight:700; color:#94a3b8;">:</span>
+                            <select id="gb-start-min" onchange="gbSyncTime()"
+                                    style="border:none; outline:none; background:transparent; font-size:0.82rem;
+                                           font-weight:600; color:#1e293b; cursor:pointer; padding:0; width:36px;">
+                                <option value="00">00</option>
+                                <option value="15">15</option>
+                                <option value="30">30</option>
+                                <option value="45">45</option>
+                            </select>
+                            <select id="gb-start-ampm" onchange="gbSyncTime()"
+                                    style="border:none; outline:none; background:transparent; font-size:0.72rem;
+                                           font-weight:700; color:#2563eb; cursor:pointer; padding:0; width:40px; margin-left:2px;">
+                                <option value="AM">AM</option>
+                                <option value="PM">PM</option>
+                            </select>
+                        </div>
+                    </div>
+                    <span style="color:#94a3b8; font-weight:700; font-size:0.85rem; flex-shrink:0;">to</span>
+                    <!-- To time picker -->
+                    <div style="flex:1;">
+                        <div style="display:flex; align-items:center; gap:3px; background:#fff;
+                                    border:1.5px solid #e2e8f0; border-radius:10px; padding:6px 10px;"
+                             id="gb-end-time-wrap">
+                            <select id="gb-end-hour" onchange="gbSyncTime()"
+                                    style="border:none; outline:none; background:transparent; font-size:0.82rem;
+                                           font-weight:600; color:#1e293b; cursor:pointer; padding:0; width:36px;">
+                            </select>
+                            <span style="font-weight:700; color:#94a3b8;">:</span>
+                            <select id="gb-end-min" onchange="gbSyncTime()"
+                                    style="border:none; outline:none; background:transparent; font-size:0.82rem;
+                                           font-weight:600; color:#1e293b; cursor:pointer; padding:0; width:36px;">
+                                <option value="00">00</option>
+                                <option value="15">15</option>
+                                <option value="30">30</option>
+                                <option value="45">45</option>
+                            </select>
+                            <select id="gb-end-ampm" onchange="gbSyncTime()"
+                                    style="border:none; outline:none; background:transparent; font-size:0.72rem;
+                                           font-weight:700; color:#2563eb; cursor:pointer; padding:0; width:40px; margin-left:2px;">
+                                <option value="AM">AM</option>
+                                <option value="PM" selected>PM</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <!-- Hidden fields that hold HH:MM for backend -->
+                <input type="hidden" id="gb-start-time">
+                <input type="hidden" id="gb-end-time">
+                <small style="color:#94a3b8; font-size:0.68rem; margin-top:4px; display:block;">
+                    Slots starting within this window will be blocked on every day in the selected date range
+                </small>
+            </div>
+
+            <!-- Reason -->
+            <div style="margin-bottom:16px;">
+                <label style="display:block; font-size:0.68rem; font-weight:700; color:#475569;
+                              text-transform:uppercase; letter-spacing:0.5px; margin-bottom:5px;">
+                    Reason <span style="color:#94a3b8; font-weight:400; font-size:0.62rem; text-transform:none;">(shown to customers)</span>
+                </label>
+                <input type="text" id="gb-reason" placeholder="e.g. Out of town, Night lights broken, Maintenance"
+                       style="width:100%; padding:8px 12px; border:1.5px solid #e2e8f0; border-radius:10px;
+                              font-size:0.82rem; color:#1e293b; background:#fff; box-sizing:border-box; transition:all 0.2s;"
+                       onfocus="this.style.borderColor='#2563eb'; this.style.boxShadow='0 0 0 3px rgba(37,99,235,0.1)'"
+                       onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none'">
+            </div>
+
+            <!-- Submit -->
+            <button id="gb-submit-btn" onclick="submitGroundBlock()"
+                    style="width:100%; padding:10px; background:linear-gradient(135deg, #2563eb, #1d4ed8); color:#fff; border:none;
+                           border-radius:10px; font-size:0.82rem; font-weight:700; cursor:pointer;
+                           font-family:'Rajdhani',sans-serif; letter-spacing:1px;
+                           display:flex; align-items:center; justify-content:center; gap:7px; transition:all 0.2s;"
+                    onmouseover="this.style.background='linear-gradient(135deg, #1d4ed8, #1e40af)'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 12px rgba(37,99,235,0.3)'"
+                    onmouseout="this.style.background='linear-gradient(135deg, #2563eb, #1d4ed8)'; this.style.transform='none'; this.style.boxShadow='none'">
+                <i class="bi bi-cone-striped"></i> Apply Block
+            </button>
+        </div>
+
+        <!-- ── ACTIVE BLOCKS LIST ── -->
+        <div>
+            <div style="font-size:0.75rem; font-weight:700; color:#1e293b; letter-spacing:1px;
+                        text-transform:uppercase; margin-bottom:12px; display:flex; align-items:center; gap:6px;">
+                <i class="bi bi-list-check" style="color:#2563eb;"></i> Active Blocks
+            </div>
+            <div id="gb-blocks-list">
+                <div style="text-align:center; padding:20px; color:#94a3b8; font-size:0.78rem;">
+                    <i class="bi bi-hourglass-split"></i> Loading...
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+@keyframes drawerAccentPulse {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+</style>
+
+<script>
+let _gbGroundId   = null;
+let _gbGroundName = '';
+let _gbBlockType  = 'full_day';
+
+function gbInitTimePickers() {
+    // Populate hour dropdowns 1–12
+    ['gb-start-hour', 'gb-end-hour'].forEach(id => {
+        const sel = document.getElementById(id);
+        sel.innerHTML = '';
+        for (let h = 1; h <= 12; h++) {
+            const opt = document.createElement('option');
+            opt.value = String(h).padStart(2, '0');
+            opt.textContent = String(h).padStart(2, '0');
+            sel.appendChild(opt);
+        }
+    });
+    // Defaults: start = 06:00 AM, end = 10:00 PM
+    document.getElementById('gb-start-hour').value  = '06';
+    document.getElementById('gb-start-min').value   = '00';
+    document.getElementById('gb-start-ampm').value  = 'AM';
+    document.getElementById('gb-end-hour').value    = '10';
+    document.getElementById('gb-end-min').value     = '00';
+    document.getElementById('gb-end-ampm').value    = 'PM';
+    gbSyncTime();
+}
+
+function gbSyncTime() {
+    ['start', 'end'].forEach(prefix => {
+        const hour = parseInt(document.getElementById(`gb-${prefix}-hour`).value);
+        const min  = document.getElementById(`gb-${prefix}-min`).value;
+        const ampm = document.getElementById(`gb-${prefix}-ampm`).value;
+        let h24 = hour % 12;
+        if (ampm === 'PM') h24 += 12;
+        const val = String(h24).padStart(2, '0') + ':' + min;
+        document.getElementById(`gb-${prefix}-time`).value = val;
+    });
+}
+
+function openGroundBlock(groundId, groundName) {
+    _gbGroundId   = groundId;
+    _gbGroundName = groundName;
+
+    document.getElementById('gb-ground-name').textContent = groundName;
+    document.getElementById('gb-alert').style.display = 'none';
+    gbResetForm();
+    gbSetType('full_day');
+    gbLoadBlocks();
+
+    // Set min date to today
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('gb-start-date').min = today;
+    document.getElementById('gb-end-date').min   = today;
+    document.getElementById('gb-start-date').value = today;
+    document.getElementById('gb-end-date').value   = today;
+
+    document.getElementById('gb-overlay').style.display = 'block';
+    requestAnimationFrame(() => {
+        document.getElementById('gb-overlay').style.opacity = '1';
+        document.getElementById('gb-drawer').style.transform = 'translateX(0)';
+    });
+    gbInitTimePickers();
+}
+
+function closeGroundBlock() {
+    document.getElementById('gb-overlay').style.opacity = '0';
+    document.getElementById('gb-drawer').style.transform = 'translateX(100%)';
+    setTimeout(() => {
+        document.getElementById('gb-overlay').style.display = 'none';
+    }, 350);
+}
+
+function gbSetType(type) {
+    _gbBlockType = type;
+    const fullBtn  = document.getElementById('gb-type-fullday');
+    const timeBtn  = document.getElementById('gb-type-timerange');
+    const timeSec  = document.getElementById('gb-time-section');
+
+    if (type === 'full_day') {
+        fullBtn.style.background = '#2563eb'; fullBtn.style.borderColor = '#2563eb'; fullBtn.style.color = '#fff';
+        timeBtn.style.background = '#fff';    timeBtn.style.borderColor = '#e2e8f0'; timeBtn.style.color = '#64748b';
+        timeSec.style.display = 'none';
+    } else {
+        timeBtn.style.background = '#2563eb'; timeBtn.style.borderColor = '#2563eb'; timeBtn.style.color = '#fff';
+        fullBtn.style.background = '#fff';    fullBtn.style.borderColor = '#e2e8f0'; fullBtn.style.color = '#64748b';
+        timeSec.style.display = 'block';
+    }
+}
+
+function gbResetForm() {
+    document.getElementById('gb-reason').value = '';
+    gbInitTimePickers();
+    document.getElementById('gb-alert').style.display = 'none';
+    const btn = document.getElementById('gb-submit-btn');
+    btn.disabled = false;
+    btn.innerHTML = '<i class="bi bi-cone-striped"></i> Apply Block';
+    btn.style.background = 'linear-gradient(135deg, #2563eb, #1d4ed8)';
+}
+
+function gbShowAlert(msg, type) {
+    const el = document.getElementById('gb-alert');
+    el.style.display = 'block';
+    if (type === 'error') {
+        el.style.background = '#fef2f2';
+        el.style.color = '#dc2626';
+        el.style.border = '1px solid #fecaca';
+        el.innerHTML = `<i class="bi bi-exclamation-circle-fill me-1"></i>${msg}`;
+    } else {
+        el.style.background = '#ecfdf5';
+        el.style.color = '#059669';
+        el.style.border = '1px solid #a7f3d0';
+        el.innerHTML = `<i class="bi bi-check-circle-fill me-1"></i>${msg}`;
+    }
+}
+
+async function submitGroundBlock() {
+    const startDate = document.getElementById('gb-start-date').value;
+    const endDate   = document.getElementById('gb-end-date').value;
+    const startTime = document.getElementById('gb-start-time').value;
+    const endTime   = document.getElementById('gb-end-time').value;
+    const reason    = document.getElementById('gb-reason').value.trim();
+
+    if (!startDate || !endDate) { gbShowAlert('Please select a date range.', 'error'); return; }
+    if (new Date(endDate) < new Date(startDate)) { gbShowAlert('End date must be on or after start date.', 'error'); return; }
+    if (_gbBlockType === 'time_range') {
+        if (!startTime || !endTime) { gbShowAlert('Please select both start and end times.', 'error'); return; }
+        // Allow overnight ranges (e.g. 8PM → 12:30AM next day) — same logic as slot generation
+        const toMins = t => { const [h,m] = t.split(':').map(Number); return h*60+m; };
+        let startMins = toMins(startTime), endMins = toMins(endTime);
+        if (endMins <= startMins) endMins += 24 * 60; // next day
+        if (endMins <= startMins) { gbShowAlert('End time must be after start time.', 'error'); return; }
+    }
+
+    const btn = document.getElementById('gb-submit-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Applying...';
+    btn.style.background = '#94a3b8';
+
+    try {
+        const csrfToken = (document.cookie.match(/(?:^|; )csrf_token=([^;]*)/) || [])[1] || '';
+        const res = await fetch(`/grounds/${_gbGroundId}/blocks`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': decodeURIComponent(csrfToken) },
+            body: JSON.stringify({
+                start_date: startDate,
+                end_date:   endDate,
+                block_type: _gbBlockType,
+                start_time: _gbBlockType === 'time_range' ? startTime : null,
+                end_time:   _gbBlockType === 'time_range' ? endTime   : null,
+                reason
+            })
+        });
+        const data = await res.json();
+        if (data.success) {
+            gbShowAlert('Block applied successfully!', 'success');
+            gbResetForm();
+            gbSetType('full_day');
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('gb-start-date').value = today;
+            document.getElementById('gb-end-date').value   = today;
+            gbLoadBlocks();
+        } else {
+            gbShowAlert(data.message || 'Failed to apply block.', 'error');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-cone-striped"></i> Apply Block';
+            btn.style.background = 'linear-gradient(135deg, #2563eb, #1d4ed8)';
+        }
+    } catch (e) {
+        gbShowAlert('Something went wrong. Please try again.', 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-cone-striped"></i> Apply Block';
+        btn.style.background = 'linear-gradient(135deg, #2563eb, #1d4ed8)';
+    }
+}
+
+async function gbLoadBlocks() {
+    const list = document.getElementById('gb-blocks-list');
+    list.innerHTML = '<div style="text-align:center; padding:20px; color:#94a3b8; font-size:0.78rem;"><i class="bi bi-hourglass-split"></i> Loading...</div>';
+    try {
+        const res  = await fetch(`/grounds/${_gbGroundId}/blocks`);
+        const data = await res.json();
+        if (!data.blocks || data.blocks.length === 0) {
+            list.innerHTML = '<div style="text-align:center; padding:20px; color:#94a3b8; font-size:0.78rem;"><i class="bi bi-check-circle me-1"></i> No active blocks</div>';
+            return;
+        }
+        list.innerHTML = data.blocks.map(b => {
+            const fmt = d => new Date(d).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' });
+            const dateRange = b.start_date === b.end_date
+                ? fmt(b.start_date)
+                : `${fmt(b.start_date)} → ${fmt(b.end_date)}`;
+            const timeInfo = b.block_type === 'time_range'
+                ? `<span style="font-size:0.68rem; color:#f59e0b; font-weight:600;">
+                     <i class="bi bi-clock me-1"></i>${b.start_time?.slice(0,5)} – ${b.end_time?.slice(0,5)} daily
+                   </span><br>`
+                : `<span style="font-size:0.68rem; color:#f59e0b; font-weight:600;">
+                     <i class="bi bi-calendar-x me-1"></i> Full Day Block
+                   </span><br>`;
+            return `
+            <div style="background:#fff; border:1px solid #fde68a; border-radius:12px;
+                        padding:12px 14px; margin-bottom:10px; display:flex; align-items:flex-start; justify-content:space-between; gap:10px;">
+                <div style="flex:1; min-width:0;">
+                    ${timeInfo}
+                    <div style="font-size:0.78rem; font-weight:700; color:#1e293b; margin:3px 0 2px;">
+                        <i class="bi bi-calendar3 me-1" style="color:#64748b;"></i>${dateRange}
+                    </div>
+                    ${b.reason ? `<div style="font-size:0.7rem; color:#64748b; font-style:italic;">"${b.reason}"</div>` : ''}
+                </div>
+                <button onclick="gbDeleteBlock(${b.id})"
+                        style="background:#fef2f2; border:1px solid #fecaca; color:#dc2626;
+                               border-radius:8px; padding:5px 10px; cursor:pointer; font-size:0.7rem;
+                               font-weight:700; white-space:nowrap; flex-shrink:0; transition:all 0.15s;"
+                        onmouseover="this.style.background='#fee2e2'; this.style.transform='scale(1.02)'"
+                        onmouseout="this.style.background='#fef2f2'; this.style.transform='none'">
+                    <i class="bi bi-trash"></i> Remove
+                </button>
+            </div>`;
+        }).join('');
+    } catch (e) {
+        list.innerHTML = '<div style="color:#dc2626; font-size:0.78rem; padding:10px;">Failed to load blocks.</div>';
+    }
+}
+
+async function gbDeleteBlock(blockId) {
+    showDelModal({
+        title: 'Remove Block',
+        message: 'Remove this block? Slots will become available again.',
+        confirmText: 'Yes, Remove', cancelText: 'Cancel',
+        icon: 'bi bi-cone-striped', iconClass: 'del-modal__icon--warn', confirmClass: 'warn'
+    }, async () => {
+        try {
+            const csrfToken = (document.cookie.match(/(?:^|; )csrf_token=([^;]*)/) || [])[1] || '';
+            const res  = await fetch(`/grounds/${_gbGroundId}/blocks/${blockId}/delete`, { 
+                method: 'POST',
+                headers: { 'X-CSRF-Token': decodeURIComponent(csrfToken) }
+            });
+            const data = await res.json();
+            if (data.success) { gbShowAlert('Block removed. Slots are now available again.', 'success'); gbLoadBlocks(); }
+            else gbShowAlert(data.message || 'Failed to remove block.', 'error');
+        } catch(e) { gbShowAlert('Something went wrong.', 'error'); }
+    });
+}
+
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && document.getElementById('gb-overlay').style.display === 'block') closeGroundBlock();
+});
+</script>

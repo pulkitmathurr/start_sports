@@ -1,0 +1,157 @@
+<%- include('../../partials/header') %>
+
+<div class="row settings-page-header">
+
+    <!-- Page Header - Blue Theme -->
+    <div class="col-12 mb-4">
+        <div class="coach-header">
+            <div class="coach-header__left">
+                <div class="coach-header__icon">
+                    <i class="bi bi-person-badge"></i>
+                </div>
+                <div>
+                    <h4 class="coach-header__title">Manage Coaches</h4>
+                    <span class="coach-header__sub">Add, edit or manage all your academy coaches</span>
+                </div>
+            </div>
+            <a href="/academy/coaches/new" class="coach-add-btn">
+                <i class="bi bi-plus-lg"></i> Add Coach
+            </a>
+        </div>
+    </div>
+
+    <!-- Toast triggers -->
+    <% if (success) { %>
+    <script>document.addEventListener('DOMContentLoaded',()=>xToast('<%= success.replace(/'/g,"\'") %>','success'));</script>
+    <% } %>
+    <% if (error) { %>
+    <script>document.addEventListener('DOMContentLoaded',()=>xToast('<%= error.replace(/'/g,"\'") %>','error'));</script>
+    <% } %>
+
+    <!-- Coaches Table -->
+    <div class="col-12">
+        <% if (coaches.length === 0) { %>
+        <div class="coach-empty">
+            <div class="coach-empty__icon">
+                <i class="bi bi-person-badge"></i>
+            </div>
+            <p class="coach-empty__title">No coaches added yet</p>
+            <small class="coach-empty__sub">Click "Add Coach" to add your first coach</small>
+            <a href="/academy/coaches/new" class="coach-empty-btn">
+                <i class="bi bi-plus-lg"></i> Add Your First Coach
+            </a>
+        </div>
+        <% } else { %>
+        <div class="coach-table-card">
+            <div class="coach-table-card__header">
+                <span class="coach-table-card__title">
+                    <i class="bi bi-people"></i> All Coaches
+                </span>
+                <span class="coach-table-card__meta"><%= coaches.length %> coach<%= coaches.length !== 1 ? 'es' : '' %></span>
+            </div>
+            <div class="table-responsive">
+                <table class="coach-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Coach</th>
+                            <th>Phone</th>
+                            <th>Specialization</th>
+                            <th>Experience</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% coaches.forEach((coach, index) => { %>
+                        <tr>
+                            <td class="coach-row-num"><%= index + 1 %></td>
+
+                            <!-- Coach name + photo -->
+                            <td>
+                                <div class="coach-info">
+                                    <% if (coach.photo) { %>
+                                        <img src="/uploads/coaches/<%= coach.photo %>"
+                                             alt="<%= coach.name %>"
+                                             class="coach-avatar">
+                                    <% } else { %>
+                                        <div class="coach-avatar coach-avatar-placeholder">
+                                            <%= coach.name.charAt(0).toUpperCase() %>
+                                        </div>
+                                    <% } %>
+                                    <div>
+                                        <div class="coach-name"><a href="/academy/coaches/<%= coach.id %>" class="text-decoration-none text-inherit"><%= coach.name %></a></div>
+                                        <% if (coach.email) { %>
+                                            <div class="coach-email"><%= coach.email %></div>
+                                        <% } %>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <td class="coach-phone"><%= coach.phone %></td>
+
+                            <td>
+                                <% if (coach.specialization) { %>
+                                    <span class="coach-specialization-badge">
+                                        <%= coach.specialization %>
+                                    </span>
+                                <% } else { %>
+                                    <span class="coach-empty-text">—</span>
+                                <% } %>
+                            </td>
+
+                            <td class="coach-experience">
+                                <%= coach.experience_years > 0 ? coach.experience_years + ' yr' + (coach.experience_years > 1 ? 's' : '') : '—' %>
+                            </td>
+
+                            <!-- Status badge -->
+                            <td>
+                                <% if (coach.status === 1) { %>
+                                    <span class="coach-status-badge coach-status-active">Active</span>
+                                <% } else { %>
+                                    <span class="coach-status-badge coach-status-inactive">Inactive</span>
+                                <% } %>
+                            </td>
+
+                            <!-- Actions -->
+                            <td>
+                                <div class="coach-actions">
+                                    <a href="/academy/coaches/<%= coach.id %>/edit"
+                                       class="coach-action-btn coach-action-edit">
+                                        <i class="bi bi-pencil"></i> Edit
+                                    </a>
+
+                                    <!-- Toggle status -->
+                                    <form method="POST" action="/academy/coaches/<%= coach.id %>/toggle" style="margin:0;">
+                                        <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+                                        <button type="submit" class="coach-action-btn coach-action-toggle">
+                                            <%= coach.status === 1 ? 'Deactivate' : 'Activate' %>
+                                        </button>
+                                    </form>
+
+                                    <!-- Delete -->
+                                    <form method="POST" action="/academy/coaches/<%= coach.id %>/delete" style="margin:0;"
+                                          onsubmit="return confirm('Delete <%= coach.name %>? This cannot be undone.')">
+                                        <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+                                        <button type="submit" class="coach-action-btn coach-action-delete">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <% } %>
+    </div>
+
+</div>
+
+<style>
+
+</style>
+
+<%- include('../../partials/footer') %>

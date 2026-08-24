@@ -1,0 +1,269 @@
+<!-- Mobile Menu Toggle -->
+<button class="menu-toggle" onclick="toggleMobileMenu()">
+    <i class="bi bi-list"></i>
+</button>
+<div class="sidebar-overlay" onclick="toggleMobileMenu()"></div>
+
+<aside class="sa-sidebar" id="sidebar">
+    <div class="sa-logo">
+        <!-- Full logo (expanded) -->
+        <img src="/images/AdminLogo3.png" alt="Start Sports" class="logo-img-full">
+        <!-- Mini logo (collapsed) -->
+        <img src="/images/logoCollapsed1.png" alt="SS" class="logo-img-mini">
+    </div>
+    <nav class="sa-nav">
+
+        <!-- Dynamic Navigation based on admin type -->
+        <% if (adminType==='SUPER ADMIN') { %>
+            <a href="/super-admin/dashboard" class="<%= currentPage === 'dashboard' ? 'active' : '' %>">
+                <i class="bi bi-grid-3x3-gap-fill"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="/super-admin/tenants" class="<%= currentPage === 'tenants' ? 'active' : '' %>">
+                <i class="bi bi-building"></i>
+                <span>Partners</span>
+            </a>
+            <a href="/super-admin/plans" class="<%= currentPage === 'plans' ? 'active' : '' %>">
+                <i class="bi bi-layers"></i>
+                <span>Plans</span>
+            </a>
+            <a href="/super-admin/reports" class="<%= currentPage === 'sa-reports' ? 'active' : '' %>">
+                <i class="bi bi-bar-chart-line"></i>
+                <span>Reports</span>
+            </a>
+            <a href="/super-admin/billing" class="<%= currentPage === 'billing' ? 'active' : '' %>">
+                <i class="bi bi-credit-card"></i>
+                <span>Billing</span>
+            </a>
+            <a href="/super-admin/settings" class="<%= currentPage === 'settings' ? 'active' : '' %>">
+                <i class="bi bi-gear"></i>
+                <span>Settings</span>
+            </a>
+
+        <% } else if (adminType==='TENANT ADMIN') { %>
+            <a href="/tenant-admin/dashboard" class="<%= currentPage === 'dashboard' ? 'active' : '' %>">
+                <i class="bi bi-speedometer2"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="/tenant-admin/bookings" class="<%= currentPage === 'bookings' ? 'active' : '' %>">
+                <i class="bi bi-calendar-check"></i>
+                <span>Bookings</span>
+            </a>
+            <a href="/tenant-admin/customers" class="<%= currentPage === 'customers' ? 'active' : '' %>">
+                <i class="bi bi-people"></i>
+                <span>Customers</span>
+            </a>
+            <a href="/tenant-admin/facilities" class="<%= currentPage === 'facilities' ? 'active' : '' %>">
+                <i class="bi bi-building"></i>
+                <span>Facilities</span>
+            </a>
+            <a href="/tenant-admin/reports" class="<%= currentPage === 'reports' ? 'active' : '' %>">
+                <i class="bi bi-graph-up"></i>
+                <span>Reports</span>
+            </a>
+            <a href="/tenant-admin/settings" class="<%= currentPage === 'settings' ? 'active' : '' %>">
+                <i class="bi bi-gear"></i>
+                <span>Settings</span>
+            </a>
+
+        <% } else { %>
+            <a href="/dashboard" class="<%= currentPage === 'dashboard' ? 'active' : '' %>">
+                <i class="bi bi-grid-3x3-gap-fill"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="/profile" class="<%= currentPage === 'profile' ? 'active' : '' %>">
+                <i class="bi bi-person"></i>
+                <span>Profile</span>
+            </a>
+            <a href="/bookings" class="<%= currentPage === 'bookings' ? 'active' : '' %>">
+                <i class="bi bi-calendar"></i>
+                <span>My Bookings</span>
+            </a>
+            <a href="/settings" class="<%= currentPage === 'settings' ? 'active' : '' %>">
+                <i class="bi bi-gear"></i>
+                <span>Settings</span>
+            </a>
+        <% } %>
+
+        <div class="nav-label" style="margin-top:20px">Account</div>
+
+        <a href="/super-admin/profile" class="<%= currentPage === 'profile' ? 'active' : '' %>">
+            <i class="bi bi-person-circle"></i>
+            <span>My Profile</span>
+        </a>
+
+        <form action="/super-admin/logout" method="POST" style="margin:0;padding:0">
+            <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+            <button type="submit" class="sa-nav-logout-btn">
+                <i class="bi bi-box-arrow-right"></i>
+                <span>Logout</span>
+            </button>
+        </form>
+
+        <% if (adminType === 'TENANT ADMIN' && typeof supportContact !== 'undefined' && (supportContact.support_email || supportContact.support_phone)) { %>
+        <div class="sa-support-card">
+            <div class="sa-support-title">
+                <i class="bi bi-headset me-1"></i> Need Help?
+            </div>
+            <% if (supportContact.support_hours) { %>
+            <div class="sa-support-hours">
+                <i class="bi bi-clock me-1"></i><%= supportContact.support_hours %>
+            </div>
+            <% } %>
+            <div class="sa-support-actions">
+                <% if (supportContact.support_phone) { %>
+                <a href="https://wa.me/91<%= supportContact.support_phone.replace(/\D/g,'') %>?text=Hi%2C%20I%20need%20support%20with%20my%20admin%20panel"
+                   target="_blank" class="sa-support-btn sa-support-btn--wa" title="WhatsApp">
+                    <i class="bi bi-whatsapp"></i>
+                    <span>WhatsApp</span>
+                </a>
+                <% } %>
+                <% if (supportContact.support_email) { %>
+                <a href="mailto:<%= supportContact.support_email %>?subject=Support%20Request%20-%20<%= encodeURIComponent(typeof tenant !== 'undefined' && tenant ? tenant.business_name : 'Admin Panel') %>"
+                   class="sa-support-btn sa-support-btn--email" title="Email Support">
+                    <i class="bi bi-envelope"></i>
+                    <span>Email</span>
+                </a>
+                <% } %>
+            </div>
+        </div>
+        <% } %>
+
+        <div class="sa-collapse-divider"></div>
+        <button class="sa-collapse-nav-btn" id="collapseBtn" onclick="toggleSidebar()" title="Toggle sidebar">
+            <i class="bi bi-chevron-left" id="collapseBtnIcon"></i>
+            <span>Collapse</span>
+        </button>
+
+    </nav>
+</aside>
+
+<script>
+    function getCsrfToken() {
+        const m = document.cookie.match(/(?:^|; )csrf_token=([^;]*)/);
+        return m ? decodeURIComponent(m[1]) : '';
+    }
+
+    async function doLogout(e) {
+        e.preventDefault();
+        const logoutUrl = '<%= logoutUrl || "/super-admin/logout" %>';
+        try {
+            await fetch(logoutUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCsrfToken() }
+            });
+        } catch(err) { /* proceed regardless */ }
+        window.location.href = '<%= loginUrl || "/auth/login" %>';
+    }
+
+    function toggleMobileMenu() {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.querySelector('.sidebar-overlay');
+        sidebar.classList.toggle('mobile-open');
+        overlay.classList.toggle('active');
+    }
+
+    function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        sidebar.classList.toggle('collapsed');
+        localStorage.setItem('sa_sidebar_collapsed', sidebar.classList.contains('collapsed') ? '1' : '0');
+    }
+
+    (function () {
+        if (localStorage.getItem('sa_sidebar_collapsed') === '1') {
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar) sidebar.classList.add('collapsed');
+        }
+    })();
+
+    document.querySelectorAll('.sa-nav a').forEach(link => {
+        link.addEventListener('click', () => {
+            if (window.innerWidth <= 768) toggleMobileMenu();
+        });
+    });
+
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > 768) {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+            if (sidebar.classList.contains('mobile-open')) {
+                sidebar.classList.remove('mobile-open');
+                overlay.classList.remove('active');
+            }
+        }
+    });
+</script>
+
+<style>
+/* ── Logout button — matches .sa-nav a exactly, but red ──── */
+.sa-nav-logout-btn {
+    /* Layout — identical to .sa-nav a */
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    width: 100%;
+    padding: 9px 12px;
+    margin: 2px 0;
+    border-radius: var(--radius, 8px);
+    /* Reset button defaults */
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    /* Typography — identical to .sa-nav a */
+    font-size: 12px;
+    font-weight: 500;
+    font-family: inherit;
+    /* Color — red instead of var(--sb-text) */
+    color: #ef4444;
+    transition: all 0.22s;
+    position: relative;
+    overflow: hidden;
+}
+.sa-nav-logout-btn i {
+    font-size: 15px;
+    width: 20px;
+    flex-shrink: 0;
+    color: #ef4444;
+    transition: color 0.22s;
+}
+.sa-nav-logout-btn span {
+    white-space: nowrap;
+    overflow: hidden;
+    transition: opacity 0.22s, width 0.22s;
+}
+.sa-nav-logout-btn:hover {
+    background: rgba(239, 68, 68, 0.08);
+    color: #dc2626;
+}
+.sa-nav-logout-btn:hover i { color: #dc2626; }
+
+/* Hide span text when sidebar is collapsed (same as .sa-nav a span) */
+.sa-sidebar.collapsed .sa-nav-logout-btn span { opacity: 0; width: 0; }
+
+/* ── Support card ────────────────────────────────────────── */
+.sa-support-card {
+    margin: 12px 8px 4px;
+    background: rgba(27,67,50,0.06);
+    border: 1px solid rgba(27,67,50,0.15);
+    border-radius: 10px;
+    padding: 11px 12px;
+    transition: opacity 0.2s;
+}
+.sa-sidebar.collapsed .sa-support-card { display: none; }
+.sa-support-title {
+    font-size: 0.72rem; font-weight: 700; color: #1B4332;
+    letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 5px;
+}
+.sa-support-hours { font-size: 0.68rem; color: #6B7280; margin-bottom: 8px; }
+.sa-support-actions { display: flex; gap: 6px; }
+.sa-support-btn {
+    flex: 1; display: inline-flex; align-items: center; justify-content: center;
+    gap: 5px; padding: 6px 8px; border-radius: 7px; font-size: 0.72rem;
+    font-weight: 700; text-decoration: none; transition: all 0.15s; letter-spacing: 0.3px;
+}
+.sa-support-btn--wa  { background: rgba(37,211,102,0.1); color: #16a34a; border: 1px solid rgba(37,211,102,0.25); }
+.sa-support-btn--wa:hover  { background: #25D366; color: #fff; border-color: #25D366; }
+.sa-support-btn--email { background: rgba(59,130,246,0.08); color: #1d4ed8; border: 1px solid rgba(59,130,246,0.2); }
+.sa-support-btn--email:hover { background: #3b82f6; color: #fff; border-color: #3b82f6; }
+</style>

@@ -74,7 +74,7 @@
             <div class="settings-card">
                 <div class="settings-card-header">
                     <i class="bi bi-clock"></i>
-                    Operating Hours & Slot Duration
+                    Operating Hours & Booking Rules
                 </div>
                 <div class="settings-card-body">
                     <div class="row g-3">
@@ -96,16 +96,13 @@
                         </div>
 
                         <div class="col-6 col-md-3">
-                            <label class="s-label">Slot Duration (minutes)</label>
-                            <input type="number" name="slot_duration"
-                                value="<%= settings.slot_duration || '' %>"
-                                placeholder="e.g. 210"
-                                min="30" max="480"
+                            <label class="s-label">Minimum Slot Duration (minutes)</label>
+                            <input type="number" name="min_slot_minutes"
+                                value="<%= settings.min_slot_minutes || 30 %>"
+                                placeholder="e.g. 30"
+                                min="15" max="120"
                                 class="s-input">
-                            <small class="s-hint">
-                                Currently <%= settings.slot_duration %> min
-                                = <%= (settings.slot_duration / 60).toFixed(1) %> hrs per slot
-                            </small>
+                            <small class="s-hint">Shortest booking allowed (e.g. 30 min)</small>
                         </div>
 
                         <div class="col-6 col-md-3">
@@ -153,27 +150,39 @@
 
                     </div>
 
-                    <p class="s-divider">Slot Pricing</p>
+                    <p class="s-divider">Dynamic Pricing (per 30 minutes)</p>
                     <div class="row g-3">
 
                         <div class="col-6 col-md-3">
-                            <label class="s-label">Off-Peak Price (₹)</label>
-                            <input type="number" name="off_peak_price"
-                                value="<%= settings.off_peak_price || '' %>"
-                                placeholder="e.g. 3500"
-                                min="0"
+                            <label class="s-label">Normal Rate per 30 min (₹)</label>
+                            <input type="number" name="normal_rate_per_30"
+                                value="<%= settings.normal_rate_per_30 || 100 %>"
+                                placeholder="e.g. 100"
+                                min="0" step="0.01"
                                 class="s-input">
-                            <small class="s-hint">Morning & afternoon slots</small>
+                            <small class="s-hint">Rate per 30 min during normal hours</small>
                         </div>
 
                         <div class="col-6 col-md-3">
-                            <label class="s-label">Peak Price (₹)</label>
-                            <input type="number" name="peak_price"
-                                value="<%= settings.peak_price || '' %>"
-                                placeholder="e.g. 5000"
-                                min="0"
+                            <label class="s-label">Peak Rate per 30 min (₹)</label>
+                            <input type="number" name="peak_rate_per_30"
+                                value="<%= settings.peak_rate_per_30 || 150 %>"
+                                placeholder="e.g. 150"
+                                min="0" step="0.01"
                                 class="s-input">
-                            <small class="s-hint">Evening & night slots</small>
+                            <small class="s-hint">Rate per 30 min during peak hours</small>
+                        </div>
+
+                        <!-- Rate explanation -->
+                        <div class="col-12">
+                            <div style="background:rgba(27,67,50,0.05); border:1px solid rgba(27,67,50,0.15);
+                                        border-radius:10px; padding:12px 16px; font-size:0.8rem; color:#374151; line-height:1.7;">
+                                <i class="bi bi-info-circle me-1" style="color:#1B4332;"></i>
+                                <strong>How pricing works:</strong> Price is calculated per minute based on these rates.
+                                Normal rate = ₹<span id="normal-per-min">0</span>/min &nbsp;|&nbsp;
+                                Peak rate = ₹<span id="peak-per-min">0</span>/min.<br>
+                                If a booking spans both normal and peak hours, each segment is priced separately and totalled.
+                            </div>
                         </div>
 
                     </div>
@@ -232,7 +241,7 @@
             <div class="settings-warning">
                 <i class="bi bi-exclamation-triangle-fill"></i>
                 <div>
-                    <strong>Heads up:</strong> Saving these settings will delete all future slots and regenerate them with the new configuration. Existing bookings and history will not be affected.
+                    <strong>Heads up:</strong> Saving these settings applies to <strong>new bookings only</strong>. All confirmed bookings keep their original price and time — they are never affected by settings changes.
                 </div>
             </div>
         </div>
@@ -249,19 +258,48 @@
 </div>
 
 <script>
+const toMins = t => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
+const toTime = m => String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0');
+
+function calcPrice(startMins, endMins, normalRate, peakRate, peakStartMins, peakEndMins) {
+    // Split booking at peak boundary and calculate each segment
+    let normalMins = 0, peakMins = 0;
+    let cur = startMins;
+    while (cur < endMins) {
+        const isPeak = peakStartMins !== null && peakEndMins !== null
+            && cur >= peakStartMins && cur < peakEndMins;
+        if (isPeak) peakMins++; else normalMins++;
+        cur++;
+    }
+    const normalAmt = (normalMins / 30) * normalRate;
+    const peakAmt   = (peakMins   / 30) * peakRate;
+    return { total: normalAmt + peakAmt, normalMins, peakMins, normalAmt, peakAmt };
+}
+
+function updateRateDisplay() {
+    const normalRate = parseFloat(document.querySelector('[name="normal_rate_per_30"]')?.value) || 0;
+    const peakRate   = parseFloat(document.querySelector('[name="peak_rate_per_30"]')?.value)   || 0;
+    const normalPerMin = document.getElementById('normal-per-min');
+    const peakPerMin   = document.getElementById('peak-per-min');
+    if (normalPerMin) normalPerMin.textContent = (normalRate / 30).toFixed(2);
+    if (peakPerMin)   peakPerMin.textContent   = (peakRate   / 30).toFixed(2);
+}
+
 function updateSlotPreview() {
-    const open      = document.querySelector('[name="open_time"]').value;
-    const close     = document.querySelector('[name="close_time"]').value;
-    const duration  = parseInt(document.querySelector('[name="slot_duration"]').value) || 0;
-    const peakStart = document.querySelector('[name="peak_start_time"]').value;
-    const peakEnd   = document.querySelector('[name="peak_end_time"]').value;
-    const offPrice  = document.querySelector('[name="off_peak_price"]').value  || '–';
-    const peakPrice = document.querySelector('[name="peak_price"]').value       || '–';
+    const open       = document.querySelector('[name="open_time"]')?.value;
+    const close      = document.querySelector('[name="close_time"]')?.value;
+    const minSlot    = parseInt(document.querySelector('[name="min_slot_minutes"]')?.value) || 30;
+    const peakStart  = document.querySelector('[name="peak_start_time"]')?.value;
+    const peakEnd    = document.querySelector('[name="peak_end_time"]')?.value;
+    const normalRate = parseFloat(document.querySelector('[name="normal_rate_per_30"]')?.value) || 0;
+    const peakRate   = parseFloat(document.querySelector('[name="peak_rate_per_30"]')?.value)   || 0;
 
     const list  = document.getElementById('slot-preview-list');
     const empty = document.getElementById('slot-preview-empty');
 
-    if (!open || !close || !duration) {
+    updateRateDisplay();
+
+    if (!open || !close || !minSlot) {
         list.innerHTML = '';
         empty.style.display = 'block';
         return;
@@ -269,36 +307,46 @@ function updateSlotPreview() {
 
     empty.style.display = 'none';
 
-    const toMins = t => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
-    const toTime = m => String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0');
+    const openM      = toMins(open);
+    let   closeM     = toMins(close);
+    if (closeM <= openM) closeM += 24 * 60; // overnight support
+    const peakS      = peakStart ? toMins(peakStart) : null;
+    const peakE      = peakEnd   ? toMins(peakEnd)   : null;
 
-    const openM   = toMins(open);
-    const closeM  = toMins(close);
-    const peakS   = peakStart ? toMins(peakStart) : null;
-    const peakE   = peakEnd   ? toMins(peakEnd)   : null;
-
+    // Preview shows example slots using minSlot as the duration
+    // Real bookings can be any duration >= minSlot
     let html = '';
     let cur  = openM;
+    let count = 0;
+    const maxPreview = 20; // cap preview at 20 slots
 
-    while (cur + duration <= closeM) {
-        const end    = cur + duration;
-        const isPeak = peakS !== null && peakE !== null && cur >= peakS && cur < peakE;
-        const cls    = isPeak ? 'peak' : 'off-peak';
-        const price  = isPeak ? peakPrice : offPrice;
-        const tag    = isPeak ? 'Peak' : 'Off-peak';
+    while (cur + minSlot <= closeM && count < maxPreview) {
+        const end = cur + minSlot;
+        const { total, normalMins, peakMins } = calcPrice(cur, end, normalRate, peakRate, peakS, peakE);
+        const isPeak    = peakS !== null && peakE !== null && cur >= peakS && cur < peakE;
+        const isMixed   = normalMins > 0 && peakMins > 0;
+        const cls       = isMixed ? 'mixed' : isPeak ? 'peak' : 'off-peak';
+        const tag       = isMixed ? 'Mixed' : isPeak ? 'Peak' : 'Normal';
 
         html += `<div class="slot-preview-item ${cls}">
-                    <span class="slot-preview-time">${toTime(cur)} – ${toTime(end)}</span>
-                    <span class="slot-preview-price">₹${price}</span>
+                    <span class="slot-preview-time">${toTime(cur % (24*60))} – ${toTime(end % (24*60))}</span>
+                    <span class="slot-preview-price">₹${Math.round(total)}</span>
                     <span class="slot-preview-tag">${tag}</span>
                  </div>`;
-        cur += duration;
+        cur += minSlot;
+        count++;
     }
 
-    list.innerHTML = html || '<span style="font-size:0.8rem;color:#D90429;">No slots — check open/close times</span>';
+    if (count === maxPreview && cur + minSlot <= closeM) {
+        html += `<div style="font-size:0.75rem;color:#6B7280;align-self:center;padding:6px 10px;">
+                    + more slots (showing first ${maxPreview})
+                 </div>`;
+    }
+
+    list.innerHTML = html || '<span style="font-size:0.8rem;color:#D90429;">No slots — check open/close times or minimum duration</span>';
 }
 
-['open_time','close_time','slot_duration','peak_start_time','peak_end_time','off_peak_price','peak_price']
+['open_time','close_time','min_slot_minutes','peak_start_time','peak_end_time','normal_rate_per_30','peak_rate_per_30']
     .forEach(n => {
         const el = document.querySelector(`[name="${n}"]`);
         if (el) el.addEventListener('input', updateSlotPreview);

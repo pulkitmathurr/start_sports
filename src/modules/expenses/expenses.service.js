@@ -1,248 +1,302 @@
 const db = require("../../config/db.config");
 
-// Account Code Mapping for Balance Sheet
-const accountCodeMap = {
-  // Direct Expenses
-  Labour: "250",
-  Production: "251",
-  Selling: "252",
-  Warehouse: "253",
-  Vehicle: "254",
-  "Turf Maintenance": "255",
+// ════════════════════════════════════════════════
+//  ACCOUNT CODE MAP
+// ════════════════════════════════════════════════
+const DIRECT = {
+  Labour:              "250",
+  Production:          "251",
+  Selling:             "252",
+  Warehouse:           "253",
+  Vehicle:             "254",
+  "Turf Maintenance":  "255",
   "Pitch Preparation": "256",
-  "Equipment Repair": "257",
-  Consumables: "258",
-
-  // Indirect Expenses
-  Salary: "260",
+  "Equipment Repair":  "257",
+  Consumables:         "258",
+  Other:               "259",
+};
+const INDIRECT = {
+  Salary:        "260",
   Communication: "261",
-  Utilities: "262",
-  Electricity: "263",
-  Maintenance: "264",
-  Rent: "265",
-  Insurance: "266",
-  Taxes: "267",
-  Other: "268", // FIX #5: was "265" (same as Rent) — changed to unique code "268"
-
-  // Asset & Income
-  Equipment: "301",
-  Interest: "310",
-  Scrap: "311",
+  Utilities:     "262",
+  Electricity:   "263",
+  Maintenance:   "264",
+  Rent:          "265",
+  Insurance:     "266",
+  Taxes:         "267",
+  Other:         "268",
+};
+const ADDITIONAL_INCOME = {
+  "Interest Income": "310",
+  "Scrap / Salvage": "311",
+  "Penalty Income":  "312",
+  "Other Income":    "313",
+};
+const ASSET = {
+  Equipment:          "301",
+  "Sports Gear":      "302",
+  "Ground Equipment": "303",
+  "IT Equipment":     "304",
+  Furniture:          "305",
+  Other:              "306",
 };
 
-// Income categories (these appear on Credit side)
-const incomeCategories = ["Interest", "Scrap"];
+// Maps expense_type string to tbl_accounts account_type value
+const EXPENSE_TYPE_TO_ACCOUNT_TYPE = {
+  direct:            'direct_expense',
+  indirect:          'indirect_expense',
+  additional_income: 'income',
+  asset:             'asset',
+};
+
+// Fallback account codes when DB lookup fails (original hardcoded values)
+const FALLBACK_CODES = {
+  direct:            '259',
+  indirect:          '268',
+  additional_income: '313',
+  asset:             '306',
+};
+
+// DB-driven account code resolver — looks up by account_name + account_type in tbl_accounts
+// Falls back to hardcoded constants if not found (for backward compatibility)
+const resolveAccountCode = async (category, expense_type) => {
+  try {
+    const accountType = EXPENSE_TYPE_TO_ACCOUNT_TYPE[expense_type];
+    if (!accountType) return FALLBACK_CODES[expense_type] || '268';
+
+    const [rows] = await db.promise().query(
+      `SELECT account_code FROM tbl_accounts WHERE account_name = ? AND account_type = ? AND is_active = 1 LIMIT 1`,
+      [category, accountType]
+    );
+    if (rows.length > 0) return rows[0].account_code;
+
+    // Fallback: try legacy hardcoded maps
+    const legacyCode = DIRECT[category] || INDIRECT[category] || ADDITIONAL_INCOME[category] || ASSET[category];
+    if (legacyCode) return legacyCode;
+
+    return FALLBACK_CODES[expense_type] || '268';
+  } catch (err) {
+    // On DB error, fall back to hardcoded
+    const legacyCode = DIRECT[category] || INDIRECT[category] || ADDITIONAL_INCOME[category] || ASSET[category];
+    return legacyCode || FALLBACK_CODES[expense_type] || '268';
+  }
+};
+
+const resolveIncomeType = (expense_type) =>
+  expense_type === "additional_income" ? 1 : 0;
+
+// ── Get Grounds for Expense Modal ─────────────────────────────
+const getGroundsForExpense = async (tenant_id = null, user_role = "admin") => {
+  let query = `SELECT id, name FROM tbl_grounds WHERE flag = 0 AND status = 'active'`;
+  let params = [];
+  if (user_role === "admin" && tenant_id) {
+    query += " AND tenant_id = ?";
+    params.push(tenant_id);
+  }
+  query += " ORDER BY name ASC";
+  const [rows] = await db.promise().query(query, params);
+  return rows;
+};
+
+// ════════════════════════════════════════════════
+//  CRUD
+// ════════════════════════════════════════════════
 
 // ➕ Add Expense
+// ground_id: 0 or null = "All Grounds", positive int = specific ground
 const addExpense = async ({
-  title,
-  amount,
-  category,
-  payment_mode,
-  expense_date,
-  notes,
-  vendor,
+  title, amount, category, custom_category, expense_type,
+  payment_mode, expense_date, notes, vendor, tenant_id = null,
+  ground_id = null,
 }) => {
-  if (!title || !amount || !expense_date) {
+  if (!title || !amount || !expense_date)
     throw new Error("Title, amount and date are required");
-  }
-
-  // FIX #6: Validate amount is a positive number
   const parsedAmount = parseFloat(amount);
-  if (isNaN(parsedAmount) || parsedAmount <= 0) {
+  if (isNaN(parsedAmount) || parsedAmount <= 0)
     throw new Error("Amount must be a positive number");
-  }
 
-  // Default category if not provided
-  const expenseCategory = category || "Other";
+  const finalCategory =
+    category === "Other" && custom_category?.trim()
+      ? custom_category.trim()
+      : category || "Other";
 
-  // Get account code based on category
-  const account_code = accountCodeMap[expenseCategory] || "268";
+  const finalExpenseType = expense_type || "indirect";
+  const account_code = await resolveAccountCode(finalCategory, finalExpenseType);
+  const income_type  = resolveIncomeType(finalExpenseType);
 
-  // Determine if this is income or expense
-  const income_type = incomeCategories.includes(expenseCategory) ? 1 : 0;
+  // ground_id = 0 means "All Grounds" — stored as 0
+  const finalGroundId = ground_id ? parseInt(ground_id) : 0;
 
   const [result] = await db.promise().query(
-    `INSERT INTO tbl_expenses 
-         (title, amount, category, account_code, income_type, payment_mode, expense_date, notes, vendor)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [
-      title,
-      parsedAmount,
-      expenseCategory,
-      account_code,
-      income_type,
-      payment_mode || "cash",
-      expense_date,
-      notes || null,
-      vendor || null,
-    ],
+    `INSERT INTO tbl_expenses
+       (title, amount, category, account_code, income_type, expense_type,
+        payment_mode, expense_date, notes, vendor, tenant_id, ground_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [title, parsedAmount, finalCategory, account_code, income_type,
+     finalExpenseType, payment_mode || "cash", expense_date,
+     notes || null, vendor || null, tenant_id, finalGroundId]
   );
-
   return { id: result.insertId };
 };
 
 // 📋 Get Expenses with Pagination & Filters
 const getExpenses = async ({
-  category,
-  date_from,
-  date_to,
-  search,
-  limit = 10,
-  offset = 0,
+  category, expense_type, date_from, date_to, search, ground_id,
+  limit = 10, offset = 0, tenant_id = null, user_role = "admin",
 }) => {
-  let query = `SELECT * FROM tbl_expenses WHERE flag = 0`;
-  const params = [];
+  // Try with ground_id join first; fall back to plain query if column not yet migrated
+  try {
+    let query = "SELECT e.*, g.name as ground_name FROM tbl_expenses e LEFT JOIN tbl_grounds g ON g.id = e.ground_id AND g.flag = 0 WHERE e.flag = 0";
+    const params = [];
 
-  if (category && category !== "all") {
-    query += " AND category = ?";
-    params.push(category);
+    if (user_role === "admin" && tenant_id) { query += " AND e.tenant_id = ?"; params.push(tenant_id); }
+    if (category     && category     !== "all") { query += " AND e.category = ?";     params.push(category); }
+    if (expense_type && expense_type !== "all") { query += " AND e.expense_type = ?"; params.push(expense_type); }
+    if (ground_id && ground_id !== "all") {
+      const gId = parseInt(ground_id);
+      if (!isNaN(gId)) {
+        if (gId === 0) {
+          query += " AND (e.ground_id = 0 OR e.ground_id IS NULL)";
+        } else {
+          query += " AND e.ground_id = ?"; params.push(gId);
+        }
+      }
+    }
+    if (date_from) { query += " AND e.expense_date >= ?"; params.push(date_from); }
+    if (date_to)   { query += " AND e.expense_date <= ?"; params.push(date_to); }
+    if (search)    { query += " AND (e.title LIKE ? OR e.vendor LIKE ? OR e.notes LIKE ?)"; params.push(`%${search}%`, `%${search}%`, `%${search}%`); }
+
+    query += " ORDER BY e.expense_date DESC, e.created_at DESC LIMIT ? OFFSET ?";
+    params.push(parseInt(limit), parseInt(offset));
+    const [rows] = await db.promise().query(query, params);
+    return rows;
+  } catch (err) {
+    // Fallback: ground_id column may not exist yet — run without it
+    if (err.code === 'ER_BAD_FIELD_ERROR') {
+      let query = "SELECT * FROM tbl_expenses WHERE flag = 0";
+      const params = [];
+      if (user_role === "admin" && tenant_id) { query += " AND tenant_id = ?"; params.push(tenant_id); }
+      if (category     && category     !== "all") { query += " AND category = ?";     params.push(category); }
+      if (expense_type && expense_type !== "all") { query += " AND expense_type = ?"; params.push(expense_type); }
+      if (date_from) { query += " AND expense_date >= ?"; params.push(date_from); }
+      if (date_to)   { query += " AND expense_date <= ?"; params.push(date_to); }
+      if (search)    { query += " AND (title LIKE ? OR vendor LIKE ? OR notes LIKE ?)"; params.push(`%${search}%`, `%${search}%`, `%${search}%`); }
+      query += " ORDER BY expense_date DESC, created_at DESC LIMIT ? OFFSET ?";
+      params.push(parseInt(limit), parseInt(offset));
+      const [rows] = await db.promise().query(query, params);
+      return rows;
+    }
+    throw err;
   }
-
-  if (date_from) {
-    query += " AND expense_date >= ?";
-    params.push(date_from);
-  }
-
-  if (date_to) {
-    query += " AND expense_date <= ?";
-    params.push(date_to);
-  }
-
-  if (search) {
-    query += " AND (title LIKE ? OR vendor LIKE ? OR notes LIKE ?)";
-    params.push(`%${search}%`, `%${search}%`, `%${search}%`);
-  }
-
-  query += " ORDER BY expense_date DESC, created_at DESC LIMIT ? OFFSET ?";
-  params.push(parseInt(limit), parseInt(offset));
-
-  const [rows] = await db.promise().query(query, params);
-  return rows;
 };
 
-// 📊 Get Total Expenses Count
+// 📊 Get Total Count
 const getTotalExpensesCount = async ({
-  category,
-  date_from,
-  date_to,
-  search,
+  category, expense_type, date_from, date_to, search, ground_id,
+  tenant_id = null, user_role = "admin",
 }) => {
-  let query = `SELECT COUNT(*) as total FROM tbl_expenses WHERE flag = 0`;
+  let query = "SELECT COUNT(*) as total FROM tbl_expenses WHERE flag = 0";
   const params = [];
 
-  if (category && category !== "all") {
-    query += " AND category = ?";
-    params.push(category);
+  if (user_role === "admin" && tenant_id) { query += " AND tenant_id = ?"; params.push(tenant_id); }
+  if (category     && category     !== "all") { query += " AND category = ?";     params.push(category); }
+  if (expense_type && expense_type !== "all") { query += " AND expense_type = ?"; params.push(expense_type); }
+  if (ground_id    && ground_id    !== "all") {
+    const gId = parseInt(ground_id);
+    if (gId === 0) {
+      query += " AND (ground_id = 0 OR ground_id IS NULL)";
+    } else {
+      query += " AND ground_id = ?"; params.push(gId);
+    }
   }
-
-  if (date_from) {
-    query += " AND expense_date >= ?";
-    params.push(date_from);
-  }
-
-  if (date_to) {
-    query += " AND expense_date <= ?";
-    params.push(date_to);
-  }
-
-  if (search) {
-    query += " AND (title LIKE ? OR vendor LIKE ? OR notes LIKE ?)";
-    params.push(`%${search}%`, `%${search}%`, `%${search}%`);
-  }
+  if (date_from) { query += " AND expense_date >= ?"; params.push(date_from); }
+  if (date_to)   { query += " AND expense_date <= ?"; params.push(date_to); }
+  if (search)    { query += " AND (title LIKE ? OR vendor LIKE ? OR notes LIKE ?)"; params.push(`%${search}%`, `%${search}%`, `%${search}%`); }
 
   const [rows] = await db.promise().query(query, params);
   return rows[0].total;
 };
 
-// 📊 Get Expense Stats
-const getExpenseStats = async () => {
+// 📊 Stats
+const getExpenseStats = async (tenant_id = null, user_role = "admin") => {
+  let baseWhere = "flag = 0";
+  let params = [];
+  if (user_role === "admin" && tenant_id) { baseWhere += " AND tenant_id = ?"; params.push(tenant_id); }
+
   const [total] = await db.promise().query(
-    `SELECT 
-            COALESCE(SUM(amount), 0) as total_amount,
-            COUNT(*) as total_count,
-            COALESCE(SUM(CASE WHEN MONTH(expense_date) = MONTH(CURDATE()) AND YEAR(expense_date) = YEAR(CURDATE()) THEN amount ELSE 0 END), 0) as monthly_total
-        FROM tbl_expenses WHERE flag = 0`,
+    `SELECT COALESCE(SUM(amount),0) as total_amount, COUNT(*) as total_count,
+     COALESCE(SUM(CASE WHEN MONTH(expense_date)=MONTH(CURDATE()) AND YEAR(expense_date)=YEAR(CURDATE()) THEN amount ELSE 0 END),0) as monthly_total
+     FROM tbl_expenses WHERE ${baseWhere}`, params
   );
-
   const [categoryStats] = await db.promise().query(
-    `SELECT 
-            category,
-            COALESCE(SUM(amount), 0) as total,
-            COUNT(*) as count
-        FROM tbl_expenses 
-        WHERE flag = 0 
-        GROUP BY category 
-        ORDER BY total DESC 
-        LIMIT 5`,
+    `SELECT category, expense_type, COALESCE(SUM(amount),0) as total, COUNT(*) as count
+     FROM tbl_expenses WHERE ${baseWhere}
+     GROUP BY category, expense_type ORDER BY total DESC LIMIT 5`, params
   );
-
-  return {
-    total: total[0],
-    categoryStats,
-  };
+  return { total: total[0], categoryStats };
 };
 
-// 🗑️ Delete Expense
-const deleteExpense = async (id) => {
-  await db
-    .promise()
-    .query("UPDATE tbl_expenses SET flag = 1 WHERE id = ?", [id]);
+// 🗑️ Delete
+const deleteExpense = async (id, tenant_id = null, user_role = "admin") => {
+  let query = "UPDATE tbl_expenses SET flag = 1 WHERE id = ?";
+  let params = [id];
+  if (user_role === "admin" && tenant_id) { query += " AND tenant_id = ?"; params.push(tenant_id); }
+  const [result] = await db.promise().query(query, params);
+  if (result.affectedRows === 0) { const e = new Error("Expense not found or unauthorized"); e.statusCode = 404; throw e; }
   return true;
 };
 
-// 📝 Get Expense by ID
-const getExpenseById = async (id) => {
-  const [rows] = await db
-    .promise()
-    .query("SELECT * FROM tbl_expenses WHERE id = ? AND flag = 0", [id]);
-  if (rows.length === 0) throw new Error("Expense not found");
-  return rows[0];
+// 📝 Get by ID
+const getExpenseById = async (id, tenant_id = null, user_role = "admin") => {
+  try {
+    let query = "SELECT e.*, g.name as ground_name FROM tbl_expenses e LEFT JOIN tbl_grounds g ON g.id = e.ground_id AND g.flag = 0 WHERE e.id = ? AND e.flag = 0";
+    let params = [id];
+    if (user_role === "admin" && tenant_id) { query += " AND e.tenant_id = ?"; params.push(tenant_id); }
+    const [rows] = await db.promise().query(query, params);
+    if (rows.length === 0) { const e = new Error("Expense not found or unauthorized"); e.statusCode = 404; throw e; }
+    return rows[0];
+  } catch (err) {
+    if (err.code === 'ER_BAD_FIELD_ERROR') {
+      let query = "SELECT * FROM tbl_expenses WHERE id = ? AND flag = 0";
+      let params = [id];
+      if (user_role === "admin" && tenant_id) { query += " AND tenant_id = ?"; params.push(tenant_id); }
+      const [rows] = await db.promise().query(query, params);
+      if (rows.length === 0) { const e = new Error("Expense not found or unauthorized"); e.statusCode = 404; throw e; }
+      return rows[0];
+    }
+    throw err;
+  }
 };
 
-// ✏️ Update Expense
-const updateExpense = async (id, data) => {
-  const { title, amount, category, payment_mode, expense_date, notes, vendor } =
-    data;
-
-  // FIX #6: Validate amount on update too
+// ✏️ Update
+const updateExpense = async (id, data, tenant_id = null, user_role = "admin") => {
+  const { title, amount, category, custom_category, expense_type, payment_mode, expense_date, notes, vendor, ground_id } = data;
   const parsedAmount = parseFloat(amount);
-  if (isNaN(parsedAmount) || parsedAmount <= 0) {
-    throw new Error("Amount must be a positive number");
-  }
+  if (isNaN(parsedAmount) || parsedAmount <= 0) throw new Error("Amount must be a positive number");
 
-  // Get account code based on updated category
-  const expenseCategory = category || "Other";
-  const account_code = accountCodeMap[expenseCategory] || "268";
-  const income_type = incomeCategories.includes(expenseCategory) ? 1 : 0;
+  const finalCategory =
+    category === "Other" && custom_category?.trim()
+      ? custom_category.trim()
+      : category || "Other";
 
-  await db.promise().query(
-    `UPDATE tbl_expenses 
-         SET title = ?, amount = ?, category = ?, account_code = ?, income_type = ?,
-             payment_mode = ?, expense_date = ?, notes = ?, vendor = ?
-         WHERE id = ? AND flag = 0`,
-    [
-      title,
-      parsedAmount,
-      expenseCategory,
-      account_code,
-      income_type,
-      payment_mode,
-      expense_date,
-      notes || null,
-      vendor || null,
-      id,
-    ],
-  );
+  const finalExpenseType = expense_type || "indirect";
+  const account_code = await resolveAccountCode(finalCategory, finalExpenseType);
+  const income_type  = resolveIncomeType(finalExpenseType);
+  const finalGroundId = ground_id ? parseInt(ground_id) : 0;
+
+  let query = `UPDATE tbl_expenses SET title=?, amount=?, category=?, account_code=?, income_type=?,
+    expense_type=?, payment_mode=?, expense_date=?, notes=?, vendor=?, ground_id=? WHERE id=? AND flag=0`;
+  let params = [title, parsedAmount, finalCategory, account_code, income_type,
+    finalExpenseType, payment_mode, expense_date, notes || null, vendor || null, finalGroundId, id];
+
+  if (user_role === "admin" && tenant_id) { query += " AND tenant_id = ?"; params.push(tenant_id); }
+  const [result] = await db.promise().query(query, params);
+  if (result.affectedRows === 0) { const e = new Error("Expense not found or unauthorized"); e.statusCode = 404; throw e; }
   return true;
 };
 
 module.exports = {
-  addExpense,
-  getExpenses,
-  getTotalExpensesCount,
-  getExpenseStats,
-  deleteExpense,
-  getExpenseById,
-  updateExpense,
+  addExpense, getExpenses, getTotalExpensesCount,
+  getExpenseStats, deleteExpense, getExpenseById, updateExpense,
+  getGroundsForExpense,
 };

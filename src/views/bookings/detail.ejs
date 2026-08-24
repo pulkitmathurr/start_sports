@@ -4,155 +4,108 @@
 
         <!-- Page Header -->
         <div class="col-12 mb-3">
-            <div class="d-flex align-items-center justify-content-between">
-                <div>
-                    <h4 class="fw-bold mb-0"
-                        style="font-family:'Rajdhani',sans-serif; letter-spacing:1px; color:rgb(0, 0, 0);">
-                        <%= booking.booking_no %>
-                    </h4>
-                    <small style="color:#4a5568;">Booking Detail</small>
+            <div class="booking-header">
+                <div class="booking-header__left">
+                    <div class="booking-header__icon">
+                        <i class="bi bi-receipt"></i>
+                    </div>
+                    <div>
+                        <h4 class="booking-header__title">
+                            <%= booking.booking_no %>
+                        </h4>
+                        <span class="booking-header__sub">Booking Detail</span>
+                    </div>
                 </div>
-                <div class="d-flex gap-2">
-                    <%# FIX 1: Force fresh page load on back — prevents stale cache showing old list %>
-                    <a href="/bookings" class="btn btn-sm"
-                        style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:#a0a8b8;"
-                        onclick="event.preventDefault(); window.location.replace('/bookings');">
-                        <i class="bi bi-arrow-left me-1"></i> Back
-                    </a>
-
-                </div>
+                <a href="/bookings" class="booking-back-btn" onclick="event.preventDefault(); window.location.replace('/bookings');">
+                    <i class="bi bi-arrow-left me-1"></i> Back to Bookings
+                </a>
             </div>
         </div>
 
         <!-- Left — Booking Info -->
         <div class="col-12 col-lg-7">
-            <div class="card mb-3">
-                <div class="card-header d-flex justify-content-between align-items-center"
-                    style="font-family:'Rajdhani',sans-serif; letter-spacing:1px;">
-                    <span>BOOKING DETAILS</span>
-                    <% let statusBg, statusColor; if (booking.booking_status==='confirmed' ) {
-                        statusBg='rgba(57,255,20,0.12)' ; statusColor='#39ff14' ; } else if
-                        (booking.booking_status==='pending' ) { statusBg='rgba(245,158,11,0.12)' ; statusColor='#f59e0b'
-                        ; } else if (booking.booking_status==='approved' ) { statusBg='rgba(0,102,255,0.12)' ;
-                        statusColor='#0066ff' ; } else { statusBg='rgba(255,77,109,0.12)' ; statusColor='#ff4d6d' ; } %>
-                        <span class="badge"
-                            style="background:<%= statusBg %>; color:<%= statusColor %>; border:1px solid <%= statusColor %>44; text-transform:uppercase; letter-spacing:1px;">
-                            <%= booking.booking_status %>
-                        </span>
+            <div class="booking-card mb-3">
+                <div class="booking-card-header d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-info-circle me-2"></i>BOOKING DETAILS</span>
+                    <% let statusBg, statusColor; 
+                       if (booking.booking_status==='confirmed' ) {
+                           statusBg='#dbeafe'; statusColor='#1e40af'; 
+                       } else if (booking.booking_status==='pending' ) { 
+                           statusBg='#fef3c7'; statusColor='#92400e'; 
+                       } else if (booking.booking_status==='approved' ) { 
+                           statusBg='#dbeafe'; statusColor='#2563eb'; 
+                       } else { 
+                           statusBg='#fee2e2'; statusColor='#991b1b'; 
+                       } %>
+                    <span class="booking-status-badge" style="background:<%= statusBg %>; color:<%= statusColor %>;">
+                        <i class="bi bi-<%= booking.booking_status === 'confirmed' ? 'check-circle-fill' : (booking.booking_status === 'pending' ? 'clock-fill' : (booking.booking_status === 'approved' ? 'check-circle' : 'x-circle-fill')) %> me-1"></i>
+                        <%= booking.booking_status.toUpperCase() %>
+                    </span>
                 </div>
-                <div class="card-body">
+                <div class="booking-card-body">
                     <div class="row g-3">
                         <div class="col-6">
-                            <div
-                                style="font-size:0.68rem; color:#4a5568; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">
-                                Customer Name</div>
-                            <div style="color:#000000; font-weight:600;">
-                                <%= booking.customer_name %>
+                            <div class="booking-info-label">Customer Name</div>
+                            <div class="booking-info-value"><%= booking.customer_name %></div>
+                        </div>
+                        <div class="col-6">
+                            <div class="booking-info-label">Phone</div>
+                            <div class="booking-info-value"><%= booking.customer_phone %></div>
+                        </div>
+                        <div class="col-6">
+                            <div class="booking-info-label">Email</div>
+                            <div class="booking-info-value"><%= booking.customer_email || '—' %></div>
+                        </div>
+                        <div class="col-6">
+                            <div class="booking-info-label">Booking Type</div>
+                            <div class="booking-info-value"><%= booking.booking_type %></div>
+                        </div>
+                        <div class="col-6">
+                            <div class="booking-info-label">Slot Date</div>
+                            <div class="booking-info-value">
+                                <%= new Date(booking.slot_date).toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'}) %>
                             </div>
                         </div>
                         <div class="col-6">
-                            <div
-                                style="font-size:0.68rem; color:#4a5568; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">
-                                Phone</div>
-                            <div style="color:#000000;">
-                                <%= booking.customer_phone %>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div
-                                style="font-size:0.68rem; color:#4a5568; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">
-                                Email</div>
-                            <div style="color:#a0a8b8;">
-                                <%= booking.customer_email || '—' %>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div
-                                style="font-size:0.68rem; color:#4a5568; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">
-                                Booking Type</div>
-                            <div style="color:#a0a8b8; text-transform:capitalize;">
-                                <%= booking.booking_type %>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div
-                                style="font-size:0.68rem; color:#4a5568; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">
-                                Slot Date</div>
-                            <div style="color:#000000;">
-                                <%= new Date(booking.slot_date).toLocaleDateString('en-IN', {day:'2-digit',
-                                    month:'short', year:'numeric'}) %>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div
-                                style="font-size:0.68rem; color:#4a5568; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">
-                                Time Slot</div>
-                            <div style="color:#0066ff; font-family:'Rajdhani',sans-serif; font-weight:700;">
+                            <div class="booking-info-label">Time Slot</div>
+                            <div class="booking-info-value booking-time-slot">
                                 <%= booking.start_time.slice(0,5) %> — <%= booking.end_time.slice(0,5) %>
                             </div>
                         </div>
                         <div class="col-4">
-                            <div
-                                style="font-size:0.68rem; color:#4a5568; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">
-                                Total Amount</div>
-                            <div
-                                style="color:#000000; font-family:'Rajdhani',sans-serif; font-weight:700; font-size:1.1rem;">
-                                ₹<%= booking.total_amount %>
-                            </div>
+                            <div class="booking-info-label">Total Amount</div>
+                            <div class="booking-amount booking-total">₹<%= booking.total_amount %></div>
                         </div>
                         <div class="col-4">
-                            <div
-                                style="font-size:0.68rem; color:#4a5568; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">
-                                Paid</div>
-                            <div
-                                style="color:#39ff14; font-family:'Rajdhani',sans-serif; font-weight:700; font-size:1.1rem;">
-                                ₹<%= booking.advance_amount %>
-                            </div>
+                            <div class="booking-info-label">Paid</div>
+                            <div class="booking-amount booking-paid">₹<%= booking.advance_amount %></div>
                         </div>
                         <div class="col-4">
-                            <div
-                                style="font-size:0.68rem; color:#4a5568; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">
-                                Balance</div>
-                            <div
-                                style="color:<%= booking.balance_amount > 0 ? '#ff4d6d' : '#39ff14' %>; font-family:'Rajdhani',sans-serif; font-weight:700; font-size:1.1rem;">
+                            <div class="booking-info-label">Balance</div>
+                            <div class="booking-amount <%= booking.balance_amount > 0 ? 'booking-balance-due' : 'booking-balance-zero' %>">
                                 ₹<%= booking.balance_amount %>
                             </div>
                         </div>
                         <% if (booking.notes) { %>
                             <div class="col-12">
-                                <div
-                                    style="font-size:0.68rem; color:#4a5568; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">
-                                    Notes</div>
-                                <div style="color:#a0a8b8; font-size:0.82rem;">
-                                    <%= booking.notes %>
+                                <div class="booking-info-label">Notes</div>
+                                <div class="booking-info-note"><%= booking.notes %></div>
+                            </div>
+                        <% } %>
+                        <% if (booking.rejection_reason) { %>
+                            <div class="col-12">
+                                <div class="booking-info-label booking-label-warning">Rejection Reason</div>
+                                <div class="booking-info-note booking-warning-text"><%= booking.rejection_reason %></div>
+                            </div>
+                        <% } %>
+                        <% if (booking.approval_expires_at && booking.booking_status==='approved' ) { %>
+                            <div class="col-12">
+                                <div class="booking-deadline-box">
+                                    <i class="bi bi-hourglass-split me-1"></i>
+                                    Payment Deadline: <%= new Date(booking.approval_expires_at).toLocaleString('en-IN') %>
                                 </div>
                             </div>
-                            <% } %>
-                                <% if (booking.rejection_reason) { %>
-                                    <div class="col-12">
-                                        <div
-                                            style="font-size:0.68rem; color:#ff4d6d; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">
-                                            Rejection Reason</div>
-                                        <div style="color:#ff4d6d; font-size:0.82rem;">
-                                            <%= booking.rejection_reason %>
-                                        </div>
-                                    </div>
-                                    <% } %>
-                                        <% if (booking.approval_expires_at && booking.booking_status==='approved' ) { %>
-                                            <div class="col-12">
-                                                <div
-                                                    style="background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.2); border-radius:8px; padding:10px;">
-                                                    <div
-                                                        style="font-size:0.7rem; color:#f59e0b; text-transform:uppercase; letter-spacing:1px;">
-                                                        Payment Deadline</div>
-                                                    <div
-                                                        style="color:#f59e0b; font-family:'Rajdhani',sans-serif; font-weight:700;">
-                                                        <%= new
-                                                            Date(booking.approval_expires_at).toLocaleString('en-IN') %>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <% } %>
+                        <% } %>
                     </div>
                 </div>
             </div>
@@ -161,33 +114,25 @@
             <div class="d-flex gap-2 flex-wrap mb-3">
 
                 <% if (booking.booking_status==='pending' ) { %>
-                    <button onclick="approveBooking(<%= booking.id %>)" class="btn btn-sm"
-                        style="background:rgba(57,255,20,0.12); border:1px solid rgba(57,255,20,0.3); color:#39ff14; font-family:'Rajdhani',sans-serif; letter-spacing:1px;">
+                    <button onclick="approveBooking(<%= booking.id %>)" class="booking-action-btn booking-action-approve">
                         <i class="bi bi-check-circle me-1"></i> APPROVE
                     </button>
-                    <button onclick="showRejectModal(<%= booking.id %>)" class="btn btn-sm"
-                        style="background:rgba(255,77,109,0.12); border:1px solid rgba(255,77,109,0.3); color:#ff4d6d; font-family:'Rajdhani',sans-serif; letter-spacing:1px;">
+                    <button onclick="showRejectModal(<%= booking.id %>)" class="booking-action-btn booking-action-reject">
                         <i class="bi bi-x-circle me-1"></i> REJECT
                     </button>
-                    <% } %>
+                <% } %>
 
-                        <% if (['confirmed','approved'].includes(booking.booking_status)) { %>
-                            <button onclick="cancelBooking(<%= booking.id %>)" class="btn btn-sm"
-                                style="background:rgba(255,77,109,0.12); border:1px solid rgba(255,77,109,0.3); color:#ff4d6d; font-family:'Rajdhani',sans-serif; letter-spacing:1px;">
-                                <i class="bi bi-x-lg me-1"></i> CANCEL BOOKING
-                            </button>
-                            <% } %>
+                <% if (['confirmed','approved'].includes(booking.booking_status)) { %>
+                    <button onclick="cancelBooking(<%= booking.id %>)" class="booking-action-btn booking-action-cancel">
+                        <i class="bi bi-x-lg me-1"></i> CANCEL BOOKING
+                    </button>
+                <% } %>
 
-                                <% if (booking.booking_status==='confirmed' && booking.balance_amount> 0) { %>
-                                    
-                                    <% } %>
-
-                                        <% if (booking.booking_status==='confirmed' ) { %>
-                                            <button onclick="printInvoice()" class="btn btn-sm"
-                                                style="background:rgba(27,67,50,0.1); border:1px solid rgba(27,67,50,0.3); color:#1B4332; font-family:'Rajdhani',sans-serif; letter-spacing:1px;">
-                                                <i class="bi bi-printer me-1"></i> PRINT INVOICE
-                                            </button>
-                                            <% } %>
+                <% if (booking.booking_status==='confirmed' ) { %>
+                    <button onclick="printInvoice()" class="booking-action-btn booking-action-print">
+                        <i class="bi bi-printer me-1"></i> PRINT INVOICE
+                    </button>
+                <% } %>
 
             </div>
 
@@ -200,126 +145,777 @@
         <div class="col-12 col-lg-5">
 
             <!-- Payment History -->
-            <div class="card mb-3">
-                <div class="card-header" style="font-family:'Rajdhani',sans-serif; letter-spacing:1px;">
-                    PAYMENT HISTORY
+            <div class="booking-card mb-3">
+                <div class="booking-card-header">
+                    <i class="bi bi-credit-card me-2"></i>PAYMENT HISTORY
                 </div>
-                <div class="card-body p-0">
+                <div class="booking-card-body p-0">
                     <% if (payments.length===0) { %>
-                        <div class="text-center py-4" style="color:#4a5568; font-size:0.82rem;">
-                            No payments recorded yet
+                        <div class="text-center py-4 payment-empty">
+                            <i class="bi bi-receipt me-1"></i> No payments recorded yet
                         </div>
-                        <% } else { %>
-                            <table class="table mb-0" style="font-size:0.82rem;">
+                    <% } else { %>
+                        <div class="table-responsive">
+                            <table class="payment-table mb-0">
                                 <thead>
-                                    <tr style="border-bottom:1px solid #1e3a5f;">
-                                        <th style="color:#4a5568; font-weight:500; padding:10px 16px;">Date</th>
-                                        <th style="color:#4a5568; font-weight:500;">Amount</th>
-                                        <th style="color:#4a5568; font-weight:500;">Mode</th>
-                                        <th style="color:#4a5568; font-weight:500;">Type</th>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Amount</th>
+                                        <th>Mode</th>
+                                        <th>Type</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <% payments.forEach(p=> { %>
-                                        <tr style="border-bottom:1px solid rgba(30,58,95,0.5);">
-                                            <td style="color:#a0a8b8; padding:10px 16px;">
-                                                <%= new Date(p.payment_date).toLocaleDateString('en-IN', {day:'2-digit',
-                                                    month:'short'}) %>
-                                            </td>
-                                            <td style="color:#39ff14; font-weight:600;">₹<%= p.amount %>
-                                            </td>
-                                            <td style="color:#a0a8b8; text-transform:capitalize;">
-                                                <%= p.payment_mode %>
-                                            </td>
-                                            <td style="color:#a0a8b8; text-transform:capitalize;">
-                                                <%= p.payment_type %>
-                                            </td>
+                                        <tr>
+                                            <td><%= new Date(p.payment_date).toLocaleDateString('en-IN', {day:'2-digit', month:'short'}) %></td>
+                                            <td class="payment-amount">₹<%= p.amount %></td>
+                                            <td><span class="payment-mode-badge payment-mode-<%= p.payment_mode %>"><%= p.payment_mode %></span></td>
+                                            <td><%= p.payment_type %></td>
                                         </tr>
-                                        <% }) %>
+                                    <% }) %>
                                 </tbody>
                             </table>
-                            <% } %>
+                        </div>
+                    <% } %>
                 </div>
             </div>
 
             <!-- Add Payment -->
-            <% if (booking.booking_status==='approved' || (booking.booking_status==='confirmed' &&
-                booking.balance_amount> 0)) { %>
-                <div class="card" id="payment-section">
-                    <div class="card-header" style="font-family:'Rajdhani',sans-serif; letter-spacing:1px;">
-                        RECORD PAYMENT
+            <% if (booking.booking_status==='approved' || (booking.booking_status==='confirmed' && booking.balance_amount> 0)) { %>
+                <div class="booking-card" id="payment-section">
+                    <div class="booking-card-header">
+                        <i class="bi bi-cash-stack me-2"></i>RECORD PAYMENT
                     </div>
-                    <div class="card-body">
+                    <div class="booking-card-body">
                         <div class="mb-3">
-                            <label
-                                style="font-size:0.7rem; color:#4a5568; text-transform:uppercase; letter-spacing:1px; display:block; margin-bottom:6px;">
-                                Amount *
-                            </label>
+                            <label class="payment-label">Amount *</label>
                             <input type="number" id="pay-amount" placeholder="Enter amount"
-                                value="<%= booking.balance_amount %>" class="form-control"
-                                style="background:#0f1b2d; border:1px solid #1e3a5f; color:#000000;">
+                                value="<%= booking.balance_amount %>" class="payment-input">
                         </div>
                         <div class="mb-3">
-                            <label
-                                style="font-size:0.7rem; color:#4a5568; text-transform:uppercase; letter-spacing:1px; display:block; margin-bottom:6px;">
-                                Payment Mode *
-                            </label>
-                            <select id="pay-mode" class="form-select"
-                                style="background:#0f1b2d; border:1px solid #1e3a5f; color:#000000;">
+                            <label class="payment-label">Payment Mode *</label>
+                            <select id="pay-mode" class="payment-select">
                                 <option value="cash">Cash</option>
                                 <option value="upi">UPI</option>
                                 <option value="card">Card</option>
+                                <option value="bank">Bank Transfer</option>
                             </select>
                         </div>
                         <div class="mb-3">
-                            <label
-                                style="font-size:0.7rem; color:#4a5568; text-transform:uppercase; letter-spacing:1px; display:block; margin-bottom:6px;">
-                                Payment Type *
-                            </label>
-                            <select id="pay-type" class="form-select"
-                                style="background:#0f1b2d; border:1px solid #1e3a5f; color:#000000;">
+                            <label class="payment-label">Payment Type *</label>
+                            <select id="pay-type" class="payment-select">
                                 <option value="advance">Advance</option>
                                 <option value="balance">Balance</option>
                                 <option value="full">Full</option>
                             </select>
                         </div>
-                        <button onclick="recordPayment(<%= booking.id %>)" class="btn w-100"
-                            style="background:linear-gradient(135deg,#0044cc,#0066ff); border:none; color:#fff; font-family:'Rajdhani',sans-serif; font-weight:700; letter-spacing:2px;">
-                            RECORD PAYMENT
+                        <button onclick="recordPayment(<%= booking.id %>)" class="payment-submit-btn">
+                            <i class="bi bi-check-circle me-2"></i> RECORD PAYMENT
                         </button>
                     </div>
                 </div>
-                <% } %>
+            <% } %>
 
         </div>
     </div>
 
     <!-- Reject Modal -->
-    <div id="reject-modal"
-        style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:9999; align-items:center; justify-content:center;">
-        <div
-            style="background:#16213e; border:1px solid #1e3a5f; border-radius:16px; padding:24px; max-width:400px; width:90%;">
-            <h5 style="font-family:'Rajdhani',sans-serif; color:#000000; margin-bottom:16px; letter-spacing:1px;">REJECT
-                BOOKING</h5>
-            <div class="mb-3">
-                <label
-                    style="font-size:0.7rem; color:#4a5568; text-transform:uppercase; letter-spacing:1px; display:block; margin-bottom:6px;">Reason
-                    *</label>
-                <textarea id="reject-reason" rows="3" placeholder="Enter rejection reason..." class="form-control"
-                    style="background:#0f1b2d; border:1px solid #1e3a5f; color:#000000; resize:none;"></textarea>
+    <div id="reject-modal" class="reject-modal">
+        <div class="reject-modal-content">
+            <div class="reject-modal-header">
+                <i class="bi bi-x-circle-fill me-2"></i> REJECT BOOKING
             </div>
-            <div class="d-flex gap-2">
-                <button onclick="closeRejectModal()" class="btn btn-sm flex-fill"
-                    style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:#a0a8b8;">
-                    Cancel
-                </button>
-                <button onclick="submitReject()" class="btn btn-sm flex-fill"
-                    style="background:rgba(255,77,109,0.15); border:1px solid rgba(255,77,109,0.3); color:#ff4d6d; font-family:'Rajdhani',sans-serif; letter-spacing:1px;">
-                    REJECT
-                </button>
+            <div class="reject-modal-body">
+                <label class="reject-modal-label">Reason *</label>
+                <textarea id="reject-reason" rows="3" placeholder="Enter rejection reason..." class="reject-modal-textarea"></textarea>
+            </div>
+            <div class="reject-modal-footer">
+                <button onclick="closeRejectModal()" class="reject-modal-btn reject-modal-cancel">Cancel</button>
+                <button onclick="submitReject()" class="reject-modal-btn reject-modal-confirm">REJECT</button>
             </div>
         </div>
     </div>
+
+    <%- include('../partials/quickbook-drawer') %>
+
+    <!-- ══ INVOICE (hidden, print only) ══════════════ -->
+    <div id="invoice-print" style="display:none;">
+        <div class="inv-page">
+
+            <!-- Header -->
+            <div class="inv-header">
+                <div class="inv-header__brand">
+                    <div class="inv-header__logo">
+                        <img src="/images/startSportLogo1.png" alt="Logo" onerror="this.style.display='none'">
+                    </div>
+                    <div>
+                        <div class="inv-header__name"><%= settings && settings.ground_name ? settings.ground_name : 'Start Sports' %></div>
+                        <% if (settings && settings.ground_address) { %>
+                            <div class="inv-header__addr"><%= settings.ground_address %></div>
+                        <% } %>
+                        <% if (settings && settings.ground_phone) { %>
+                            <div class="inv-header__addr">Ph: <%= settings.ground_phone %></div>
+                        <% } %>
+                        <% if (settings && settings.ground_email) { %>
+                            <div class="inv-header__addr"><%= settings.ground_email %></div>
+                        <% } %>
+                    </div>
+                </div>
+                <div class="inv-header__right">
+                    <div class="inv-header__title">INVOICE</div>
+                    <div class="inv-header__no"># <%= booking.booking_no %></div>
+                    <div class="inv-header__date">Date: <%= new Date().toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'}) %></div>
+                    <div class="inv-status-badge <%= booking.booking_status === 'confirmed' ? 'inv-status--confirmed' : 'inv-status--other' %>">
+                        <%= booking.booking_status.toUpperCase() %>
+                    </div>
+                </div>
+            </div>
+
+            <div class="inv-divider"></div>
+
+            <!-- Bill To + Booking Info -->
+            <div class="inv-meta">
+                <div class="inv-meta__box">
+                    <div class="inv-meta__title">BILLED TO</div>
+                    <div class="inv-meta__val inv-meta__val--lg"><%= booking.customer_name %></div>
+                    <div class="inv-meta__val">Ph: <%= booking.customer_phone %></div>
+                    <% if (booking.customer_email) { %>
+                        <div class="inv-meta__val"><%= booking.customer_email %></div>
+                    <% } %>
+                </div>
+                <div class="inv-meta__box inv-meta__box--right">
+                    <div class="inv-meta__title">BOOKING INFO</div>
+                    <div class="inv-meta__row">
+                        <span class="inv-meta__key">Booking No.</span>
+                        <span class="inv-meta__val inv-meta__val--green"><%= booking.booking_no %></span>
+                    </div>
+                    <div class="inv-meta__row">
+                        <span class="inv-meta__key">Booking Type</span>
+                        <span class="inv-meta__val" style="text-transform:capitalize;"><%= booking.booking_type %></span>
+                    </div>
+                    <% if (booking.ground_name) { %>
+                        <div class="inv-meta__row">
+                            <span class="inv-meta__key">Ground</span>
+                            <span class="inv-meta__val"><%= booking.ground_name %></span>
+                        </div>
+                    <% } %>
+                    <div class="inv-meta__row">
+                        <span class="inv-meta__key">Slot Date</span>
+                        <span class="inv-meta__val"><%= new Date(booking.slot_date + 'T00:00:00').toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'}) %></span>
+                    </div>
+                    <div class="inv-meta__row">
+                        <span class="inv-meta__key">Time</span>
+                        <span class="inv-meta__val"><%= booking.start_time.slice(0,5) %> – <%= booking.end_time.slice(0,5) %></span>
+                    </div>
+                    <div class="inv-meta__row">
+                        <span class="inv-meta__key">Payment Mode</span>
+                        <span class="inv-meta__val" style="text-transform:capitalize;"><%= booking.payment_mode || '—' %></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slot Details Table -->
+            <table class="inv-table">
+                <thead>
+                    <tr>
+                        <th style="width:40%;">Description</th>
+                        <th style="text-align:center;">Date</th>
+                        <th style="text-align:center;">Time Slot</th>
+                        <th style="text-align:right;">Original Price</th>
+                        <th style="text-align:right;">Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <strong>Ground Booking</strong>
+                            <% if (booking.ground_name) { %>
+                                <br><span style="font-size:0.78rem; color:#6b7280;"><%= booking.ground_name %></span>
+                            <% } %>
+                            <% if (booking.notes) { %>
+                                <br><span style="font-size:0.75rem; color:#9ca3af;">Note: <%= booking.notes %></span>
+                            <% } %>
+                            <% if (booking.pricing_note) { %>
+                                <br><span style="font-size:0.72rem; color:#6b7280; font-style:italic;"><%= booking.pricing_note %></span>
+                            <% } %>
+                        </td>
+                        <td style="text-align:center;">
+                            <%= new Date(booking.slot_date + 'T00:00:00').toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'}) %>
+                        </td>
+                        <td style="text-align:center; font-weight:700; color:#2563eb;">
+                            <%= booking.start_time.slice(0,5) %> – <%= booking.end_time.slice(0,5) %>
+                        </td>
+                        <td style="text-align:right; color:#6b7280;">
+                            ₹<%= Number(booking.original_amount || booking.total_amount).toLocaleString('en-IN') %>
+                        </td>
+                        <td style="text-align:right; font-weight:700;">
+                            ₹<%= Number(booking.total_amount).toLocaleString('en-IN') %>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- Payment Summary -->
+            <div class="inv-summary">
+                <% if (booking.original_amount && Number(booking.original_amount) !== Number(booking.total_amount)) { %>
+                    <div class="inv-summary__row">
+                        <span>Original Price</span>
+                        <span>₹<%= Number(booking.original_amount).toLocaleString('en-IN') %></span>
+                    </div>
+                <% } %>
+                <% if (booking.discount_amount && Number(booking.discount_amount) > 0) { %>
+                    <div class="inv-summary__row" style="color:#059669;">
+                        <span>Discount</span>
+                        <span>– ₹<%= Number(booking.discount_amount).toLocaleString('en-IN') %></span>
+                    </div>
+                <% } %>
+                <% if (booking.surcharge_amount && Number(booking.surcharge_amount) > 0) { %>
+                    <div class="inv-summary__row" style="color:#d97706;">
+                        <span>Surcharge</span>
+                        <span>+ ₹<%= Number(booking.surcharge_amount).toLocaleString('en-IN') %></span>
+                    </div>
+                <% } %>
+                <div class="inv-summary__row" style="font-weight:700;">
+                    <span>Total Amount</span>
+                    <span>₹<%= Number(booking.total_amount).toLocaleString('en-IN') %></span>
+                </div>
+                <div class="inv-summary__row inv-summary__row--paid">
+                    <span>Amount Paid</span>
+                    <span>₹<%= Number(booking.advance_amount).toLocaleString('en-IN') %></span>
+                </div>
+                <div class="inv-summary__divider"></div>
+                <div class="inv-summary__row inv-summary__row--total">
+                    <span>Balance Due</span>
+                    <span style="color:<%= Number(booking.balance_amount) > 0 ? '#dc2626' : '#2563eb' %>;">
+                        ₹<%= Number(booking.balance_amount).toLocaleString('en-IN') %>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Payment History -->
+            <% if (payments && payments.length > 0) { %>
+                <div class="inv-payments">
+                    <div class="inv-payments__title">PAYMENT HISTORY</div>
+                    <table class="inv-pay-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Date</th>
+                                <th>Mode</th>
+                                <th>Type</th>
+                                <th style="text-align:right;">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% payments.forEach((p, i) => { %>
+                                <tr>
+                                    <td><%= i + 1 %></td>
+                                    <td><%= new Date(p.payment_date).toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'}) %></td>
+                                    <td style="text-transform:capitalize;"><%= p.payment_mode %></td>
+                                    <td style="text-transform:capitalize;"><%= p.payment_type %></td>
+                                    <td style="text-align:right; font-weight:600; color:#2563eb;">₹<%= Number(p.amount).toLocaleString('en-IN') %></td>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                </div>
+            <% } %>
+
+            <!-- Notes -->
+            <% if (booking.notes) { %>
+                <div style="margin-top:18px; padding:10px 14px; background:#f9fafb; border:1px solid #e5e7eb; border-radius:6px; font-size:0.82rem; color:#4b5563;">
+                    <strong>Notes:</strong> <%= booking.notes %>
+                </div>
+            <% } %>
+
+            <!-- Footer -->
+            <div class="inv-footer">
+                <div class="inv-footer__status">
+                    <% if (Number(booking.balance_amount) <= 0) { %>
+                        <span class="inv-footer__paid">✓ FULLY PAID</span>
+                    <% } else { %>
+                        <span class="inv-footer__pending">⚠ BALANCE DUE: ₹<%= Number(booking.balance_amount).toLocaleString('en-IN') %></span>
+                    <% } %>
+                </div>
+                <div class="inv-footer__note">Thank you for your booking. Please present this invoice at the ground.</div>
+                <div class="inv-footer__generated">Generated on <%= new Date().toLocaleString('en-IN') %></div>
+            </div>
+
+        </div>
+    </div>
+
+    <style>
+    /* ═══════════════════════════════════════════════════════════════
+       BOOKING DETAIL PAGE - Blue/White Theme
+    ═══════════════════════════════════════════════════════════════ */
+
+    /* Page Header */
+    .booking-header {
+        background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 45%, #1e40af 100%);
+        border-radius: 20px;
+        padding: 14px 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 8px 24px rgba(37, 99, 235, 0.2);
+    }
+
+    .booking-header__left {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        position: relative;
+        z-index: 2;
+    }
+
+    .booking-header__icon {
+        width: 46px;
+        height: 46px;
+        background: rgba(255, 255, 255, 0.12);
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.4rem;
+        color: #fff;
+        border: 1px solid rgba(255, 255, 255, 0.25);
+    }
+
+    .booking-header__title {
+        font-family: 'Rajdhani', sans-serif;
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #fff;
+        margin: 0;
+        line-height: 1.3;
+        letter-spacing: -0.3px;
+    }
+
+    .booking-header__sub {
+        font-size: 0.68rem;
+        color: rgba(255, 255, 255, 0.7);
+        margin-top: 2px;
+        display: block;
+    }
+
+    .booking-back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(255, 255, 255, 0.12);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        color: #fff;
+        font-size: 0.72rem;
+        font-weight: 600;
+        padding: 7px 16px;
+        border-radius: 10px;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+
+    .booking-back-btn:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: translateY(-1px);
+        color: #fff;
+    }
+
+    /* Cards */
+    .booking-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 18px;
+        overflow: hidden;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+    }
+
+    .booking-card-header {
+        padding: 12px 18px;
+        background: #f8fafc;
+        border-bottom: 1px solid #e2e8f0;
+        font-family: 'Rajdhani', sans-serif;
+        font-weight: 700;
+        font-size: 0.78rem;
+        letter-spacing: 1px;
+        color: #1e293b;
+    }
+
+    .booking-card-body {
+        padding: 18px;
+    }
+
+    /* Info Labels */
+    .booking-info-label {
+        font-size: 0.62rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #64748b;
+        margin-bottom: 4px;
+    }
+
+    .booking-info-value {
+        font-size: 0.85rem;
+        color: #1e293b;
+        font-weight: 500;
+    }
+
+    .booking-time-slot {
+        color: #2563eb;
+        font-family: 'Rajdhani', sans-serif;
+        font-weight: 700;
+    }
+
+    .booking-amount {
+        font-family: 'Rajdhani', sans-serif;
+        font-weight: 700;
+        font-size: 1rem;
+    }
+
+    .booking-total {
+        color: #1e293b;
+    }
+
+    .booking-paid {
+        color: #059669;
+    }
+
+    .booking-balance-due {
+        color: #dc2626;
+    }
+
+    .booking-balance-zero {
+        color: #059669;
+    }
+
+    .booking-info-note {
+        font-size: 0.78rem;
+        color: #64748b;
+        background: #f8fafc;
+        padding: 8px 12px;
+        border-radius: 10px;
+    }
+
+    .booking-label-warning {
+        color: #dc2626;
+    }
+
+    .booking-warning-text {
+        color: #991b1b;
+    }
+
+    .booking-deadline-box {
+        background: #fef3c7;
+        border: 1px solid #fde68a;
+        border-radius: 10px;
+        padding: 10px;
+        font-size: 0.78rem;
+        color: #92400e;
+        font-weight: 600;
+    }
+
+    /* Status Badge */
+    .booking-status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+    }
+
+    /* Action Buttons */
+    .booking-action-btn {
+        padding: 8px 18px;
+        border-radius: 8px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        font-family: 'Rajdhani', sans-serif;
+        letter-spacing: 1px;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .booking-action-approve {
+        background: #dbeafe;
+        color: #1e40af;
+        border: 1px solid #bfdbfe;
+    }
+
+    .booking-action-approve:hover {
+        background: #2563eb;
+        color: #fff;
+        transform: translateY(-1px);
+        box-shadow: 0 3px 10px rgba(37, 99, 235, 0.25);
+    }
+
+    .booking-action-reject {
+        background: #fef2f2;
+        color: #991b1b;
+        border: 1px solid #fecaca;
+    }
+
+    .booking-action-reject:hover {
+        background: #dc2626;
+        color: #fff;
+    }
+
+    .booking-action-cancel {
+        background: #fef2f2;
+        color: #991b1b;
+        border: 1px solid #fecaca;
+    }
+
+    .booking-action-cancel:hover {
+        background: #dc2626;
+        color: #fff;
+    }
+
+    .booking-action-print {
+        background: #f1f5f9;
+        color: #475569;
+        border: 1px solid #e2e8f0;
+    }
+
+    .booking-action-print:hover {
+        background: #2563eb;
+        color: #fff;
+        border-color: #2563eb;
+    }
+
+    /* Payment Table */
+    .payment-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.78rem;
+    }
+
+    .payment-table th {
+        padding: 10px 14px;
+        font-size: 0.62rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #64748b;
+        border-bottom: 1px solid #e2e8f0;
+        background: #f8fafc;
+    }
+
+    .payment-table td {
+        padding: 10px 14px;
+        color: #1e293b;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .payment-amount {
+        font-weight: 700;
+        color: #2563eb;
+    }
+
+    .payment-mode-badge {
+        display: inline-block;
+        padding: 3px 8px;
+        border-radius: 6px;
+        font-size: 0.65rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .payment-mode-cash { background: #f1f5f9; color: #475569; }
+    .payment-mode-upi { background: #dbeafe; color: #1e40af; }
+    .payment-mode-card { background: #fef3c7; color: #92400e; }
+    .payment-mode-bank { background: #dcfce7; color: #166534; }
+
+    .payment-empty {
+        color: #94a3b8;
+        font-size: 0.8rem;
+    }
+
+    /* Payment Form */
+    .payment-label {
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #475569;
+        display: block;
+        margin-bottom: 5px;
+    }
+
+    .payment-input, .payment-select {
+        width: 100%;
+        padding: 8px 12px;
+        background: #f8fafc;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 10px;
+        font-size: 0.85rem;
+        color: #1e293b;
+        transition: all 0.2s;
+    }
+
+    .payment-input:focus, .payment-select:focus {
+        outline: none;
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    .payment-submit-btn {
+        width: 100%;
+        padding: 10px;
+        background: linear-gradient(135deg, #2563eb, #1d4ed8);
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        font-family: 'Rajdhani', sans-serif;
+        letter-spacing: 1px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .payment-submit-btn:hover {
+        background: linear-gradient(135deg, #1d4ed8, #1e40af);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    }
+
+    /* Reject Modal */
+    .reject-modal {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(4px);
+        z-index: 9999;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .reject-modal-content {
+        background: #fff;
+        border-radius: 20px;
+        width: 400px;
+        max-width: 90vw;
+        overflow: hidden;
+        animation: modalSlideIn 0.3s ease;
+    }
+
+    @keyframes modalSlideIn {
+        from { opacity: 0; transform: translateY(-20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .reject-modal-header {
+        padding: 14px 20px;
+        background: linear-gradient(135deg, #dc2626, #b91c1c);
+        color: #fff;
+        font-family: 'Rajdhani', sans-serif;
+        font-weight: 700;
+        font-size: 0.9rem;
+        letter-spacing: 1px;
+    }
+
+    .reject-modal-body {
+        padding: 20px;
+    }
+
+    .reject-modal-label {
+        display: block;
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #475569;
+        margin-bottom: 6px;
+    }
+
+    .reject-modal-textarea {
+        width: 100%;
+        padding: 10px;
+        background: #f8fafc;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 10px;
+        font-size: 0.82rem;
+        color: #1e293b;
+        resize: none;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .reject-modal-textarea:focus {
+        outline: none;
+        border-color: #dc2626;
+        box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+    }
+
+    .reject-modal-footer {
+        padding: 14px 20px;
+        display: flex;
+        gap: 10px;
+        border-top: 1px solid #e2e8f0;
+    }
+
+    .reject-modal-btn {
+        flex: 1;
+        padding: 8px;
+        border-radius: 8px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .reject-modal-cancel {
+        background: #f1f5f9;
+        border: 1px solid #e2e8f0;
+        color: #475569;
+    }
+
+    .reject-modal-cancel:hover {
+        background: #e2e8f0;
+    }
+
+    .reject-modal-confirm {
+        background: #dc2626;
+        border: none;
+        color: #fff;
+    }
+
+    .reject-modal-confirm:hover {
+        background: #b91c1c;
+        transform: translateY(-1px);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .booking-header {
+            flex-direction: column;
+            align-items: flex-start;
+            padding: 14px 18px;
+        }
+        
+        .booking-header__icon {
+            width: 38px;
+            height: 38px;
+            font-size: 1.1rem;
+        }
+        
+        .booking-header__title {
+            font-size: 1rem;
+        }
+        
+        .booking-card-body {
+            padding: 14px;
+        }
+    }
+    </style>
 
     <script>
         let rejectBookingId = null;
@@ -328,9 +924,11 @@
             const el = document.getElementById('action-msg');
             el.textContent = msg;
             el.style.display = 'block';
-            el.style.background = isError ? 'rgba(255,77,109,0.1)' : 'rgba(57,255,20,0.1)';
-            el.style.border = isError ? '1px solid rgba(255,77,109,0.3)' : '1px solid rgba(57,255,20,0.3)';
-            el.style.color = isError ? '#ff4d6d' : '#39ff14';
+            el.style.background = isError ? '#fef2f2' : '#ecfdf5';
+            el.style.border = isError ? '1px solid #fecaca' : '1px solid #a7f3d0';
+            el.style.color = isError ? '#991b1b' : '#065f46';
+            el.style.borderRadius = '10px';
+            el.style.padding = '10px 14px';
             setTimeout(() => { el.style.display = 'none'; }, 4000);
         }
 
@@ -360,7 +958,7 @@
 
         async function submitReject() {
             const reason = document.getElementById('reject-reason').value.trim();
-            if (!reason) { alert('Please enter a reason'); return; }
+            if (!reason) { xToast('Please enter a rejection reason', 'error'); return; }
             try {
                 const res = await fetch('/bookings/reject', {
                     method: 'POST',
@@ -374,17 +972,19 @@
         }
 
         async function cancelBooking(id) {
-            if (!confirm('Are you sure you want to cancel this booking?')) return;
-            try {
-                const res = await fetch('/bookings/cancel', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ booking_id: id })
-                });
-                const data = await res.json();
-                if (data.success) { showMsg('Booking cancelled.'); setTimeout(() => location.reload(), 1500); }
-                else showMsg(data.message, true);
-            } catch (e) { showMsg('Connection error', true); }
+            showDelModal({
+                title: 'Cancel Booking',
+                message: 'Are you sure you want to cancel this booking? This cannot be undone.',
+                confirmText: 'Yes, Cancel', cancelText: 'Keep Booking',
+                icon: 'bi bi-x-circle-fill', iconClass: 'del-modal__icon--warn', confirmClass: 'warn'
+            }, async () => {
+                try {
+                    const res = await fetch('/bookings/cancel', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({booking_id:id}) });
+                    const data = await res.json();
+                    if (data.success) { showMsg('Booking cancelled.'); setTimeout(() => location.reload(), 1500); }
+                    else showMsg(data.message, true);
+                } catch(e) { showMsg('Connection error', true); }
+            });
         }
 
         async function recordPayment(id) {
@@ -403,342 +1003,22 @@
                 const data = await res.json();
                 if (data.success) {
                     showMsg('✓ Payment recorded!');
-                    // FIX 2: Redirect to bookings list so balance entry is visible there
-                    // Partial payment bhi list mein dikhe — isliye list pe jaate hain, sirf reload nahi
                     setTimeout(() => { window.location.replace('/bookings'); }, 1500);
                 } else {
                     showMsg(data.message, true);
                 }
             } catch (e) { showMsg('Connection error', true); }
         }
+
+        function printInvoice() {
+            document.getElementById('invoice-print').style.display = 'block';
+            setTimeout(() => {
+                window.print();
+                setTimeout(() => {
+                    document.getElementById('invoice-print').style.display = 'none';
+                }, 500);
+            }, 300);
+        }
     </script>
 
-    <%- include('../partials/quickbook-drawer') %>
-
-        <!-- ══ INVOICE (hidden, print only) ══════════════ -->
-        <div id="invoice-print" style="display:none;">
-            <div class="inv-page">
-
-                <!-- Header -->
-                <div class="inv-header">
-                    <div class="inv-header__brand">
-                        <div class="inv-header__logo">
-                            <img src="/images/startSportLogo1.png" alt="Logo" onerror="this.style.display='none'">
-                        </div>
-                        <div>
-                            <div class="inv-header__name"><%= settings && settings.ground_name ? settings.ground_name : 'Start Sports' %></div>
-                            <% if (settings && settings.ground_address) { %>
-                                <div class="inv-header__addr"><%= settings.ground_address %></div>
-                            <% } %>
-                            <% if (settings && settings.ground_phone) { %>
-                                <div class="inv-header__addr">Ph: <%= settings.ground_phone %></div>
-                            <% } %>
-                            <% if (settings && settings.ground_email) { %>
-                                <div class="inv-header__addr"><%= settings.ground_email %></div>
-                            <% } %>
-                        </div>
-                    </div>
-                    <div class="inv-header__right">
-                        <div class="inv-header__title">INVOICE</div>
-                        <div class="inv-header__no"># <%= booking.booking_no %></div>
-                        <div class="inv-header__date">Date: <%= new Date().toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'}) %></div>
-                        <div class="inv-status-badge <%= booking.booking_status === 'confirmed' ? 'inv-status--confirmed' : 'inv-status--other' %>">
-                            <%= booking.booking_status.toUpperCase() %>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="inv-divider"></div>
-
-                <!-- Bill To + Booking Info -->
-                <div class="inv-meta">
-                    <div class="inv-meta__box">
-                        <div class="inv-meta__title">BILLED TO</div>
-                        <div class="inv-meta__val inv-meta__val--lg"><%= booking.customer_name %></div>
-                        <div class="inv-meta__val">Ph: <%= booking.customer_phone %></div>
-                        <% if (booking.customer_email) { %>
-                            <div class="inv-meta__val"><%= booking.customer_email %></div>
-                        <% } %>
-                    </div>
-                    <div class="inv-meta__box inv-meta__box--right">
-                        <div class="inv-meta__title">BOOKING INFO</div>
-                        <div class="inv-meta__row">
-                            <span class="inv-meta__key">Booking No.</span>
-                            <span class="inv-meta__val inv-meta__val--green"><%= booking.booking_no %></span>
-                        </div>
-                        <div class="inv-meta__row">
-                            <span class="inv-meta__key">Booking Type</span>
-                            <span class="inv-meta__val" style="text-transform:capitalize;"><%= booking.booking_type %></span>
-                        </div>
-                        <% if (booking.ground_name) { %>
-                            <div class="inv-meta__row">
-                                <span class="inv-meta__key">Ground</span>
-                                <span class="inv-meta__val"><%= booking.ground_name %></span>
-                            </div>
-                        <% } %>
-                        <div class="inv-meta__row">
-                            <span class="inv-meta__key">Slot Date</span>
-                            <span class="inv-meta__val"><%= new Date(booking.slot_date + 'T00:00:00').toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'}) %></span>
-                        </div>
-                        <div class="inv-meta__row">
-                            <span class="inv-meta__key">Time</span>
-                            <span class="inv-meta__val"><%= booking.start_time.slice(0,5) %> – <%= booking.end_time.slice(0,5) %></span>
-                        </div>
-                        <div class="inv-meta__row">
-                            <span class="inv-meta__key">Payment Mode</span>
-                            <span class="inv-meta__val" style="text-transform:capitalize;"><%= booking.payment_mode || '—' %></span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Slot Details Table -->
-                <table class="inv-table">
-                    <thead>
-                        <tr>
-                            <th style="width:40%;">Description</th>
-                            <th style="text-align:center;">Date</th>
-                            <th style="text-align:center;">Time Slot</th>
-                            <th style="text-align:right;">Original Price</th>
-                            <th style="text-align:right;">Amount</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>
-                                <strong>Ground Booking</strong>
-                                <% if (booking.ground_name) { %>
-                                    <br><span style="font-size:0.78rem; color:#6b7280;"><%= booking.ground_name %></span>
-                                <% } %>
-                                <% if (booking.notes) { %>
-                                    <br><span style="font-size:0.75rem; color:#9ca3af;">Note: <%= booking.notes %></span>
-                                <% } %>
-                                <% if (booking.pricing_note) { %>
-                                    <br><span style="font-size:0.72rem; color:#6b7280; font-style:italic;"><%= booking.pricing_note %></span>
-                                <% } %>
-                            </td>
-                            <td style="text-align:center;">
-                                <%= new Date(booking.slot_date + 'T00:00:00').toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'}) %>
-                            </td>
-                            <td style="text-align:center; font-weight:700; color:#1B4332;">
-                                <%= booking.start_time.slice(0,5) %> – <%= booking.end_time.slice(0,5) %>
-                            </td>
-                            <td style="text-align:right; color:#6b7280;">
-                                ₹<%= Number(booking.original_amount || booking.total_amount).toLocaleString('en-IN') %>
-                            </td>
-                            <td style="text-align:right; font-weight:700;">
-                                ₹<%= Number(booking.total_amount).toLocaleString('en-IN') %>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-
-                <!-- Payment Summary -->
-                <div class="inv-summary">
-                    <% if (booking.original_amount && Number(booking.original_amount) !== Number(booking.total_amount)) { %>
-                        <div class="inv-summary__row">
-                            <span>Original Price</span>
-                            <span>₹<%= Number(booking.original_amount).toLocaleString('en-IN') %></span>
-                        </div>
-                    <% } %>
-                    <% if (booking.discount_amount && Number(booking.discount_amount) > 0) { %>
-                        <div class="inv-summary__row" style="color:#059669;">
-                            <span>Discount</span>
-                            <span>– ₹<%= Number(booking.discount_amount).toLocaleString('en-IN') %></span>
-                        </div>
-                    <% } %>
-                    <% if (booking.surcharge_amount && Number(booking.surcharge_amount) > 0) { %>
-                        <div class="inv-summary__row" style="color:#d97706;">
-                            <span>Surcharge</span>
-                            <span>+ ₹<%= Number(booking.surcharge_amount).toLocaleString('en-IN') %></span>
-                        </div>
-                    <% } %>
-                    <div class="inv-summary__row" style="font-weight:700;">
-                        <span>Total Amount</span>
-                        <span>₹<%= Number(booking.total_amount).toLocaleString('en-IN') %></span>
-                    </div>
-                    <div class="inv-summary__row inv-summary__row--paid">
-                        <span>Amount Paid</span>
-                        <span>₹<%= Number(booking.advance_amount).toLocaleString('en-IN') %></span>
-                    </div>
-                    <div class="inv-summary__divider"></div>
-                    <div class="inv-summary__row inv-summary__row--total">
-                        <span>Balance Due</span>
-                        <span style="color:<%= Number(booking.balance_amount) > 0 ? '#dc2626' : '#1B4332' %>;">
-                            ₹<%= Number(booking.balance_amount).toLocaleString('en-IN') %>
-                        </span>
-                    </div>
-                </div>
-
-                <!-- Payment History -->
-                <% if (payments && payments.length > 0) { %>
-                    <div class="inv-payments">
-                        <div class="inv-payments__title">PAYMENT HISTORY</div>
-                        <table class="inv-pay-table">
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>Date</th>
-                                    <th>Mode</th>
-                                    <th>Type</th>
-                                    <th style="text-align:right;">Amount</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <% payments.forEach((p, i) => { %>
-                                    <tr>
-                                        <td><%= i + 1 %></td>
-                                        <td><%= new Date(p.payment_date).toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'}) %></td>
-                                        <td style="text-transform:capitalize;"><%= p.payment_mode %></td>
-                                        <td style="text-transform:capitalize;"><%= p.payment_type %></td>
-                                        <td style="text-align:right; font-weight:600; color:#1B4332;">₹<%= Number(p.amount).toLocaleString('en-IN') %></td>
-                                    </tr>
-                                <% }) %>
-                            </tbody>
-                        </table>
-                    </div>
-                <% } %>
-
-                <!-- Notes -->
-                <% if (booking.notes) { %>
-                    <div style="margin-top:18px; padding:10px 14px; background:#f9fafb; border:1px solid #e5e7eb; border-radius:6px; font-size:0.82rem; color:#4b5563;">
-                        <strong>Notes:</strong> <%= booking.notes %>
-                    </div>
-                <% } %>
-
-                <!-- Footer -->
-                <div class="inv-footer">
-                    <div class="inv-footer__status">
-                        <% if (Number(booking.balance_amount) <= 0) { %>
-                            <span class="inv-footer__paid">✓ FULLY PAID</span>
-                        <% } else { %>
-                            <span class="inv-footer__pending">⚠ BALANCE DUE: ₹<%= Number(booking.balance_amount).toLocaleString('en-IN') %></span>
-                        <% } %>
-                    </div>
-                    <div class="inv-footer__note">Thank you for your booking. Please present this invoice at the ground.</div>
-                    <div class="inv-footer__generated">Generated on <%= new Date().toLocaleString('en-IN') %></div>
-                </div>
-
-            </div>
-        </div>
-
-        <!-- ══ INVOICE CSS ══════════════════════════════ -->
-        <style>
-            @media print {
-                @page { size: A4 portrait; margin: 0; }
-                body * { visibility: hidden; }
-                #invoice-print, #invoice-print * { visibility: visible; }
-                #invoice-print {
-                    display: block !important;
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    z-index: 99999;
-                    background: #fff;
-                }
-            }
-            .inv-page {
-                width: 210mm;
-                min-height: 297mm;
-                padding: 14mm 16mm;
-                margin: 0 auto;
-                background: #fff;
-                color: #111;
-                font-family: 'Segoe UI', Arial, sans-serif;
-                font-size: 13px;
-                line-height: 1.5;
-                box-sizing: border-box;
-            }
-            .inv-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: flex-start;
-                margin-bottom: 14px;
-            }
-            .inv-header__brand { display: flex; align-items: flex-start; gap: 12px; }
-            .inv-header__logo img { width: 54px; height: 54px; object-fit: contain; }
-            .inv-header__name { font-size: 1.2rem; font-weight: 800; color: #1B4332; letter-spacing: 0.5px; }
-            .inv-header__addr { font-size: 0.78rem; color: #6b7280; margin-top: 2px; }
-            .inv-header__right { text-align: right; }
-            .inv-header__title { font-size: 1.8rem; font-weight: 900; color: #1B4332; letter-spacing: 3px; }
-            .inv-header__no { font-size: 0.85rem; color: #374151; font-weight: 600; margin-top: 2px; }
-            .inv-header__date { font-size: 0.78rem; color: #6b7280; margin-top: 2px; }
-            .inv-status-badge {
-                display: inline-block; margin-top: 6px; padding: 2px 10px;
-                border-radius: 20px; font-size: 0.7rem; font-weight: 700; letter-spacing: 1px;
-            }
-            .inv-status--confirmed { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
-            .inv-status--other { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
-            .inv-divider {
-                height: 2px;
-                background: linear-gradient(90deg, #1B4332, #4ADE80, #1B4332);
-                margin: 10px 0 16px; border-radius: 2px;
-            }
-            .inv-meta {
-                display: flex; justify-content: space-between; gap: 20px;
-                margin-bottom: 20px; padding: 14px 16px;
-                background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px;
-            }
-            .inv-meta__box { flex: 1; }
-            .inv-meta__box--right { text-align: right; }
-            .inv-meta__title {
-                font-size: 0.65rem; font-weight: 700; color: #9ca3af;
-                text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 6px;
-            }
-            .inv-meta__val { font-size: 0.82rem; color: #374151; margin-bottom: 2px; }
-            .inv-meta__val--lg { font-size: 1rem; font-weight: 700; color: #111; }
-            .inv-meta__val--green { color: #1B4332; font-weight: 700; }
-            .inv-meta__row { display: flex; justify-content: flex-end; gap: 10px; font-size: 0.8rem; margin-bottom: 3px; }
-            .inv-meta__key { color: #9ca3af; }
-            .inv-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; font-size: 0.82rem; }
-            .inv-table thead tr { background: #1B4332; color: #fff; }
-            .inv-table th { padding: 9px 12px; font-weight: 600; font-size: 0.75rem; letter-spacing: 0.5px; }
-            .inv-table tbody tr { border-bottom: 1px solid #e5e7eb; }
-            .inv-table tbody tr:last-child { border-bottom: 2px solid #1B4332; }
-            .inv-table td { padding: 10px 12px; color: #374151; vertical-align: top; }
-            .inv-summary { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; margin-bottom: 20px; }
-            .inv-summary__row { display: flex; justify-content: space-between; width: 240px; font-size: 0.82rem; color: #374151; }
-            .inv-summary__row--paid { color: #1B4332; font-weight: 600; }
-            .inv-summary__divider { width: 240px; height: 1px; background: #d1d5db; margin: 4px 0; }
-            .inv-summary__row--total { font-size: 0.95rem; font-weight: 800; color: #111; }
-            .inv-payments { margin-bottom: 18px; }
-            .inv-payments__title {
-                font-size: 0.68rem; font-weight: 700; color: #9ca3af;
-                text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px;
-            }
-            .inv-pay-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
-            .inv-pay-table th {
-                padding: 6px 10px; background: #f3f4f6; color: #6b7280;
-                font-weight: 600; border-bottom: 1px solid #e5e7eb; text-align: left;
-            }
-            .inv-pay-table td { padding: 6px 10px; border-bottom: 1px solid #f3f4f6; color: #374151; }
-            .inv-footer { margin-top: 30px; padding-top: 16px; border-top: 1px solid #e5e7eb; text-align: center; }
-            .inv-footer__status { margin-bottom: 8px; }
-            .inv-footer__paid {
-                display: inline-block; background: #d1fae5; color: #065f46;
-                border: 1px solid #6ee7b7; padding: 4px 16px; border-radius: 20px;
-                font-weight: 700; font-size: 0.82rem; letter-spacing: 1px;
-            }
-            .inv-footer__pending {
-                display: inline-block; background: #fef2f2; color: #991b1b;
-                border: 1px solid #fca5a5; padding: 4px 16px; border-radius: 20px;
-                font-weight: 700; font-size: 0.82rem; letter-spacing: 1px;
-            }
-            .inv-footer__note { font-size: 0.75rem; color: #6b7280; margin-top: 8px; }
-            .inv-footer__generated { font-size: 0.7rem; color: #9ca3af; margin-top: 4px; }
-        </style>
-
-        <script>
-            function printInvoice() {
-                document.getElementById('invoice-print').style.display = 'block';
-                setTimeout(() => {
-                    window.print();
-                    setTimeout(() => {
-                        document.getElementById('invoice-print').style.display = 'none';
-                    }, 500);
-                }, 300);
-            }
-        </script>
-
-        <%- include('../partials/footer') %>
+    <%- include('../partials/footer') %>

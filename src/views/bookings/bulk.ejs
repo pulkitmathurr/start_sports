@@ -1,0 +1,981 @@
+<%- include('../partials/header') %>
+
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   BULK BOOKING PAGE - Blue/White Theme
+   ═══════════════════════════════════════════════════════════════ */
+
+.bb-wrap { max-width: 1200px; margin: 0 auto; }
+
+/* Cards */
+.bb-card { 
+    background: #ffffff; 
+    border: 1px solid #e2e8f0; 
+    border-radius: 18px; 
+    padding: 20px; 
+    margin-bottom: 20px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+}
+
+.bb-card-title { 
+    font-family: 'Rajdhani', sans-serif; 
+    font-size: 0.9rem; 
+    font-weight: 700; 
+    letter-spacing: 1px; 
+    color: #1e293b; 
+    text-transform: uppercase; 
+    margin-bottom: 16px; 
+    display: flex; 
+    align-items: center; 
+    gap: 8px; 
+    border-bottom: 1px solid #e2e8f0; 
+    padding-bottom: 10px; 
+}
+
+.bb-card-title i {
+    color: #2563eb;
+}
+
+/* Labels & Inputs */
+.bb-label { 
+    font-size: 0.68rem; 
+    font-weight: 700; 
+    color: #475569; 
+    text-transform: uppercase; 
+    letter-spacing: 0.8px; 
+    margin-bottom: 5px; 
+    display: block; 
+}
+
+.bb-input { 
+    width: 100%; 
+    border: 1.5px solid #e2e8f0; 
+    border-radius: 10px; 
+    padding: 8px 12px; 
+    font-size: 0.85rem; 
+    color: #1e293b; 
+    background: #f8fafc; 
+    transition: border-color 0.2s, box-shadow 0.2s; 
+    font-family: 'Inter', sans-serif; 
+}
+
+.bb-input:focus { 
+    outline: none; 
+    border-color: #2563eb; 
+    background: #fff; 
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08); 
+}
+
+.bb-select { 
+    appearance: none; 
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E"); 
+    background-repeat: no-repeat; 
+    background-position: right 12px center; 
+    padding-right: 32px; 
+}
+
+/* Calendar */
+.bb-calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.bb-cal-head { 
+    text-align: center; 
+    font-size: 0.62rem; 
+    font-weight: 700; 
+    color: #94a3b8; 
+    text-transform: uppercase; 
+    padding: 6px 0; 
+}
+.bb-cal-day { 
+    text-align: center; 
+    padding: 8px 2px; 
+    border-radius: 10px; 
+    font-size: 0.78rem; 
+    cursor: pointer; 
+    border: 1.5px solid transparent; 
+    transition: all 0.15s; 
+    user-select: none; 
+}
+.bb-cal-day:hover:not(.bb-cal-past):not(.bb-cal-empty) { 
+    border-color: #2563eb; 
+    background: #eff6ff; 
+}
+.bb-cal-day.bb-cal-selected { 
+    background: #2563eb; 
+    color: #fff; 
+    border-color: #2563eb; 
+    font-weight: 700; 
+}
+.bb-cal-day.bb-cal-past { 
+    color: #cbd5e1; 
+    cursor: not-allowed; 
+    background: #f8fafc;
+}
+.bb-cal-day.bb-cal-empty { cursor: default; }
+.bb-cal-day.bb-cal-today { 
+    border-color: #60a5fa; 
+    color: #2563eb; 
+    font-weight: 700; 
+    background: #eff6ff;
+}
+.bb-cal-day.bb-cal-selected.bb-cal-today { 
+    background: #2563eb; 
+    color: #fff; 
+    border-color: #2563eb;
+}
+.bb-cal-nav { 
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between; 
+    margin-bottom: 12px; 
+}
+.bb-cal-nav button { 
+    background: none; 
+    border: 1px solid #e2e8f0; 
+    border-radius: 8px; 
+    padding: 5px 12px; 
+    cursor: pointer; 
+    font-size: 0.85rem; 
+    color: #475569; 
+    transition: all 0.2s;
+}
+.bb-cal-nav button:hover { 
+    background: #f1f5f9; 
+    border-color: #2563eb;
+    color: #2563eb;
+}
+.bb-cal-month { 
+    font-weight: 700; 
+    font-size: 0.9rem; 
+    color: #1e293b; 
+}
+
+/* Date slot panels */
+.bb-date-panel { 
+    border: 1.5px solid #e2e8f0; 
+    border-radius: 12px; 
+    margin-bottom: 12px; 
+    overflow: hidden; 
+}
+.bb-date-panel-header { 
+    background: #f8fafc; 
+    padding: 10px 16px; 
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between; 
+    border-bottom: 1px solid #e2e8f0; 
+}
+.bb-date-label { 
+    font-weight: 700; 
+    font-size: 0.82rem; 
+    color: #2563eb; 
+}
+.bb-date-remove { 
+    background: none; 
+    border: none; 
+    cursor: pointer; 
+    color: #94a3b8; 
+    font-size: 16px; 
+    transition: all 0.2s;
+}
+.bb-date-remove:hover { 
+    color: #dc2626; 
+    transform: scale(1.1);
+}
+.bb-date-panel-body { padding: 14px 16px; }
+
+/* Slot chips */
+.bb-slots-grid { 
+    display: flex; 
+    flex-wrap: wrap; 
+    gap: 8px; 
+    padding: 4px 0; 
+}
+.bb-slot-chip { 
+    transition: all 0.15s; 
+    cursor: pointer;
+}
+.bb-slot-chip:hover:not([style*="not-allowed"]) { 
+    transform: translateY(-2px); 
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15); 
+}
+.bb-slots-loading { 
+    color: #94a3b8; 
+    font-size: 0.78rem; 
+    padding: 8px 0; 
+}
+
+/* Selected info */
+.bb-selected-info { margin-top: 10px; }
+
+/* Summary */
+.bb-summary-row { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    padding: 8px 0; 
+    border-bottom: 1px solid #e2e8f0; 
+    font-size: 0.8rem; 
+}
+.bb-summary-row:last-child { border-bottom: none; }
+.bb-summary-label { color: #64748b; }
+.bb-summary-val { font-weight: 700; color: #1e293b; }
+.bb-total-row { 
+    background: #eff6ff; 
+    border-radius: 10px; 
+    padding: 12px 14px; 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    margin-top: 8px; 
+}
+.bb-total-label { 
+    font-weight: 700; 
+    color: #2563eb; 
+    font-size: 0.9rem; 
+}
+.bb-total-val { 
+    font-weight: 800; 
+    color: #2563eb; 
+    font-size: 1.1rem; 
+}
+
+/* Submit Button */
+.bb-submit-btn { 
+    width: 100%; 
+    background: linear-gradient(135deg, #2563eb, #1d4ed8); 
+    color: #fff; 
+    border: none; 
+    border-radius: 12px; 
+    padding: 13px; 
+    font-size: 0.85rem; 
+    font-weight: 700; 
+    font-family: 'Rajdhani', sans-serif; 
+    letter-spacing: 1.5px; 
+    cursor: pointer; 
+    transition: all 0.2s; 
+}
+.bb-submit-btn:hover { 
+    background: linear-gradient(135deg, #1d4ed8, #1e40af); 
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.3);
+}
+.bb-submit-btn:disabled { 
+    opacity: 0.5; 
+    cursor: not-allowed; 
+    transform: none;
+    box-shadow: none;
+}
+.bb-empty-hint { 
+    color: #94a3b8; 
+    font-size: 0.78rem; 
+    text-align: center; 
+    padding: 20px 0; 
+}
+
+/* Customer search results */
+#bb-customer-results {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+#bb-customer-results div:hover {
+    background: #eff6ff;
+}
+
+/* Page Header */
+.bulk-header {
+    background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 45%, #1e40af 100%);
+    border-radius: 20px;
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.2);
+}
+
+.bulk-header__icon {
+    width: 46px;
+    height: 46px;
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.bulk-header__title {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #fff;
+    margin: 0;
+    line-height: 1.3;
+    letter-spacing: -0.3px;
+}
+
+.bulk-header__sub {
+    font-size: 0.68rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin-top: 2px;
+    display: block;
+}
+
+.bulk-back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 7px 16px;
+    border-radius: 10px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    margin-left: auto;
+}
+
+.bulk-back-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
+    color: #fff;
+}
+</style>
+
+<div class="row">
+  <div class="col-12 mb-3">
+    <div class="bulk-header">
+      <div class="bulk-header__icon">
+        <i class="bi bi-calendar-plus"></i>
+      </div>
+      <div>
+        <h4 class="bulk-header__title">BULK BOOKING</h4>
+        <span class="bulk-header__sub">Book multiple slots across multiple dates at once</span>
+      </div>
+      <a href="/bookings" class="bulk-back-btn">
+        <i class="bi bi-arrow-left me-1"></i> Back to Bookings
+      </a>
+    </div>
+  </div>
+
+  <div class="col-12">
+    <div class="bb-wrap">
+      <div class="row g-4">
+
+        <!-- LEFT: Ground + Calendar + Slots -->
+        <div class="col-12 col-lg-7">
+
+          <!-- Ground Selection -->
+          <div class="bb-card">
+            <div class="bb-card-title"><i class="bi bi-geo-alt-fill"></i> Select Ground</div>
+            <label class="bb-label">Ground *</label>
+            <select id="bb-ground" class="bb-input bb-select" onchange="onGroundChange()">
+              <option value="">Choose a ground</option>
+              <% grounds.forEach(g => { %>
+              <option value="<%= g.id %>" data-ground="<%= JSON.stringify({id:g.id,name:g.name,open_time:g.open_time,close_time:g.close_time,min_slot_minutes:g.min_slot_minutes,normal_rate_per_30:g.normal_rate_per_30,peak_rate_per_30:g.peak_rate_per_30,advance_booking_days:g.advance_booking_days}).replace(/"/g,'&quot;') %>"><%= g.name %></option>
+              <% }) %>
+            </select>
+          </div>
+
+          <!-- Calendar -->
+          <div class="bb-card">
+            <div class="bb-card-title"><i class="bi bi-calendar3"></i> Pick Dates</div>
+            <div class="bb-cal-nav">
+              <button type="button" onclick="prevMonth()"><i class="bi bi-chevron-left"></i></button>
+              <span class="bb-cal-month" id="cal-month-label"></span>
+              <button type="button" onclick="nextMonth()"><i class="bi bi-chevron-right"></i></button>
+            </div>
+            <div class="bb-calendar">
+              <div class="bb-cal-head">Sun</div><div class="bb-cal-head">Mon</div>
+              <div class="bb-cal-head">Tue</div><div class="bb-cal-head">Wed</div>
+              <div class="bb-cal-head">Thu</div><div class="bb-cal-head">Fri</div>
+              <div class="bb-cal-head">Sat</div>
+            </div>
+            <div class="bb-calendar" id="cal-grid" style="margin-top:4px;"></div>
+            <small style="color:#94a3b8; font-size:0.68rem; margin-top:10px; display:block;">
+              <i class="bi bi-info-circle me-1"></i>Click dates to select. You can select up to 365 days from today.
+            </small>
+          </div>
+
+          <!-- Slot panels per selected date -->
+          <div class="bb-card">
+            <div class="bb-card-title"><i class="bi bi-clock"></i> Select Slots Per Date</div>
+            <div id="bb-date-panels">
+              <div class="bb-empty-hint">Select a ground and pick dates from the calendar above</div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- RIGHT: Customer + Summary + Submit -->
+        <div class="col-12 col-lg-5">
+
+          <!-- Customer Details -->
+          <div class="bb-card">
+            <div class="bb-card-title"><i class="bi bi-person-fill"></i> Customer Details</div>
+            <div class="mb-3">
+              <label class="bb-label">Full Name *</label>
+              <div style="position:relative;">
+                <input type="text" id="bb-name" class="bb-input" placeholder="Customer name"
+                       oninput="searchCustomer(this.value)">
+                <div id="bb-customer-results" style="display:none; position:absolute; top:100%; left:0; right:0; z-index:100;"></div>
+              </div>
+            </div>
+            <div class="mb-3">
+              <label class="bb-label">Phone *</label>
+              <input type="tel" id="bb-phone" class="bb-input" placeholder="10-digit phone" maxlength="10">
+            </div>
+            <div class="mb-3">
+              <label class="bb-label">Email <span style="font-weight:400;color:#94a3b8;">(for confirmation)</span></label>
+              <input type="email" id="bb-email" class="bb-input" placeholder="customer@email.com">
+            </div>
+            <div class="row g-2">
+              <div class="col-6">
+                <label class="bb-label">Booking Type *</label>
+                <select id="bb-type" class="bb-input bb-select">
+                  <option value="phone">Phone Call</option>
+                  <option value="walkin">Walk-in</option>
+                </select>
+              </div>
+              <div class="col-6">
+                <label class="bb-label">Payment Mode *</label>
+                <select id="bb-mode" class="bb-input bb-select">
+                  <option value="cash">Cash</option>
+                  <option value="upi">UPI</option>
+                  <option value="bank_transfer">Bank Transfer</option>
+                  <option value="cheque">Cheque</option>
+                  <option value="card">Card</option>
+                </select>
+              </div>
+            </div>
+            <div class="mt-3">
+              <label class="bb-label">Notes <span style="font-weight:400;color:#94a3b8;">(optional)</span></label>
+              <input type="text" id="bb-notes" class="bb-input" placeholder="Any special instructions...">
+            </div>
+          </div>
+
+          <!-- Price Summary -->
+          <div class="bb-card">
+            <div class="bb-card-title"><i class="bi bi-receipt"></i> Price Summary</div>
+            <div id="bb-summary-list">
+              <div class="bb-empty-hint">No slots selected yet</div>
+            </div>
+            <div id="bb-totals" style="display:none; margin-top:12px;">
+              <div class="bb-total-row">
+                <span class="bb-total-label">Grand Total</span>
+                <span class="bb-total-val" id="bb-grand-total">₹0</span>
+              </div>
+              <div class="mt-3">
+                <label class="bb-label">Advance Payment Now (₹)</label>
+                <input type="number" id="bb-advance" class="bb-input" placeholder="0" min="0"
+                       oninput="updateAdvance()">
+              </div>
+              <div style="display:flex; justify-content:space-between; margin-top:10px; font-size:0.8rem;">
+                <span style="color:#64748b;">Balance Due</span>
+                <span style="font-weight:700; color:#f59e0b;" id="bb-balance">₹0</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Submit -->
+          <button class="bb-submit-btn" id="bb-submit-btn" onclick="submitBulkBooking()" disabled>
+            <i class="bi bi-check-circle me-2"></i>CONFIRM BULK BOOKING
+          </button>
+          <div id="bb-result" style="display:none; margin-top:12px;"></div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── State ─────────────────────────────────────────
+let selectedDates = new Set();
+let slotsByDate   = {};
+let calYear, calMonth;
+let grandTotal    = 0;
+let rowCounter    = 0;
+let slotsForDateCache = {};
+
+const today = new Date();
+today.setHours(0,0,0,0);
+const maxDate = new Date(today);
+maxDate.setDate(today.getDate() + 365);
+
+// ── Calendar ──────────────────────────────────────
+function initCalendar() {
+    calYear  = today.getFullYear();
+    calMonth = today.getMonth();
+    renderCalendar();
+}
+
+function prevMonth() {
+    calMonth--;
+    if (calMonth < 0) { calMonth = 11; calYear--; }
+    renderCalendar();
+}
+function nextMonth() {
+    calMonth++;
+    if (calMonth > 11) { calMonth = 0; calYear++; }
+    renderCalendar();
+}
+
+function renderCalendar() {
+    const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    document.getElementById('cal-month-label').textContent = months[calMonth] + ' ' + calYear;
+
+    const grid = document.getElementById('cal-grid');
+    grid.innerHTML = '';
+
+    const firstDay = new Date(calYear, calMonth, 1).getDay();
+    const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+
+    for (let i = 0; i < firstDay; i++) {
+        const el = document.createElement('div');
+        el.className = 'bb-cal-day bb-cal-empty';
+        grid.appendChild(el);
+    }
+
+    for (let d = 1; d <= daysInMonth; d++) {
+        const date = new Date(calYear, calMonth, d);
+        date.setHours(0,0,0,0);
+        const dateStr = fmtDate(date);
+        const isPast  = date < today;
+        const isFuture = date > maxDate;
+        const isToday = date.getTime() === today.getTime();
+        const isSel  = selectedDates.has(dateStr);
+
+        const el = document.createElement('div');
+        el.textContent = d;
+        let cls = 'bb-cal-day';
+        if (isPast || isFuture) cls += ' bb-cal-past';
+        else if (isSel) cls += ' bb-cal-selected';
+        if (isToday) cls += ' bb-cal-today';
+        el.className = cls;
+
+        if (!isPast && !isFuture) {
+            el.onclick = () => toggleDate(dateStr, el);
+        }
+        grid.appendChild(el);
+    }
+}
+
+function fmtDate(d) {
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
+function fmtDateDisplay(str) {
+    const d = new Date(str + 'T00:00:00');
+    return d.toLocaleDateString('en-IN', { weekday:'short', day:'2-digit', month:'short', year:'numeric' });
+}
+
+// ── Date toggle ───────────────────────────────────
+function toggleDate(dateStr, el) {
+    const ground_id = document.getElementById('bb-ground').value;
+    if (!ground_id) { alert('Please select a ground first'); return; }
+
+    if (selectedDates.has(dateStr)) {
+        selectedDates.delete(dateStr);
+        delete slotsByDate[dateStr];
+        el.classList.remove('bb-cal-selected');
+        removeDatePanel(dateStr);
+    } else {
+        selectedDates.add(dateStr);
+        el.classList.add('bb-cal-selected');
+        addDatePanel(dateStr, ground_id);
+    }
+    updateSummary();
+}
+
+// ── Date panel ────────────────────────────────────
+function addDatePanel(dateStr, ground_id) {
+    const container = document.getElementById('bb-date-panels');
+    const hint = container.querySelector('.bb-empty-hint');
+    if (hint) hint.remove();
+
+    const panel = document.createElement('div');
+    panel.className = 'bb-date-panel';
+    panel.id = 'panel-' + dateStr;
+
+    panel.innerHTML = `
+        <div class="bb-date-panel-header">
+            <span class="bb-date-label"><i class="bi bi-calendar3 me-2"></i>${fmtDateDisplay(dateStr)}</span>
+            <button type="button" class="bb-date-remove" onclick="removeDate('${dateStr}')">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <div class="bb-date-panel-body">
+            <div id="slots-${dateStr}" class="bb-slots-grid">
+                <div class="bb-slots-loading"><i class="bi bi-hourglass-split me-1"></i> Loading slots...</div>
+            </div>
+            <div id="bb-selected-slots-${dateStr}" class="bb-selected-info" style="display:none;"></div>
+        </div>`;
+    container.appendChild(panel);
+    slotsByDate[dateStr] = [];
+    loadSlotsForDate(dateStr, ground_id);
+}
+
+function removeDatePanel(dateStr) {
+    const panel = document.getElementById('panel-' + dateStr);
+    if (panel) panel.remove();
+    const container = document.getElementById('bb-date-panels');
+    if (!container.children.length) {
+        container.innerHTML = '<div class="bb-empty-hint">Select a ground and pick dates from the calendar above</div>';
+    }
+}
+
+function removeDate(dateStr) {
+    selectedDates.delete(dateStr);
+    delete slotsByDate[dateStr];
+    removeDatePanel(dateStr);
+    renderCalendar();
+    updateSummary();
+}
+
+// ── Get selected ground data ─────────────────────
+function getSelectedGround() {
+    const gid = document.getElementById('bb-ground').value;
+    if (!gid) return null;
+    const opt = document.getElementById('bb-ground').options;
+    for (const o of opt) {
+        if (o.value == gid && o.dataset.ground) {
+            return JSON.parse(o.dataset.ground);
+        }
+    }
+    return null;
+}
+
+// ── Load slots for a date from API ───────────────
+async function loadSlotsForDate(dateStr, ground_id) {
+    const container = document.getElementById('slots-' + dateStr);
+    if (!container) return;
+
+    const cacheKey = `${ground_id}_${dateStr}`;
+    if (slotsForDateCache[cacheKey]) {
+        renderSlotChips(dateStr, slotsForDateCache[cacheKey]);
+        return;
+    }
+
+    try {
+        const res  = await fetch(`/grounds/api/slots?ground_id=${ground_id}&date=${dateStr}`);
+        const data = await res.json();
+        const slots = data.slots || [];
+        slotsForDateCache[cacheKey] = slots;
+        renderSlotChips(dateStr, slots);
+    } catch(e) {
+        if (container) container.innerHTML = '<div style="color:#dc2626;font-size:0.78rem;"><i class="bi bi-exclamation-circle me-1"></i>Failed to load slots</div>';
+    }
+}
+
+// ── Render slot chips for a date ─────────────────
+function renderSlotChips(dateStr, slots) {
+    const container = document.getElementById('slots-' + dateStr);
+    if (!container) return;
+
+    const todayStr = fmtDate(today);
+    const nowMins  = new Date().getHours()*60 + new Date().getMinutes();
+
+    if (!slots.length) {
+        container.innerHTML = '<div style="color:#94a3b8;font-size:0.78rem;padding:8px 0;"><i class="bi bi-info-circle me-1"></i>No pre-defined slots for this ground. <a href="/grounds" style="color:#2563eb;">Set up slots in Grounds settings.</a></div>';
+        return;
+    }
+
+    const selectedTimes = new Set((slotsByDate[dateStr] || []).map(s => `${s.start_time}|${s.end_time}`));
+
+    container.innerHTML = slots.map(s => {
+        const isBooked  = s.status === 'booked';
+        const isBlocked = s.status === 'blocked';
+        const [h, m]    = s.start_time.slice(0,5).split(':').map(Number);
+        const isPast    = dateStr === todayStr && (h*60+m) <= nowMins;
+        const disabled  = isBooked || isBlocked || isPast;
+        const key       = `${s.start_time.slice(0,5)}|${s.end_time.slice(0,5)}`;
+        const isSel     = selectedTimes.has(key);
+
+        let bg, color, border, cursor, tag = '';
+        if (isPast) {
+            bg = '#f3f4f6'; color = '#9CA3AF'; border = '1.5px solid #e5e7eb'; cursor = 'not-allowed';
+            tag = '<br><span style="font-size:0.55rem;">PAST</span>';
+        } else if (isBooked) {
+            bg = '#fef2f2'; color = '#dc2626'; border = '1.5px solid #fecaca'; cursor = 'not-allowed';
+            tag = '<br><span style="font-size:0.55rem;">BOOKED</span>';
+        } else if (isBlocked) {
+            bg = '#fffbeb'; color = '#d97706'; border = '1.5px solid #fde68a'; cursor = 'not-allowed';
+            tag = '<br><span style="font-size:0.55rem;">🔧 MAINTENANCE</span>';
+        } else if (isSel) {
+            bg = '#2563eb'; color = '#fff'; border = '2px solid #2563eb'; cursor = 'pointer';
+            tag = '<br><span style="font-size:0.55rem;">✓ SELECTED</span>';
+        } else {
+            bg = '#eff6ff'; color = '#2563eb'; border = '1.5px solid #bfdbfe'; cursor = 'pointer';
+        }
+
+        const slotData = encodeURIComponent(JSON.stringify({
+            start_time: s.start_time.slice(0,5),
+            end_time:   s.end_time.slice(0,5),
+            price:      s.price || 0
+        }));
+
+        return `<div class="bb-slot-chip" 
+                    id="bbchip-${dateStr}-${s.start_time.slice(0,5).replace(':','-')}"
+                    style="padding:8px 12px; border-radius:8px; text-align:center;
+                    font-family:Rajdhani,sans-serif; font-weight:600; font-size:0.78rem;
+                    min-width:100px; line-height:1.4; cursor:${cursor};
+                    background:${bg}; color:${color}; border:${border}; transition:all .15s; user-select:none;"
+                    data-date="${dateStr}" data-slot="${slotData}"
+                    ${disabled ? '' : `onclick="toggleSlotChip(this,'${dateStr}')"`}>
+                ${s.start_time.slice(0,5)} – ${s.end_time.slice(0,5)}
+                <br><span style="font-size:0.68rem;opacity:0.85;">${(isBlocked && !isPast) ? 'Blocked' : '₹'+Number(s.price||0).toLocaleString('en-IN')}</span>
+                ${tag}
+            </div>`;
+    }).join('');
+}
+
+// ── Toggle slot chip selection ────────────────────
+function toggleSlotChip(el, dateStr) {
+    const slotData = JSON.parse(decodeURIComponent(el.dataset.slot));
+    const key = `${slotData.start_time}|${slotData.end_time}`;
+
+    if (!slotsByDate[dateStr]) slotsByDate[dateStr] = [];
+
+    const existing = slotsByDate[dateStr].findIndex(s => `${s.start_time}|${s.end_time}` === key);
+
+    if (existing >= 0) {
+        slotsByDate[dateStr].splice(existing, 1);
+        el.style.background = '#eff6ff';
+        el.style.color = '#2563eb';
+        el.style.border = '1.5px solid #bfdbfe';
+        const spans = el.querySelectorAll('span');
+        spans.forEach(sp => { if (sp.textContent.includes('SELECTED')) sp.remove(); });
+    } else {
+        const rowId = ++rowCounter;
+        slotsByDate[dateStr].push({
+            rowId,
+            start_time: slotData.start_time,
+            end_time:   slotData.end_time,
+            price:      parseFloat(slotData.price) || 0
+        });
+        el.style.background = '#2563eb';
+        el.style.color = '#fff';
+        el.style.border = '2px solid #2563eb';
+        const lastSpan = el.querySelector('span:last-child');
+        if (lastSpan && !lastSpan.textContent.includes('SELECTED')) {
+            const tag = document.createElement('span');
+            tag.style.cssText = 'font-size:0.55rem;display:block;';
+            tag.textContent = '✓ SELECTED';
+            el.appendChild(tag);
+        }
+    }
+
+    updateSelectedInfo(dateStr);
+    updateSummary();
+}
+
+// ── Show selected count under each date panel ────
+function updateSelectedInfo(dateStr) {
+    const infoEl = document.getElementById('bb-selected-slots-' + dateStr);
+    if (!infoEl) return;
+    const count = (slotsByDate[dateStr] || []).length;
+    if (count === 0) {
+        infoEl.style.display = 'none';
+        infoEl.innerHTML = '';
+    } else {
+        infoEl.style.display = 'block';
+        infoEl.innerHTML = `<div style="margin-top:10px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:8px 12px;font-size:0.75rem;color:#2563eb;font-weight:600;">
+            <i class="bi bi-check-circle me-1"></i>${count} slot${count>1?'s':''} selected for this date
+            &nbsp;·&nbsp; Total: ₹${(slotsByDate[dateStr]||[]).reduce((a,s)=>a+s.price,0).toLocaleString('en-IN')}
+        </div>`;
+    }
+}
+
+// ── Ground change: clear everything ──────────────
+function onGroundChange() {
+    selectedDates.clear();
+    slotsByDate = {};
+    slotsForDateCache = {};
+    document.getElementById('bb-date-panels').innerHTML =
+        '<div class="bb-empty-hint">Select a ground and pick dates from the calendar above</div>';
+    renderCalendar();
+    updateSummary();
+}
+
+// ── Summary ───────────────────────────────────────
+function updateSummary() {
+    const list     = document.getElementById('bb-summary-list');
+    const totalsEl = document.getElementById('bb-totals');
+    grandTotal = 0;
+    let rows = '';
+    let totalSlots = 0;
+
+    for (const [dateStr, slots] of Object.entries(slotsByDate)) {
+        for (const slot of slots) {
+            if (!slot.start_time || !slot.end_time) continue;
+            grandTotal += parseFloat(slot.price) || 0;
+            totalSlots++;
+            rows += `<div class="bb-summary-row">
+                <span class="bb-summary-label">${fmtDateDisplay(dateStr)} · ${slot.start_time}–${slot.end_time}</span>
+                <span class="bb-summary-val">₹${slot.price.toLocaleString('en-IN')}</span>
+            </div>`;
+        }
+    }
+
+    if (!totalSlots) {
+        list.innerHTML = '<div class="bb-empty-hint">No slots selected yet</div>';
+        totalsEl.style.display = 'none';
+        document.getElementById('bb-submit-btn').disabled = true;
+        return;
+    }
+
+    const MAX_SLOTS = 100;
+    let warn = '';
+    if (totalSlots > MAX_SLOTS) {
+        warn = `<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:8px 12px;margin-bottom:8px;font-size:0.75rem;color:#b91c1c;">
+            <i class="bi bi-exclamation-triangle me-1"></i><strong>${totalSlots} slots</strong> — max is ${MAX_SLOTS}
+        </div>`;
+        document.getElementById('bb-submit-btn').disabled = true;
+    } else {
+        document.getElementById('bb-submit-btn').disabled = false;
+    }
+
+    const counterColor = totalSlots > MAX_SLOTS ? '#b91c1c' : '#2563eb';
+    const counterBg    = totalSlots > MAX_SLOTS ? '#fef2f2' : '#eff6ff';
+    list.innerHTML = `<div style="margin-bottom:8px;font-size:0.75rem;font-weight:600;color:${counterColor};background:${counterBg};border-radius:20px;padding:3px 12px;display:inline-block;">${totalSlots} / ${MAX_SLOTS} slots</div>` + warn + rows;
+    totalsEl.style.display = 'block';
+    document.getElementById('bb-grand-total').textContent = '₹' + grandTotal.toLocaleString('en-IN');
+    updateAdvance();
+}
+
+function updateAdvance() {
+    const adv = parseFloat(document.getElementById('bb-advance').value) || 0;
+    const capped = Math.min(adv, grandTotal);
+    const balance = grandTotal - capped;
+    document.getElementById('bb-balance').textContent = '₹' + balance.toLocaleString('en-IN');
+}
+
+// ── Customer search ───────────────────────────────
+let searchTimer = null;
+async function searchCustomer(q) {
+    clearTimeout(searchTimer);
+    const results = document.getElementById('bb-customer-results');
+    if (q.length < 2) { results.style.display = 'none'; return; }
+    searchTimer = setTimeout(async () => {
+        try {
+            const res  = await fetch('/customers/search?q=' + encodeURIComponent(q));
+            const data = await res.json();
+            if (!data.customers || !data.customers.length) { results.style.display = 'none'; return; }
+            results.innerHTML = data.customers.map(c => `
+                <div onclick="selectCustomer('${c.name.replace(/'/g,"\\'")}','${c.phone}','${c.email||''}')"
+                     style="padding:10px 14px; cursor:pointer; border-bottom:1px solid #f1f5f9; font-size:0.8rem;">
+                    <div style="font-weight:600; color:#1e293b;">${c.name}</div>
+                    <div style="color:#64748b;">${c.phone}${c.email ? ' · ' + c.email : ''}${c.total_bookings > 0 ? ' · ' + c.total_bookings + ' booking' + (c.total_bookings > 1 ? 's' : '') : ' · New customer'}${c.pending_balance > 0 ? ' · <span style="color:#dc2626;font-weight:600;">₹' + Number(c.pending_balance).toLocaleString('en-IN') + ' due</span>' : ''}</div>
+                </div>`).join('');
+            results.style.display = 'block';
+        } catch(e) {}
+    }, 300);
+}
+
+function selectCustomer(name, phone, email) {
+    document.getElementById('bb-name').value  = name;
+    document.getElementById('bb-phone').value = phone;
+    document.getElementById('bb-email').value = email;
+    document.getElementById('bb-customer-results').style.display = 'none';
+}
+document.addEventListener('click', e => {
+    if (!e.target.closest('#bb-name') && !e.target.closest('#bb-customer-results')) {
+        document.getElementById('bb-customer-results').style.display = 'none';
+    }
+});
+
+// ── Submit ────────────────────────────────────────
+async function submitBulkBooking() {
+    const ground_id      = document.getElementById('bb-ground').value;
+    const customer_name  = document.getElementById('bb-name').value.trim();
+    const customer_phone = document.getElementById('bb-phone').value.trim();
+    const customer_email = document.getElementById('bb-email').value.trim();
+    const booking_type   = document.getElementById('bb-type').value;
+    const payment_mode   = document.getElementById('bb-mode').value;
+    const advance_amount = parseFloat(document.getElementById('bb-advance').value) || 0;
+    const notes          = document.getElementById('bb-notes').value.trim();
+
+    if (!ground_id)      { alert('Please select a ground'); return; }
+    if (!customer_name)  { alert('Customer name is required'); return; }
+    if (!/^[0-9]{10}$/.test(customer_phone)) { alert('Enter a valid 10-digit phone number'); return; }
+    if (advance_amount > grandTotal) { alert('Advance cannot exceed ₹' + grandTotal.toLocaleString('en-IN')); return; }
+
+    const slots_by_date = [];
+    for (const [dateStr, slots] of Object.entries(slotsByDate)) {
+        for (const slot of slots) {
+            if (!slot.start_time || !slot.end_time) continue;
+            slots_by_date.push({ date: dateStr, start_time: slot.start_time, end_time: slot.end_time });
+        }
+    }
+    if (!slots_by_date.length) { alert('Please select at least one slot'); return; }
+
+    const btn = document.getElementById('bb-submit-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>PROCESSING...';
+
+    try {
+        const csrf = (document.cookie.match(/(?:^|; )csrf_token=([^;]*)/) || [])[1] || '';
+        const res  = await fetch('/bookings/bulk', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': decodeURIComponent(csrf) },
+            body: JSON.stringify({ ground_id, customer_name, customer_phone, customer_email, booking_type, payment_mode, advance_amount, notes, slots_by_date })
+        });
+        const data = await res.json();
+
+        const resultEl = document.getElementById('bb-result');
+        if (data.success) {
+            const d = data.data;
+            const skippedHtml = d.skipped && d.skipped.length > 0
+                ? `<div style="margin-top:8px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:8px 12px;font-size:0.72rem;color:#b45309;">
+                    <strong><i class="bi bi-exclamation-triangle me-1"></i>${d.skipped.length} slot(s) skipped:</strong><br>
+                    ${d.skipped.map(s => `${s.date} ${s.start_time}–${s.end_time}: ${s.reason}`).join('<br>')}
+                  </div>` : '';
+            resultEl.innerHTML = `
+                <div style="background:#ecfdf5; border:1.5px solid #a7f3d0; border-radius:12px; padding:16px;">
+                    <div style="font-weight:700; color:#065f46; margin-bottom:8px; font-size:0.88rem;">
+                        <i class="bi bi-check-circle-fill me-2"></i>${d.created.length} Booking(s) Confirmed!
+                    </div>
+                    <div style="font-size:0.75rem; color:#374151; margin-bottom:6px;">
+                        Grand Total: <strong>₹${Number(d.grand_total).toLocaleString('en-IN')}</strong> &nbsp;·&nbsp;
+                        Advance Paid: <strong>₹${Number(d.advance_paid).toLocaleString('en-IN')}</strong> &nbsp;·&nbsp;
+                        Balance Due: <strong style="color:#f59e0b;">₹${Number(d.balance_due).toLocaleString('en-IN')}</strong>
+                    </div>
+                    ${skippedHtml}
+                    <div style="font-size:0.72rem; color:#64748b; margin-top:8px;">
+                        Booking Nos: ${d.created.map(b => `<strong>${b.booking_no}</strong>`).join(', ')}
+                    </div>
+                    <a href="/bookings" style="display:inline-block; margin-top:10px; font-size:0.75rem; color:#2563eb; font-weight:600;">
+                        <i class="bi bi-arrow-left me-1"></i>View all bookings
+                    </a>
+                </div>`;
+            resultEl.style.display = 'block';
+            btn.innerHTML = '<i class="bi bi-check-circle me-2"></i>BOOKING CONFIRMED';
+            btn.style.background = '#059669';
+        } else {
+            resultEl.innerHTML = `<div style="background:#fef2f2; border:1.5px solid #fecaca; border-radius:10px; padding:12px; font-size:0.8rem; color:#b91c1c;"><i class="bi bi-exclamation-triangle me-2"></i>${data.message}</div>`;
+            resultEl.style.display = 'block';
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-check-circle me-2"></i>CONFIRM BULK BOOKING';
+        }
+    } catch(e) {
+        alert('Network error. Please try again.');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-check-circle me-2"></i>CONFIRM BULK BOOKING';
+    }
+}
+
+// Init
+initCalendar();
+</script>
+
+<%- include('../partials/footer') %>

@@ -4,12 +4,26 @@ const fs     = require('fs');
 const path   = require('path');
 
 // ── Get Profile ───────────────────────────────────
-const getProfile = async ({ user_id }) => {
+const getProfile = async ({ user_id, tenant_id = null, user_role = 'admin' }) => {
     try {
-        const [rows] = await db.promise().query(
-            'SELECT id, name, email, phone, profile_image, created_at FROM tbl_users WHERE id = ? LIMIT 1',
-            [user_id]
-        );
+        let query = 'SELECT id, name, email, phone, profile_image, created_at, role FROM tbl_users WHERE id = ? LIMIT 1';
+        let params = [user_id];
+
+        // For admin users, verify they belong to the tenant
+        if (user_role === 'admin' && tenant_id) {
+            const [tenantCheck] = await db.promise().query(
+                'SELECT user_id FROM tbl_tenants WHERE id = ? AND user_id = ?',
+                [tenant_id, user_id]
+            );
+            
+            if (tenantCheck.length === 0) {
+                const err = new Error('Unauthorized access to profile');
+                err.statusCode = 403;
+                throw err;
+            }
+        }
+
+        const [rows] = await db.promise().query(query, params);
 
         if (rows.length === 0) {
             const err = new Error('User not found');
@@ -24,12 +38,27 @@ const getProfile = async ({ user_id }) => {
 };
 
 // ── Update Name & Email ───────────────────────────
-const updateProfile = async ({ user_id, name, email, phone }) => {
+const updateProfile = async ({ user_id, name, email, phone, tenant_id = null, user_role = 'admin' }) => {
     try {
-        const [existing] = await db.promise().query(
-            'SELECT id FROM tbl_users WHERE email = ? AND id != ? LIMIT 1',
-            [email, user_id]
-        );
+        // Verify admin users belong to this tenant
+        if (user_role === 'admin' && tenant_id) {
+            const [tenantCheck] = await db.promise().query(
+                'SELECT user_id FROM tbl_tenants WHERE id = ? AND user_id = ?',
+                [tenant_id, user_id]
+            );
+            
+            if (tenantCheck.length === 0) {
+                const err = new Error('Unauthorized to update this profile');
+                err.statusCode = 403;
+                throw err;
+            }
+        }
+
+        // Check if email is already used by another user
+        let emailCheckQuery = 'SELECT id FROM tbl_users WHERE email = ? AND id != ? LIMIT 1';
+        let emailCheckParams = [email, user_id];
+
+        const [existing] = await db.promise().query(emailCheckQuery, emailCheckParams);
 
         if (existing.length > 0) {
             const err = new Error('This email is already in use by another account');
@@ -49,8 +78,22 @@ const updateProfile = async ({ user_id, name, email, phone }) => {
 };
 
 // ── Upload Profile Image ──────────────────────────
-const updateProfileImage = async ({ user_id, filename }) => {
+const updateProfileImage = async ({ user_id, filename, tenant_id = null, user_role = 'admin' }) => {
     try {
+        // Verify admin users belong to this tenant
+        if (user_role === 'admin' && tenant_id) {
+            const [tenantCheck] = await db.promise().query(
+                'SELECT user_id FROM tbl_tenants WHERE id = ? AND user_id = ?',
+                [tenant_id, user_id]
+            );
+            
+            if (tenantCheck.length === 0) {
+                const err = new Error('Unauthorized to update this profile');
+                err.statusCode = 403;
+                throw err;
+            }
+        }
+
         // Get old image to delete it
         const [rows] = await db.promise().query(
             'SELECT profile_image FROM tbl_users WHERE id = ? LIMIT 1',
@@ -80,8 +123,22 @@ const updateProfileImage = async ({ user_id, filename }) => {
 };
 
 // ── Change Password ───────────────────────────────
-const changePassword = async ({ user_id, current_password, new_password }) => {
+const changePassword = async ({ user_id, current_password, new_password, tenant_id = null, user_role = 'admin' }) => {
     try {
+        // Verify admin users belong to this tenant
+        if (user_role === 'admin' && tenant_id) {
+            const [tenantCheck] = await db.promise().query(
+                'SELECT user_id FROM tbl_tenants WHERE id = ? AND user_id = ?',
+                [tenant_id, user_id]
+            );
+            
+            if (tenantCheck.length === 0) {
+                const err = new Error('Unauthorized to change this password');
+                err.statusCode = 403;
+                throw err;
+            }
+        }
+
         const [rows] = await db.promise().query(
             'SELECT password FROM tbl_users WHERE id = ? LIMIT 1',
             [user_id]
@@ -100,7 +157,7 @@ const changePassword = async ({ user_id, current_password, new_password }) => {
             throw err;
         }
 
-        const hashed = await bcrypt.hash(new_password, 10);
+        const hashed = await bcrypt.hash(new_password, 12);
         await db.promise().query(
             'UPDATE tbl_users SET password = ? WHERE id = ?',
             [hashed, user_id]

@@ -1,0 +1,276 @@
+<%- include('../../partials/header') %>
+<% const errorMsg   = (typeof error   !== 'undefined' && error)   ? (typeof error   === 'string' ? error   : (error.message||'Error')) : null; %>
+<% const successMsg = (typeof success !== 'undefined' && success) ? (typeof success === 'string' ? success : 'Done')                  : null; %>
+
+<div class="row settings-page-header">
+
+    <!-- Page Header - Blue Theme -->
+    <div class="col-12 mb-4">
+        <div class="fees-header">
+            <div class="fees-header__left">
+                <div class="fees-header__icon">
+                    <i class="bi bi-cash-stack"></i>
+                </div>
+                <div>
+                    <h4 class="fees-header__title">Fees & Payments</h4>
+                    <span class="fees-header__sub">Assign fees to students and track payments</span>
+                </div>
+            </div>
+            <a href="/academy/fees/plans" class="fees-manage-plans-btn">
+                <i class="bi bi-card-list"></i> Manage Plans
+            </a>
+        </div>
+    </div>
+
+    <% if (successMsg) { %><script>document.addEventListener('DOMContentLoaded',()=>xToast('<%= successMsg.replace(/'/g,"\'") %>','success'));</script><% } %>
+    <% if (errorMsg)   { %><script>document.addEventListener('DOMContentLoaded',()=>xToast('<%= errorMsg.replace(/'/g,"\'") %>','error'));</script><% } %>
+
+    <!-- Summary Cards with Animation -->
+    <div class="col-12 mb-4">
+        <div class="fees-stat-grid">
+            <!-- Total Assigned -->
+            <div class="fees-stat-card fees-stat-card--total">
+                <div class="fees-stat-card__top">
+                    <div class="fees-stat-card__label">Total Assigned</div>
+                    <div class="fees-stat-card__icon"><i class="bi bi-receipt"></i></div>
+                </div>
+                <div class="fees-stat-card__value" id="totalAssigned">₹0</div>
+                <div class="fees-stat-card__sub">Total fee amount assigned</div>
+            </div>
+
+            <!-- Total Collected -->
+            <div class="fees-stat-card fees-stat-card--collected">
+                <div class="fees-stat-card__top">
+                    <div class="fees-stat-card__label">Total Collected</div>
+                    <div class="fees-stat-card__icon"><i class="bi bi-check-circle-fill"></i></div>
+                </div>
+                <div class="fees-stat-card__value" id="totalCollected">₹0</div>
+                <div class="fees-stat-card__sub">Amount received from parents</div>
+            </div>
+
+            <!-- Outstanding -->
+            <div class="fees-stat-card fees-stat-card--outstanding">
+                <div class="fees-stat-card__top">
+                    <div class="fees-stat-card__label">Outstanding</div>
+                    <div class="fees-stat-card__icon"><i class="bi bi-hourglass-split"></i></div>
+                </div>
+                <div class="fees-stat-card__value" id="totalOutstanding">₹0</div>
+                <div class="fees-stat-card__sub">Pending collection</div>
+            </div>
+
+            <!-- Overdue -->
+            <div class="fees-stat-card fees-stat-card--overdue">
+                <div class="fees-stat-card__top">
+                    <div class="fees-stat-card__label">Overdue</div>
+                    <div class="fees-stat-card__icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
+                </div>
+                <div class="fees-stat-card__value" id="totalOverdue">0</div>
+                <div class="fees-stat-card__sub">Students with overdue payments</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Assign Fee Form -->
+    <div class="col-12 mb-4">
+        <div class="fees-form-card">
+            <div class="fees-form-card__body">
+                <div class="fees-form-title">
+                    <i class="bi bi-plus-circle"></i> Assign Fee to Student
+                </div>
+                <form method="POST" action="/academy/fees/assign" class="fees-form">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+                    <div class="fees-form-group">
+                        <label class="fees-form-label">Student <span class="text-danger">*</span></label>
+                        <select name="student_id" class="fees-form-select" required>
+                            <option value="">-- Select Student --</option>
+                            <% if (typeof students !== 'undefined' && students.length > 0) { %>
+                                <% students.forEach(s => { %>
+                                <option value="<%= s.id %>">
+                                    <%= s.name %><% if (s.phone) { %> · <%= s.phone %><% } %>
+                                </option>
+                                <% }) %>
+                            <% } else { %>
+                                <option disabled>No active students found</option>
+                            <% } %>
+                        </select>
+                    </div>
+
+                    <div class="fees-form-group">
+                        <label class="fees-form-label">Fee Plan</label>
+                        <select name="fee_plan_id" class="fees-form-select" onchange="fillAmount(this)">
+                            <option value="">-- Custom --</option>
+                            <% plans.forEach(p => { %>
+                            <option value="<%= p.id %>" data-amount="<%= p.amount %>">
+                                <%= p.plan_name %> (₹<%= parseFloat(p.amount).toLocaleString('en-IN') %>)
+                            </option>
+                            <% }) %>
+                        </select>
+                    </div>
+
+                    <div class="fees-form-group">
+                        <label class="fees-form-label">Amount (₹) <span class="text-danger">*</span></label>
+                        <input type="number" name="amount" id="feeAmount" class="fees-form-input"
+                               placeholder="0" min="1" step="0.01" required>
+                    </div>
+
+                    <div class="fees-form-group">
+                        <label class="fees-form-label">Due Date <span class="text-danger">*</span></label>
+                        <input type="date" name="due_date" class="fees-form-input"
+                               value="<%= new Date().toISOString().slice(0,10) %>" required>
+                    </div>
+
+                    <div class="fees-form-group">
+                        <label class="fees-form-label">Note</label>
+                        <input type="text" name="note" class="fees-form-input" placeholder="Optional">
+                    </div>
+
+                    <div class="fees-form-group" style="min-width: auto;">
+                        <button type="submit" class="fees-submit-btn">
+                            <i class="bi bi-plus-lg"></i> Assign
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter bar -->
+    <div class="col-12 mb-3">
+        <div class="fees-filter-bar">
+            <form method="GET" action="/academy/fees" class="fees-filter-form">
+                <select name="status" class="fees-filter-select">
+                    <option value="">All Status</option>
+                    <option value="due"     <%= filters.status === 'due'     ? 'selected' : '' %>>Due</option>
+                    <option value="partial" <%= filters.status === 'partial' ? 'selected' : '' %>>Partial</option>
+                    <option value="overdue" <%= filters.status === 'overdue' ? 'selected' : '' %>>Overdue</option>
+                    <option value="paid"    <%= filters.status === 'paid'    ? 'selected' : '' %>>Paid</option>
+                </select>
+                <button type="submit" class="fees-filter-btn">Filter</button>
+                <% if (filters.status) { %>
+                <a href="/academy/fees" class="fees-clear-btn">Clear</a>
+                <% } %>
+            </form>
+        </div>
+    </div>
+
+    <!-- Fees Table -->
+    <div class="col-12">
+        <% if (fees.length === 0) { %>
+        <div class="fees-empty">
+            <div class="fees-empty__icon">
+                <i class="bi bi-cash-stack"></i>
+            </div>
+            <p class="fees-empty__title">No fee records found</p>
+            <small class="fees-empty__sub">Use the form above to assign a fee to a student</small>
+        </div>
+        <% } else { %>
+        <div class="fees-table-card">
+            <div class="table-responsive">
+                <table class="fees-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Student</th>
+                            <th>Batch</th>
+                            <th>Amount</th>
+                            <th>Paid</th>
+                            <th>Balance</th>
+                            <th>Due Date</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% fees.forEach((fee, index) => { %>
+                        <tr>
+                            <td class="fees-row-num"><%= index + 1 %></td>
+                            <td>
+                                <div class="fees-student-name"><%= fee.student_name %></div>
+                                <div class="fees-parent-whatsapp">
+                                    <i class="bi bi-whatsapp"></i> <%= fee.parent_phone %>
+                                </div>
+                            </td>
+                            <td>
+                                <% if (fee.batch_name) { %>
+                                <span class="fees-batch-badge"><%= fee.batch_name %></span>
+                                <% } else { %><span style="color:#94a3b8;">—</span><% } %>
+                            </td>
+                            <td class="fees-amount">₹<%= parseFloat(fee.amount).toLocaleString('en-IN') %></td>
+                            <td class="fees-paid">₹<%= parseFloat(fee.paid_amount).toLocaleString('en-IN') %></td>
+                            <td class="fees-balance <%= parseFloat(fee.balance) > 0 ? 'fees-balance-due' : 'fees-balance-zero' %>">
+                                ₹<%= parseFloat(fee.balance).toLocaleString('en-IN') %>
+                            </td>
+                            <td class="fees-due-date">
+                                <%= new Date(fee.due_date).toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'}) %>
+                            </td>
+                            <td>
+                                <% if (fee.status === 'paid') { %>
+                                    <span class="fees-status-badge fees-status-paid">Paid</span>
+                                <% } else if (fee.status === 'partial') { %>
+                                    <span class="fees-status-badge fees-status-partial">Partial</span>
+                                <% } else if (fee.status === 'overdue') { %>
+                                    <span class="fees-status-badge fees-status-overdue">Overdue</span>
+                                <% } else { %>
+                                    <span class="fees-status-badge fees-status-due">Due</span>
+                                <% } %>
+                            </td>
+                            <td>
+                                <a href="/academy/fees/<%= fee.id %>" class="fees-view-btn">
+                                    <i class="bi bi-eye"></i> View
+                                </a>
+                            </td>
+                        </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+            <div class="fees-table-footer">
+                Showing <%= fees.length %> record<%= fees.length !== 1 ? 's' : '' %>
+            </div>
+        </div>
+        <% } %>
+    </div>
+
+</div>
+
+<script>
+function fillAmount(sel) {
+    const amt = sel.options[sel.selectedIndex].dataset.amount;
+    if (amt) document.getElementById('feeAmount').value = amt;
+}
+
+// ── Count-up Animation for Stat Cards ──
+document.addEventListener('DOMContentLoaded', () => {
+    const totalAssigned = <%= summary && summary.total_amount ? summary.total_amount : 0 %>;
+    const totalCollected = <%= summary && summary.total_paid ? summary.total_paid : 0 %>;
+    const totalOutstanding = <%= summary && summary.total_balance ? summary.total_balance : 0 %>;
+    const totalOverdue = <%= summary ? (summary.total_overdue_count || 0) : 0 %>;
+
+    function animateValue(element, start, end, duration, isRupee = true) {
+        if (!element) return;
+        const range = end - start;
+        const stepTime = Math.abs(Math.floor(duration / (range || 1)));
+        let current = start;
+        const timer = setInterval(() => {
+            current += 1;
+            if (current >= end) {
+                current = end;
+                clearInterval(timer);
+            }
+            if (isRupee) {
+                element.textContent = '₹' + current.toLocaleString('en-IN');
+            } else {
+                element.textContent = current.toLocaleString('en-IN') + ' student' + (current !== 1 ? 's' : '');
+            }
+        }, stepTime);
+    }
+
+    animateValue(document.getElementById('totalAssigned'), 0, totalAssigned, 800, true);
+    animateValue(document.getElementById('totalCollected'), 0, totalCollected, 800, true);
+    animateValue(document.getElementById('totalOutstanding'), 0, totalOutstanding, 800, true);
+    animateValue(document.getElementById('totalOverdue'), 0, totalOverdue, 800, false);
+});
+</script>
+
+<%- include('../../partials/footer') %>

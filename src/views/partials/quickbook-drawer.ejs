@@ -1,361 +1,263 @@
 <!-- ── Quick Book Drawer — Overlay ────────────────── -->
-<!-- ── Quick Book Drawer — Overlay ────────────────── -->
-<div id="qb-overlay"
-    onclick="closeQuickBook()"
-    style="display:none; position:fixed; inset:0;
-           background:rgba(0,0,0,0.5);
-           z-index:1040; opacity:0;
-           transition:opacity 0.3s ease;"></div>
+<div id="qb-overlay" onclick="closeQuickBook()" style="display:none; position:fixed; inset:0;
+           background:rgba(0,0,0,0.5); z-index:1040; opacity:0; transition:opacity 0.3s ease;"></div>
 
 <!-- ── Quick Book Drawer — Panel ─────────────────── -->
-<div id="qb-drawer"
-    style="position:fixed; top:0; right:0; height:100vh; width:480px; max-width:100vw;
-           background:#ffffff;
-           border-left:1px solid #DEE2E6;
-           box-shadow:-8px 0 32px rgba(0,0,0,0.12);
-           z-index:1050;
-           transform:translateX(100%);
-           transition:transform 0.35s cubic-bezier(0.4,0,0.2,1);
+<div id="qb-drawer" style="position:fixed; top:0; right:0; height:100vh; width:480px; max-width:100vw;
+           background:#ffffff; border-left:1px solid #DEE2E6;
+           box-shadow:-8px 0 32px rgba(0,0,0,0.12); z-index:1050;
+           transform:translateX(100%); transition:transform 0.35s cubic-bezier(0.4,0,0.2,1);
            display:flex; flex-direction:column; overflow:hidden;">
 
-    <!-- Top green bar -->
-    <div style="height:3px; background:linear-gradient(90deg,#1B4332,#4ADE80); flex-shrink:0;"></div>
+    <div style="height:3px; background:linear-gradient(90deg,#667eea,#f093fb); flex-shrink:0;"></div>
 
-    <!-- Header - REMOVED position:sticky, kept as normal flex child -->
+    <!-- Header -->
     <div style="padding:18px 22px 14px; border-bottom:1px solid #DEE2E6;
-                display:flex; align-items:center; justify-content:space-between; flex-shrink:0;
-                background:#fff;">
+                display:flex; align-items:center; justify-content:space-between; flex-shrink:0; background:#fff;">
         <div>
-            <div style="font-family:'Rajdhani',sans-serif; font-weight:700;
-                        font-size:1.1rem; letter-spacing:2px; color:#1B4332;">
-                <i class="bi bi-lightning-charge-fill me-2" style="color:#1B4332;"></i>QUICK BOOK
+            <div style="font-family:'Rajdhani',sans-serif; font-weight:700; font-size:1.1rem; letter-spacing:2px; color:#764ba2;">
+                <i class="bi bi-lightning-charge-fill me-2" style="color:#764ba2;"></i>QUICK BOOK
             </div>
-            <small style="color:#ADB5BD; font-size:0.68rem; letter-spacing:1px; text-transform:uppercase;">
-                Walk-in / Phone booking
-            </small>
+            <small style="color:#ADB5BD; font-size:0.68rem; letter-spacing:1px; text-transform:uppercase;">Walk-in / Phone booking</small>
         </div>
-        <button onclick="closeQuickBook()"
-            style="background:#F8F9FA; border:1px solid #DEE2E6;
-                   color:#495057; border-radius:8px; width:34px; height:34px; cursor:pointer;
-                   display:flex; align-items:center; justify-content:center;
-                   transition:background 0.2s;"
-            onmouseover="this.style.background='#e9ecef'"
-            onmouseout="this.style.background='#F8F9FA'">
+        <button onclick="closeQuickBook()" style="background:#F8F9FA; border:1px solid #DEE2E6; color:#495057; border-radius:8px; width:34px; height:34px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background 0.2s;" onmouseover="this.style.background='#e9ecef'" onmouseout="this.style.background='#F8F9FA'">
             <i class="bi bi-x-lg" style="font-size:0.85rem;"></i>
         </button>
     </div>
 
-    <!-- Scrollable Body - ADDED min-height:0 -->
+    <!-- Body -->
     <div style="flex:1; overflow-y:auto; min-height:0; padding:20px 22px; background:#F8F9FA;" class="qb-scroll">
 
-        <!-- ── STEP 1: Ground Select ── -->
+        <!-- Ground Select -->
         <div id="qb-step-ground" style="margin-bottom:16px;">
             <label class="qb-lbl">Select Ground *</label>
-
-            <div id="qb-grounds-loading" style="color:#ADB5BD; font-size:0.8rem; padding:8px 0;">
-                <i class="bi bi-hourglass-split me-1"></i>Loading grounds...
-            </div>
-
-            <div id="qb-grounds-grid" style="display:none; display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:6px;"></div>
-
-            <div id="qb-ground-preview" style="display:none; margin-top:10px;
-                background:rgba(27,67,50,0.06); border:1px solid rgba(27,67,50,0.2);
-                border-radius:10px; padding:10px 14px;
-                display:flex; align-items:center; justify-content:space-between;">
+            <div id="qb-grounds-loading" style="color:#ADB5BD; font-size:0.8rem; padding:8px 0;"><i class="bi bi-hourglass-split me-1"></i>Loading grounds...</div>
+            <div id="qb-grounds-grid" style="display:none; grid-template-columns:1fr 1fr; gap:10px; margin-top:6px;"></div>
+            <div id="qb-ground-preview" style="display:none; margin-top:10px; background:rgba(27,67,50,0.06); border:1px solid rgba(27,67,50,0.2); border-radius:10px; padding:10px 14px; align-items:center; justify-content:space-between;">
                 <div style="display:flex; align-items:center; gap:10px;">
-                    <div id="qb-ground-img-wrap" style="width:38px; height:38px; border-radius:8px; overflow:hidden; flex-shrink:0; background:#1B4332;">
+                    <div id="qb-ground-img-wrap" style="width:38px; height:38px; border-radius:8px; overflow:hidden; flex-shrink:0; background:linear-gradient(135deg,#667eea,#764ba2);">
                         <img id="qb-ground-img" src="" style="width:100%; height:100%; object-fit:cover;" onerror="this.style.display='none'">
                     </div>
                     <div>
-                        <div id="qb-ground-name" style="font-family:'Rajdhani',sans-serif; font-weight:700; font-size:0.95rem; color:#1B4332;"></div>
-                        <div id="qb-ground-sport" style="font-size:0.65rem; color:#6B7280; text-transform:capitalize;"></div>
+                        <div id="qb-ground-name" style="font-family:'Rajdhani',sans-serif; font-weight:700; font-size:0.95rem; color:#764ba2;"></div>
+                        <div id="qb-ground-info" style="font-size:0.65rem; color:#6B7280;"></div>
                     </div>
                 </div>
-                <button type="button" onclick="qbChangeGround()"
-                    style="font-size:0.68rem; color:#6B7280; background:transparent; border:1px solid #DEE2E6;
-                           padding:3px 10px; border-radius:6px; cursor:pointer;">
-                    Change
-                </button>
+                <button type="button" onclick="qbChangeGround()" style="font-size:0.68rem; color:#6B7280; background:transparent; border:1px solid #DEE2E6; padding:3px 10px; border-radius:6px; cursor:pointer;">Change</button>
             </div>
         </div>
 
-        <!-- ── STEP 2: Date + Slots ── -->
+        <!-- Booking Step -->
         <div id="qb-step-booking" style="display:none;">
 
             <!-- Date -->
             <div style="margin-bottom:16px;">
                 <label class="qb-lbl">Date *</label>
                 <input type="date" id="qb-date"
-                    min="<%= new Date().toISOString().split('T')[0] %>"
-                    value="<%= new Date().toISOString().split('T')[0] %>"
-                    onchange="qbLoadSlots()"
-                    class="qb-input">
+                    min="<%= (() => { const d = new Date(new Date().toLocaleString('en-US', {timeZone:'Asia/Kolkata'})); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); })() %>"
+                    value="<%= (() => { const d = new Date(new Date().toLocaleString('en-US', {timeZone:'Asia/Kolkata'})); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); })() %>"
+                    onchange="qbLoadSlots()" class="qb-input">
             </div>
 
-            <!-- Slots -->
+            <!-- Pre-defined Slots -->
             <div style="margin-bottom:16px;">
-                <label class="qb-lbl">Select Slot *</label>
-                <div id="qb-slots" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:6px; min-height:44px;">
-                    <div style="color:#ADB5BD; font-size:0.8rem; padding:8px 0;">
-                        <i class="bi bi-hourglass-split me-1"></i>Loading slots...
-                    </div>
+                <label class="qb-lbl">Select Time Slot *</label>
+                <div id="qb-slots-grid" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:6px; min-height:40px;">
+                    <div style="color:#ADB5BD; font-size:0.8rem;"><i class="bi bi-hourglass-split me-1"></i>Select a date...</div>
                 </div>
             </div>
 
-            <!-- Selected slot preview -->
-            <div id="qb-slot-preview"
-                style="display:none; background:rgba(27,67,50,0.06); border:1px solid rgba(27,67,50,0.2);
-                       border-radius:10px; padding:12px 14px; margin-bottom:16px;">
-                <div style="font-size:0.65rem; color:#ADB5BD; text-transform:uppercase;
-                            letter-spacing:1px; margin-bottom:3px;">Selected Slot</div>
-                <div id="qb-slot-text"
-                    style="color:#1B4332; font-family:'Rajdhani',sans-serif;
-                           font-weight:700; font-size:1.05rem;"></div>
-                <div id="qb-slot-price" style="color:#2D6A4F; font-size:0.78rem; margin-top:2px; font-weight:600;"></div>
+            <!-- OR divider -->
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px;">
+                <div style="flex:1; height:1px; background:#e5e7eb;"></div>
+                <span style="font-size:0.7rem; color:#9CA3AF; font-weight:600;">OR CUSTOM TIME</span>
+                <div style="flex:1; height:1px; background:#e5e7eb;"></div>
             </div>
 
-            <!-- ── Customer Details Card ── -->
+            <!-- Custom Time Pickers -->
+            <div style="margin-bottom:16px;">
+                <label class="qb-lbl">Custom Booking Time</label>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                    <div>
+                        <small style="color:#9CA3AF; font-size:0.7rem; display:block; margin-bottom:4px;">Start Time</small>
+                        <input type="time" id="qb-start-time" class="qb-input" onchange="qbOnCustomTimeChange()" step="900">
+                    </div>
+                    <div>
+                        <small style="color:#9CA3AF; font-size:0.7rem; display:block; margin-bottom:4px;">End Time</small>
+                        <input type="time" id="qb-end-time" class="qb-input" onchange="qbOnCustomTimeChange()" step="900">
+                    </div>
+                </div>
+                <div style="font-size:0.7rem; color:#9CA3AF; margin-top:5px; padding-left:2px;">
+                    Min: <span id="qb-min-slot-label">30</span> min
+                </div>
+            </div>
+
+            <!-- Price Result -->
+            <div id="qb-price-result" style="display:none; border-radius:10px; padding:12px 14px; margin-bottom:16px;"></div>
+
+            <!-- Customer Details -->
             <div style="background:#ffffff; border:1px solid #DEE2E6; border-radius:12px; padding:18px 16px; margin-bottom:12px;">
-                <div style="font-size:0.68rem; font-weight:700; color:#1B4332; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:14px; display:flex; align-items:center; gap:6px;">
+                <div style="font-size:0.68rem; font-weight:700; color:#764ba2; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:14px; display:flex; align-items:center; gap:6px;">
                     <i class="bi bi-person"></i> Customer Details
                 </div>
-
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px;">
-                    <div>
-                        <label class="qb-lbl">Customer Name *</label>
-                        <input type="text" id="qb-name" placeholder="Full name" class="qb-input">
+                <div style="position:relative; margin-bottom:12px;">
+                    <label class="qb-lbl">Search Customer <span style="color:#ADB5BD;font-size:0.65rem;text-transform:none;">(name or phone)</span></label>
+                    <div style="position:relative;">
+                        <i class="bi bi-search" style="position:absolute;left:11px;top:50%;transform:translateY(-50%);color:#9CA3AF;font-size:0.82rem;pointer-events:none;"></i>
+                        <input type="text" id="qb-customer-search" placeholder="Type name or phone number..." class="qb-input" style="padding-left:32px;" autocomplete="off" oninput="qbSearchCustomers(this.value)">
                     </div>
-                    <div>
-                        <label class="qb-lbl">Phone *</label>
-                        <input type="tel" id="qb-phone" placeholder="10 digits" maxlength="10" class="qb-input">
+                    <div id="qb-search-results" style="display:none; position:absolute; left:0; right:0; top:100%; z-index:200; background:#fff; border:1px solid #DEE2E6; border-radius:10px; margin-top:4px; box-shadow:0 8px 24px rgba(0,0,0,0.12); overflow:hidden; max-height:220px; overflow-y:auto;"></div>
+                </div>
+                <div id="qb-selected-customer-chip" style="display:none; margin-bottom:12px; background:#F0FDF4; border:1px solid #BBF7D0; border-radius:8px; padding:10px 12px; align-items:center; justify-content:space-between;">
+                    <div style="display:flex;align-items:center;gap:10px;">
+                        <div id="qb-chip-avatar" style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#1B4332,#2D6A4F);display:flex;align-items:center;justify-content:center;font-family:'Rajdhani',sans-serif;font-weight:700;color:#fff;font-size:0.9rem;flex-shrink:0;"></div>
+                        <div>
+                            <div id="qb-chip-name" style="font-weight:700;color:#764ba2;font-size:0.85rem;"></div>
+                            <div id="qb-chip-phone" style="font-size:0.72rem;color:#6B7280;margin-top:1px;"></div>
+                        </div>
+                    </div>
+                    <button type="button" onclick="qbClearCustomer()" style="background:transparent;border:none;color:#9CA3AF;cursor:pointer;font-size:0.8rem;padding:2px 6px;" title="Clear"><i class="bi bi-x-circle"></i></button>
+                </div>
+                <div id="qb-new-customer-fields">
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+                        <div><label class="qb-lbl">Customer Name *</label><input type="text" id="qb-name" placeholder="Full name" class="qb-input"></div>
+                        <div><label class="qb-lbl">Phone *</label><input type="tel" id="qb-phone" placeholder="10 digits" maxlength="10" class="qb-input"></div>
+                    </div>
+                    <div style="margin-bottom:14px;">
+                        <label class="qb-lbl">Email <span style="color:#2d6a4f; font-size:0.65rem; text-transform:none;">(for booking confirmation)</span></label>
+                        <input type="email" id="qb-email" placeholder="customer@email.com" class="qb-input">
                     </div>
                 </div>
-
-                <div style="margin-bottom:14px;">
-                    <label class="qb-lbl">Email <span style="color:#ADB5BD; font-size:0.65rem; text-transform:none;">(optional)</span></label>
-                    <input type="email" id="qb-email" placeholder="customer@email.com" class="qb-input">
-                </div>
-
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-                    <div>
-                        <label class="qb-lbl">Booking Type *</label>
-                        <select id="qb-type" class="qb-input">
-                            <option value="phone">Phone Call</option>
-                            <option value="walkin">Walk-in</option>
-                        </select>
+                    <div><label class="qb-lbl">Booking Type *</label>
+                        <select id="qb-type" class="qb-input"><option value="phone">Phone Call</option><option value="walkin">Walk-in</option></select>
                     </div>
-                    <div>
-                        <label class="qb-lbl">Payment Mode</label>
-                        <select id="qb-pay-mode" class="qb-input">
-                            <option value="cash">Cash</option>
-                            <option value="upi">UPI</option>
-                            <option value="card">Card</option>
-                        </select>
+                    <div><label class="qb-lbl">Payment Mode</label>
+                        <select id="qb-pay-mode" class="qb-input"><option value="cash">Cash</option><option value="upi">UPI</option><option value="card">Card</option></select>
                     </div>
                 </div>
             </div>
 
-            <!-- ── Pricing Card ── -->
+            <!-- Pricing Card -->
             <div style="background:#ffffff; border:1px solid #DEE2E6; border-radius:12px; padding:18px 16px; margin-bottom:12px;">
-                <div style="font-size:0.68rem; font-weight:700; color:#1B4332; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:14px; display:flex; align-items:center; gap:6px;">
-                    <i class="bi bi-tag"></i> Pricing
-                </div>
-
-                <!-- Custom Price Override -->
+                <div style="font-size:0.68rem; font-weight:700; color:#764ba2; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:14px; display:flex; align-items:center; gap:6px;"><i class="bi bi-tag"></i> Pricing</div>
                 <div style="margin-bottom:14px;">
-                    <label class="qb-lbl">
-                        Custom Price Override
-                        <span style="color:#ADB5BD; font-size:0.62rem; text-transform:none; font-weight:400;">(leave blank to use slot price)</span>
-                    </label>
+                    <label class="qb-lbl">Custom Price Override <span style="color:#ADB5BD; font-size:0.62rem; text-transform:none; font-weight:400;">(leave blank for calculated price)</span></label>
                     <div style="position:relative;">
                         <span style="position:absolute; left:11px; top:50%; transform:translateY(-50%); color:#6B7280; font-size:0.85rem; font-weight:600;">₹</span>
-                        <input type="number" id="qb-custom-price" placeholder="e.g. 3000"
-                            min="0" oninput="qbUpdatePricingSummary()"
-                            class="qb-input" style="padding-left:26px;">
+                        <input type="number" id="qb-custom-price" placeholder="e.g. 3000" min="0" oninput="qbUpdatePricingSummary()" class="qb-input" style="padding-left:26px;">
                     </div>
-                    <div style="font-size:0.68rem; color:#9CA3AF; margin-top:4px; padding-left:2px;">
-                        Original slot price: <span id="qb-original-price-label" style="color:#1B4332; font-weight:600;">—</span>
-                    </div>
+                    <div style="font-size:0.68rem; color:#9CA3AF; margin-top:4px; padding-left:2px;">Calculated price: <span id="qb-original-price-label" style="color:#764ba2; font-weight:600;">—</span></div>
                 </div>
-
-                <!-- Discount Row -->
                 <div style="margin-bottom:14px;">
                     <label class="qb-lbl">Discount</label>
                     <div style="display:grid; grid-template-columns:110px 1fr; gap:8px;">
-                        <select id="qb-discount-type" class="qb-input" onchange="qbUpdatePricingSummary()">
-                            <option value="flat">Flat (₹)</option>
-                            <option value="percent">Percent (%)</option>
-                        </select>
+                        <select id="qb-discount-type" class="qb-input" onchange="qbUpdatePricingSummary()"><option value="flat">Flat (₹)</option><option value="percent">Percent (%)</option></select>
                         <div style="position:relative;">
-                            <input type="number" id="qb-discount-value" placeholder="0"
-                                min="0" oninput="qbUpdatePricingSummary()"
-                                class="qb-input">
-                            <span id="qb-discount-suffix"
-                                style="position:absolute; right:10px; top:50%; transform:translateY(-50%);
-                                       color:#ADB5BD; font-size:0.78rem; pointer-events:none;">₹</span>
+                            <input type="number" id="qb-discount-value" placeholder="0" min="0" oninput="qbUpdatePricingSummary()" class="qb-input">
+                            <span id="qb-discount-suffix" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); color:#ADB5BD; font-size:0.78rem; pointer-events:none;">₹</span>
                         </div>
                     </div>
                 </div>
-
-                <!-- Surcharge Row -->
                 <div style="margin-bottom:14px;">
                     <label class="qb-lbl">Surcharge / Extra Charge</label>
                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
                         <div style="position:relative;">
                             <span style="position:absolute; left:11px; top:50%; transform:translateY(-50%); color:#6B7280; font-size:0.85rem; font-weight:600;">₹</span>
-                            <input type="number" id="qb-surcharge" placeholder="0"
-                                min="0" oninput="qbUpdatePricingSummary()"
-                                class="qb-input" style="padding-left:26px;">
+                            <input type="number" id="qb-surcharge" placeholder="0" min="0" oninput="qbUpdatePricingSummary()" class="qb-input" style="padding-left:26px;">
                         </div>
-                        <input type="text" id="qb-surcharge-note" placeholder="Reason (e.g. cleaning fee)"
-                            class="qb-input">
+                        <input type="text" id="qb-surcharge-note" placeholder="Reason (e.g. cleaning fee)" class="qb-input">
                     </div>
                 </div>
-
-                <!-- Pricing Note -->
                 <div style="margin-bottom:4px;">
                     <label class="qb-lbl">Pricing Note <span style="color:#ADB5BD; font-size:0.65rem; text-transform:none;">(optional)</span></label>
-                    <input type="text" id="qb-pricing-note" placeholder="e.g. Special rate for member"
-                        class="qb-input">
+                    <input type="text" id="qb-pricing-note" placeholder="e.g. Special rate for member" class="qb-input">
                 </div>
-
-                <!-- Live Pricing Summary -->
-                <div id="qb-pricing-summary" style="display:none; margin-top:14px;
-                    background:#F0FDF4; border:1px solid #BBF7D0; border-radius:10px; padding:12px 14px;">
+                <div id="qb-pricing-summary" style="display:none; margin-top:14px; background:#F0FDF4; border:1px solid #BBF7D0; border-radius:10px; padding:12px 14px;">
                     <div style="font-size:0.65rem; color:#6B7280; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; font-weight:600;">Price Breakdown</div>
                     <div id="qb-summary-rows"></div>
                     <div style="height:1px; background:#BBF7D0; margin:8px 0;"></div>
                     <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <span style="font-size:0.78rem; font-weight:700; color:#1B4332; text-transform:uppercase; letter-spacing:0.5px;">Final Total</span>
-                        <span id="qb-final-total" style="font-family:'Rajdhani',sans-serif; font-weight:800; font-size:1.15rem; color:#1B4332;"></span>
+                        <span style="font-size:0.78rem; font-weight:700; color:#764ba2; text-transform:uppercase; letter-spacing:0.5px;">Final Total</span>
+                        <span id="qb-final-total" style="font-family:'Rajdhani',sans-serif; font-weight:800; font-size:1.15rem; color:#764ba2;"></span>
                     </div>
                 </div>
             </div>
 
-            <!-- ── Payment Card ── -->
+            <!-- Payment Card -->
             <div style="background:#ffffff; border:1px solid #DEE2E6; border-radius:12px; padding:18px 16px; margin-bottom:12px;">
-                <div style="font-size:0.68rem; font-weight:700; color:#1B4332; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:14px; display:flex; align-items:center; gap:6px;">
-                    <i class="bi bi-cash-coin"></i> Payment Collection
-                </div>
-
-                <!-- Advance -->
-                <div style="margin-bottom:4px;">
-                    <label class="qb-lbl">Advance Collected (₹)</label>
-                    <input type="number" id="qb-advance" placeholder="0" min="0"
-                        oninput="qbUpdateBalance()" class="qb-input">
-                </div>
-
-                <!-- Quick amount buttons -->
+                <div style="font-size:0.68rem; font-weight:700; color:#764ba2; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:14px; display:flex; align-items:center; gap:6px;"><i class="bi bi-cash-coin"></i> Payment Collection</div>
+                <div style="margin-bottom:4px;"><label class="qb-lbl">Advance Collected (₹)</label><input type="number" id="qb-advance" placeholder="0" min="0" oninput="qbUpdateBalance()" class="qb-input"></div>
                 <div id="qb-quick-amounts" style="display:none; gap:6px; flex-wrap:wrap; margin-bottom:10px; margin-top:8px;">
                     <span style="font-size:0.65rem; color:#9CA3AF; width:100%; display:block; margin-bottom:2px;">Quick fill:</span>
                     <button type="button" id="qb-half-btn" onclick="qbSetHalf()" class="qb-amt-btn">Half</button>
                     <button type="button" id="qb-full-btn" onclick="qbSetFull()" class="qb-amt-btn qb-amt-btn--green">Full</button>
                 </div>
-
-                <div id="qb-balance-preview"
-                    style="font-size:0.75rem; color:#ADB5BD; margin-bottom:4px; min-height:18px; padding-left:2px;"></div>
-
-                <!-- Notes -->
+                <div id="qb-balance-preview" style="font-size:0.75rem; color:#ADB5BD; margin-bottom:4px; min-height:18px; padding-left:2px;"></div>
                 <div style="margin-top:10px;">
                     <label class="qb-lbl">Notes <span style="color:#ADB5BD; font-size:0.65rem; text-transform:none;">(optional)</span></label>
-                    <textarea id="qb-notes" rows="2" placeholder="Any special instructions..."
-                        class="qb-input" style="resize:none;"></textarea>
+                    <textarea id="qb-notes" rows="2" placeholder="Any special instructions..." class="qb-input" style="resize:none;"></textarea>
                 </div>
             </div>
 
-            <!-- Message -->
-            <div id="qb-msg" style="display:none; border-radius:8px; padding:10px 14px;
-                                      font-size:0.82rem; margin-bottom:4px;"></div>
+            <div id="qb-msg" style="display:none; border-radius:8px; padding:10px 14px; font-size:0.82rem; margin-bottom:4px;"></div>
 
         </div>
-
     </div>
 
-    <!-- Sticky Footer -->
+    <!-- Footer -->
     <div style="padding:16px 22px; border-top:1px solid #DEE2E6; background:#fff; flex-shrink:0;">
-        <button id="qb-submit-btn" onclick="qbSubmit()"
-            style="width:100%; background:linear-gradient(135deg,#081C15,#1B4332);
-                   border:none; color:#fff; border-radius:10px; padding:13px;
-                   font-family:'Rajdhani',sans-serif; font-weight:700;
-                   font-size:1rem; letter-spacing:2px; cursor:pointer;
-                   box-shadow:0 4px 20px rgba(27,67,50,0.3);
-                   transition:all 0.2s;">
+        <button id="qb-submit-btn" onclick="qbSubmit()" style="width:100%; background:linear-gradient(135deg,#667eea,#764ba2,#f093fb); border:none; color:#fff; border-radius:10px; padding:13px; font-family:'Rajdhani',sans-serif; font-weight:700; font-size:1rem; letter-spacing:2px; cursor:pointer; box-shadow:0 4px 20px rgba(102,126,234,0.35); transition:all 0.2s;">
             <i class="bi bi-lightning-charge me-2"></i>CONFIRM BOOKING
         </button>
     </div>
-
 </div>
-
-</div>
-
 
 <script>
-let qbSelectedSlot   = null;
-let qbSelectedGround = null;
-let qbGroundsData    = [];
+let qbSelectedGround  = null;
+let qbGroundsData     = [];
+let qbCalculatedPrice = null;
+let qbPriceDebounce   = null;
 
 function openQuickBook() {
-    // Add class to body to hide header on mobile
-    if (window.innerWidth <= 768) {
-        document.body.classList.add('qb-drawer-open');
-    }
-    
+    if (window.innerWidth <= 768) document.body.classList.add('qb-drawer-open');
     document.getElementById('qb-overlay').style.display = 'block';
     setTimeout(() => { document.getElementById('qb-overlay').style.opacity = '1'; }, 10);
     document.getElementById('qb-drawer').style.transform = 'translateX(0)';
     document.body.style.overflow = 'hidden';
-    
     if (qbGroundsData.length === 0) qbLoadGrounds();
 }
-
 function closeQuickBook() {
-    // Remove class to show header again
     document.body.classList.remove('qb-drawer-open');
-    
     document.getElementById('qb-overlay').style.opacity = '0';
     document.getElementById('qb-drawer').style.transform = 'translateX(100%)';
     setTimeout(() => { document.getElementById('qb-overlay').style.display = 'none'; }, 320);
     document.body.style.overflow = '';
 }
-
-window.addEventListener('resize', function() {
+window.openQuickBook  = openQuickBook;
+window.closeQuickBook = closeQuickBook;
+window.addEventListener('resize', function () {
     if (document.getElementById('qb-drawer').style.transform === 'translateX(0px)') {
-        if (window.innerWidth <= 768) {
-            document.body.classList.add('qb-drawer-open');
-        } else {
-            document.body.classList.remove('qb-drawer-open');
-        }
+        if (window.innerWidth <= 768) document.body.classList.add('qb-drawer-open');
+        else document.body.classList.remove('qb-drawer-open');
     }
 });
-
-
-document.addEventListener('keydown', e => { 
-    if (e.key === 'Escape') {
-        closeQuickBook();
-        document.body.classList.remove('qb-drawer-open');
-    } 
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { closeQuickBook(); document.body.classList.remove('qb-drawer-open'); }
 });
 
-// ── Load Grounds ──────────────────────────────────
 async function qbLoadGrounds() {
     const loading = document.getElementById('qb-grounds-loading');
     const grid    = document.getElementById('qb-grounds-grid');
-    loading.style.display = 'block';
-    grid.style.display    = 'none';
+    loading.style.display = 'block'; grid.style.display = 'none';
     try {
-        const res  = await fetch('/api/grounds');
+        const res  = await fetch('/grounds/api/list', { credentials: 'same-origin' });
         const data = await res.json();
-        if (!data.success || !data.data.grounds.length) {
-            loading.innerHTML = '<span style="color:#D90429;">No active grounds found</span>';
-            return;
-        }
-        qbGroundsData = data.data.grounds;
-        loading.style.display = 'none';
-        grid.style.display    = 'grid';
+        if (!data.success || !data.grounds.length) { loading.innerHTML = '<span style="color:#D90429;">No active grounds found</span>'; return; }
+        qbGroundsData = data.grounds;
+        loading.style.display = 'none'; grid.style.display = 'grid';
         qbRenderGrounds(qbGroundsData);
-    } catch(e) {
-        loading.innerHTML = '<span style="color:#D90429;">Failed to load grounds</span>';
-    }
+    } catch (e) { loading.innerHTML = '<span style="color:#D90429;">Failed to load grounds</span>'; }
 }
 
 function qbRenderGrounds(grounds) {
@@ -364,382 +266,369 @@ function qbRenderGrounds(grounds) {
     grounds.forEach(g => {
         const imgUrl = g.primary_image ? `/uploads/grounds/${g.primary_image}` : '';
         const card   = document.createElement('div');
-        card.className = 'qb-ground-card';
-        card.id        = 'qb-gcard-' + g.id;
-        card.onclick   = () => qbSelectGround(g);
+        card.className = 'qb-ground-card'; card.id = 'qb-gcard-' + g.id; card.onclick = () => qbSelectGround(g);
         card.innerHTML = `
-            <div style="height:70px; background:linear-gradient(135deg,#1B4332,#2D6A4F); position:relative; overflow:hidden;">
-                ${imgUrl ? `<img src="${imgUrl}" style="width:100%;height:100%;object-fit:cover;opacity:0.85;">` : ''}
-                <span style="position:absolute;top:5px;right:5px;background:rgba(0,0,0,0.45);
-                             color:#fff;font-size:0.58rem;padding:2px 7px;border-radius:10px;text-transform:capitalize;">
-                    ${g.sport_type}
-                </span>
-            </div>
-            <div style="padding:8px 10px;">
-                <div style="font-family:'Rajdhani',sans-serif;font-weight:700;font-size:0.88rem;
-                            color:#1B4332;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-                    ${g.name}
-                </div>
-                <div style="font-size:0.65rem;color:#9CA3AF;margin-top:1px;">
-                    ${g.open_time.slice(0,5)} – ${g.close_time.slice(0,5)}
-                    &nbsp;·&nbsp; ₹${g.off_peak_price}+
-                </div>
-            </div>`;
+        <div style="height:70px; background:linear-gradient(135deg,#1B4332,#2D6A4F); position:relative; overflow:hidden;">
+            ${imgUrl ? `<img src="${imgUrl}" style="width:100%;height:100%;object-fit:cover;opacity:0.85;">` : ''}
+            <span style="position:absolute;top:5px;right:5px;background:rgba(0,0,0,0.45);color:#fff;font-size:0.58rem;padding:2px 7px;border-radius:10px;text-transform:capitalize;">${g.sport_type}</span>
+        </div>
+        <div style="padding:8px 10px;">
+            <div style="font-family:'Rajdhani',sans-serif;font-weight:700;font-size:0.88rem;color:#764ba2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${g.name}</div>
+            <div style="font-size:0.65rem;color:#9CA3AF;margin-top:1px;">${g.open_time.slice(0,5)} – ${g.close_time.slice(0,5)} · Min: ${g.min_slot_minutes || 30}min</div>
+        </div>`;
         grid.appendChild(card);
     });
 }
 
 function qbSelectGround(ground) {
-    qbSelectedGround = ground;
-    qbSelectedSlot   = null;
-    qbGroundsData.forEach(g => {
-        const card = document.getElementById('qb-gcard-' + g.id);
-        if (card) card.classList.remove('selected');
-    });
-    const selected = document.getElementById('qb-gcard-' + ground.id);
-    if (selected) selected.classList.add('selected');
+    qbSelectedGround = ground; qbCalculatedPrice = null;
+    qbGroundsData.forEach(g => { const c = document.getElementById('qb-gcard-' + g.id); if (c) c.classList.remove('selected'); });
+    const sel = document.getElementById('qb-gcard-' + ground.id); if (sel) sel.classList.add('selected');
     const imgEl = document.getElementById('qb-ground-img');
-    if (ground.primary_image) {
-        imgEl.src = `/uploads/grounds/${ground.primary_image}`;
-        imgEl.style.display = 'block';
-    } else {
-        imgEl.style.display = 'none';
-    }
-    document.getElementById('qb-ground-name').textContent  = ground.name;
-    document.getElementById('qb-ground-sport').textContent = ground.sport_type;
+    if (ground.primary_image) { imgEl.src = `/uploads/grounds/${ground.primary_image}`; imgEl.style.display = 'block'; } else imgEl.style.display = 'none';
+    document.getElementById('qb-ground-name').textContent = ground.name;
+    document.getElementById('qb-ground-info').textContent = `${ground.open_time.slice(0,5)} – ${ground.close_time.slice(0,5)}  ·  Min ${ground.min_slot_minutes || 30}min`;
     document.getElementById('qb-grounds-grid').style.display    = 'none';
     document.getElementById('qb-grounds-loading').style.display = 'none';
     document.getElementById('qb-ground-preview').style.display  = 'flex';
     document.getElementById('qb-step-booking').style.display    = 'block';
-    const advDays = ground.advance_booking_days ?? 7;
-    const maxDate = new Date();
-    maxDate.setDate(maxDate.getDate() + advDays);
+    document.getElementById('qb-min-slot-label').textContent    = ground.min_slot_minutes || 30;
+    const maxDate = new Date(); maxDate.setDate(maxDate.getDate() + 365);
     document.getElementById('qb-date').max = maxDate.toISOString().split('T')[0];
+    const openTime = ground.open_time ? ground.open_time.slice(0,5) : '08:00';
+    const [oh, om] = openTime.split(':').map(Number);
+    const endMins  = oh * 60 + om + (ground.min_slot_minutes || 30);
+    document.getElementById('qb-start-time').value = openTime;
+    document.getElementById('qb-end-time').value   = `${String(Math.floor(endMins/60)).padStart(2,'0')}:${String(endMins%60).padStart(2,'0')}`;
     qbLoadSlots();
+    qbCalculatePrice();
 }
 
 function qbChangeGround() {
-    qbSelectedGround = null;
-    qbSelectedSlot   = null;
-    document.getElementById('qb-ground-preview').style.display  = 'none';
-    document.getElementById('qb-step-booking').style.display    = 'none';
-    document.getElementById('qb-slot-preview').style.display    = 'none';
-    document.getElementById('qb-grounds-grid').style.display    = 'grid';
-    qbGroundsData.forEach(g => {
-        const card = document.getElementById('qb-gcard-' + g.id);
-        if (card) card.classList.remove('selected');
-    });
+    qbSelectedGround = null; qbCalculatedPrice = null;
+    document.getElementById('qb-ground-preview').style.display = 'none';
+    document.getElementById('qb-step-booking').style.display   = 'none';
+    document.getElementById('qb-price-result').style.display   = 'none';
+    document.getElementById('qb-slots-grid').innerHTML          = '<div style="color:#ADB5BD;font-size:0.8rem;">Select a date...</div>';
+    document.getElementById('qb-grounds-grid').style.display   = 'grid';
+    qbGroundsData.forEach(g => { const c = document.getElementById('qb-gcard-' + g.id); if (c) c.classList.remove('selected'); });
 }
 
+// ── Load pre-defined slots for a date ────────────
 async function qbLoadSlots() {
     if (!qbSelectedGround) return;
     const date = document.getElementById('qb-date').value;
     if (!date) return;
-    qbSelectedSlot = null;
-    document.getElementById('qb-slot-preview').style.display = 'none';
-    document.getElementById('qb-balance-preview').textContent = '';
+
+    const grid = document.getElementById('qb-slots-grid');
+    grid.innerHTML = '<div style="color:#ADB5BD;font-size:0.8rem;"><i class="bi bi-hourglass-split me-1"></i>Loading...</div>';
+
+    // Reset selection
+    qbCalculatedPrice = null;
+    document.getElementById('qb-price-result').style.display = 'none';
     document.getElementById('qb-pricing-summary').style.display = 'none';
     document.getElementById('qb-quick-amounts').style.display = 'none';
-    const container = document.getElementById('qb-slots');
-    container.innerHTML = '<div style="color:#ADB5BD; font-size:0.8rem; padding:8px 0;"><i class="bi bi-hourglass-split me-1"></i>Loading...</div>';
+
     try {
-        const res  = await fetch(`/api/grounds/${qbSelectedGround.id}/slots?date=${date}`);
+        const res  = await fetch(`/grounds/api/slots?ground_id=${qbSelectedGround.id}&date=${date}`, { credentials: 'same-origin' });
         const data = await res.json();
-        if (!data.success || !data.data.slots.length) {
-            container.innerHTML = '<div style="color:#ADB5BD; font-size:0.8rem; padding:8px 0;">No slots available for this date</div>';
+        const slots = data.slots || [];
+
+        if (!slots.length) {
+            grid.innerHTML = '<div style="color:#ADB5BD;font-size:0.8rem;">No pre-defined slots — use custom time below</div>';
             return;
         }
-        qbRenderSlots(data.data.slots);
+
+        // Filter past slots for today
+        const todayStr = new Date().toLocaleDateString('en-CA');
+        const nowMins  = new Date().getHours()*60 + new Date().getMinutes();
+
+        grid.innerHTML = slots.map(s => {
+            const isBooked   = s.status === 'booked';
+            const isBlocked  = s.status === 'blocked';
+            const [h,m]      = s.start_time.slice(0,5).split(':').map(Number);
+            const isPast     = date === todayStr && (h*60+m) <= nowMins;
+            const disabled   = isBooked || isBlocked || isPast;
+
+            let bg, color, border, tag;
+            // Priority: isPast > isBooked > isBlocked > available
+            // Past slots always show as PAST regardless of block status
+            if (isPast) {
+                bg     = '#f3f4f6';
+                color  = '#9CA3AF';
+                border = '1.5px solid #e5e7eb';
+                tag    = '<br><span style="font-size:0.6rem;">PAST</span>';
+            } else if (isBooked) {
+                bg     = 'rgba(217,4,41,0.06)';
+                color  = '#D90429';
+                border = '1.5px solid rgba(217,4,41,0.2)';
+                tag    = '<br><span style="font-size:0.6rem;letter-spacing:1px;">BOOKED</span>';
+            } else if (isBlocked) {
+                bg     = 'rgba(180,83,9,0.07)';
+                color  = '#b45309';
+                border = '1.5px solid rgba(180,83,9,0.25)';
+                tag    = '<br><span style="font-size:0.6rem;letter-spacing:1px;">🔧 MAINTENANCE</span>';
+            } else {
+                bg     = 'rgba(27,67,50,0.05)';
+                color  = '#1B4332';
+                border = '1.5px solid rgba(27,67,50,0.2)';
+                tag    = '';
+            }
+
+            return `<div style="padding:8px 12px; border-radius:8px; text-align:center;
+                font-family:Rajdhani,sans-serif; font-weight:600; font-size:0.82rem;
+                min-width:108px; line-height:1.45; cursor:${disabled?'not-allowed':'pointer'};
+                background:${bg}; color:${color}; border:${border}; transition:all .15s;"
+                id="qbslot-${s.id}"
+                ${disabled ? '' : `onclick="qbSelectPreSlot('${s.id}','${s.start_time.slice(0,5)}','${s.end_time.slice(0,5)}',${s.price})"`}>
+                ${s.start_time.slice(0,5)} – ${s.end_time.slice(0,5)}
+                <br><span style="font-size:0.72rem;opacity:0.8;">${(isBlocked && !isPast) ? 'Blocked' : '\u20B9'+Number(s.price).toLocaleString('en-IN')}</span>
+                ${tag}
+            </div>`;
+        }).join('');
+
     } catch(e) {
-        container.innerHTML = '<div style="color:#D90429; font-size:0.8rem; padding:8px 0;">Failed to load slots</div>';
+        grid.innerHTML = '<div style="color:#D90429;font-size:0.8rem;">Failed to load slots</div>';
     }
 }
 
-function qbRenderSlots(slots) {
-    const container = document.getElementById('qb-slots');
-    container.innerHTML = '';
-    slots.forEach(slot => {
-        const isBooked    = slot.availability === 'booked';
-        const isBlocked   = slot.availability === 'blocked';
-        const isUnavail   = slot.availability === 'unavailable';
-        const isAvailable = slot.availability === 'available';
-        let bg, color, border, extra = '';
-        if (isBooked || isUnavail) {
-            bg = 'rgba(217,4,41,0.06)'; color = '#D90429';
-            border = '1px solid rgba(217,4,41,0.2)';
-            extra = '<br><span style="font-size:0.6rem; letter-spacing:1px;">' + (isBooked ? 'BOOKED' : 'UNAVAIL') + '</span>';
-        } else if (isBlocked) {
-            bg = '#F8F9FA'; color = '#ADB5BD';
-            border = '1px solid #DEE2E6';
-            extra = '<br><span style="font-size:0.6rem; letter-spacing:1px;">BLOCKED</span>';
-        } else {
-            bg = 'rgba(27,67,50,0.05)'; color = '#1B4332';
-            border = '1px solid rgba(27,67,50,0.2)';
-        }
-        const el = document.createElement('div');
-        el.id = 'qb-slot-' + slot.slot_id;
-        el.style.cssText = `padding:8px 12px; border-radius:8px; text-align:center;
-            font-family:Rajdhani,sans-serif; font-weight:600; font-size:0.82rem;
-            min-width:108px; transition:all 0.15s; line-height:1.45;
-            background:${bg}; color:${color}; border:${border};
-            cursor:${isAvailable ? 'pointer' : 'default'};`;
-        el.innerHTML = slot.start_time.slice(0,5) + ' \u2013 ' + slot.end_time.slice(0,5) +
-            '<br><span style="font-size:0.72rem; opacity:0.8;">\u20B9' + slot.price + '</span>' + extra;
-        if (isAvailable) {
-            el.onclick = () => qbSelectSlot(slot.slot_id, slot.start_time, slot.end_time, slot.price, slot.slot_type);
-        }
-        if (isBooked && slot.customer_name) {
-            const detailsBtn = document.createElement('button');
-            detailsBtn.textContent = 'Details';
-            detailsBtn.style.cssText = `display:block; width:100%; margin-top:5px;
-                background:rgba(217,4,41,0.1); border:1px solid rgba(217,4,41,0.25);
-                color:#D90429; border-radius:5px; font-size:0.6rem; font-weight:700;
-                letter-spacing:0.8px; padding:2px 0; cursor:pointer; font-family:Rajdhani,sans-serif;
-                transition:background 0.15s;`;
-            detailsBtn.onmouseover = () => detailsBtn.style.background = 'rgba(217,4,41,0.18)';
-            detailsBtn.onmouseout  = () => detailsBtn.style.background = 'rgba(217,4,41,0.1)';
-            detailsBtn.onclick = (e) => { e.stopPropagation(); qbShowBookingDetails(slot); };
-            el.appendChild(detailsBtn);
-        }
-        container.appendChild(el);
-    });
-}
+let qbActivePreSlotId = null;
 
-function qbShowBookingDetails(slot) {
-    const existing = document.getElementById('qb-booking-popup');
-    if (existing) existing.remove();
-    const payBadge = slot.payment_status === 'paid'
-        ? 'background:rgba(27,67,50,0.1);color:#1B4332;border:1px solid rgba(27,67,50,0.2);'
-        : slot.payment_status === 'partial'
-        ? 'background:rgba(245,158,11,0.1);color:#b45309;border:1px solid rgba(245,158,11,0.25);'
-        : 'background:rgba(217,4,41,0.07);color:#D90429;border:1px solid rgba(217,4,41,0.2);';
-    const typeIcon = slot.booking_type === 'online' ? 'bi-globe'
-        : slot.booking_type === 'phone' ? 'bi-telephone' : 'bi-person-walking';
-    const popup = document.createElement('div');
-    popup.id = 'qb-booking-popup';
-    popup.style.cssText = `position:fixed; inset:0; z-index:2000;
-        display:flex; align-items:center; justify-content:center;
-        background:rgba(0,0,0,0.45); backdrop-filter:blur(2px);
-        animation:qbFadeIn 0.18s ease;`;
-    popup.onclick = (e) => { if (e.target === popup) popup.remove(); };
-    popup.innerHTML = `
-        <div style="background:#fff; border-radius:16px; width:310px; max-width:90vw;
-                    box-shadow:0 20px 60px rgba(0,0,0,0.2); overflow:hidden;
-                    animation:qbSlideUp 0.2s cubic-bezier(0.4,0,0.2,1);">
-            <div style="background:linear-gradient(135deg,#081C15,#1B4332); padding:16px 18px 14px;
-                        display:flex; align-items:center; justify-content:space-between;">
-                <div>
-                    <div style="font-family:'Rajdhani',sans-serif; font-weight:700; font-size:1rem;
-                                letter-spacing:1.5px; color:#fff;">SLOT BOOKED</div>
-                    <div style="font-size:0.7rem; color:rgba(255,255,255,0.6); margin-top:2px;">
-                        ${slot.start_time.slice(0,5)} – ${slot.end_time.slice(0,5)}
-                    </div>
-                </div>
-                <button onclick="document.getElementById('qb-booking-popup').remove()"
-                    style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.15);
-                           color:#fff; border-radius:7px; width:28px; height:28px; cursor:pointer;
-                           display:flex; align-items:center; justify-content:center; font-size:0.8rem;">
-                    <i class="bi bi-x-lg"></i>
-                </button>
-            </div>
-            <div style="padding:14px 18px 0;">
-                <div style="background:#F8F9FA; border-radius:8px; padding:10px 14px;
-                            display:flex; align-items:center; justify-content:space-between;">
-                    <span style="font-size:0.65rem; color:#9ca3af; text-transform:uppercase; letter-spacing:1px; font-weight:600;">Booking No.</span>
-                    <span style="font-family:'Rajdhani',sans-serif; font-weight:700; font-size:0.95rem; color:#1B4332; letter-spacing:0.5px;">${slot.booking_no || '—'}</span>
-                </div>
-            </div>
-            <div style="padding:12px 18px; display:flex; flex-direction:column; gap:10px;">
-                <div style="display:flex; align-items:center; gap:12px;">
-                    <div style="width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg,#1B4332,#2D6A4F);
-                                display:flex; align-items:center; justify-content:center;
-                                font-family:'Rajdhani',sans-serif; font-weight:700; color:#fff; font-size:1rem; flex-shrink:0;">
-                        ${slot.customer_name.charAt(0).toUpperCase()}
-                    </div>
-                    <div>
-                        <div style="font-weight:600; color:#111827; font-size:0.88rem;">${slot.customer_name}</div>
-                        <div style="font-size:0.75rem; color:#6b7280; margin-top:1px;"><i class="bi bi-telephone me-1"></i>${slot.customer_phone}</div>
-                    </div>
-                </div>
-                <div style="height:1px; background:#f3f4f6;"></div>
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-                    <div style="background:#f9fafb; border-radius:8px; padding:10px 12px;">
-                        <div style="font-size:0.62rem; color:#9ca3af; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:3px;">Type</div>
-                        <div style="font-size:0.82rem; font-weight:600; color:#374151; display:flex; align-items:center; gap:5px;">
-                            <i class="bi ${typeIcon}" style="font-size:0.75rem;"></i>
-                            <span style="text-transform:capitalize;">${slot.booking_type || '—'}</span>
-                        </div>
-                    </div>
-                    <div style="background:#f9fafb; border-radius:8px; padding:10px 12px;">
-                        <div style="font-size:0.62rem; color:#9ca3af; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:3px;">Payment</div>
-                        <span style="font-size:0.72rem; font-weight:700; padding:2px 8px; border-radius:20px; ${payBadge} text-transform:capitalize;">${slot.payment_status || '—'}</span>
-                    </div>
-                    <div style="background:#f9fafb; border-radius:8px; padding:10px 12px;">
-                        <div style="font-size:0.62rem; color:#9ca3af; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:3px;">Total</div>
-                        <div style="font-size:0.88rem; font-weight:700; color:#111827;">₹${slot.total_amount || '—'}</div>
-                    </div>
-                    <div style="background:#f9fafb; border-radius:8px; padding:10px 12px;">
-                        <div style="font-size:0.62rem; color:#9ca3af; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:3px;">Paid</div>
-                        <div style="font-size:0.88rem; font-weight:700; color:#1B4332;">₹${slot.advance_amount || 0}</div>
-                    </div>
-                </div>
-            </div>
-        </div>`;
-    document.body.appendChild(popup);
-}
-
-function qbSelectSlot(id, start, end, price, type) {
-    if (qbSelectedSlot) {
-        const prev = document.getElementById('qb-slot-' + qbSelectedSlot.id);
-        if (prev) {
-            prev.style.background = 'rgba(27,67,50,0.05)';
-            prev.style.border = '1px solid rgba(27,67,50,0.2)';
-            prev.style.color = '#1B4332';
-        }
+function qbSelectPreSlot(slotId, start, end, price) {
+    // Deselect previous
+    if (qbActivePreSlotId) {
+        const prev = document.getElementById('qbslot-' + qbActivePreSlotId);
+        if (prev) { prev.style.background='rgba(27,67,50,0.05)'; prev.style.border='1.5px solid rgba(27,67,50,0.2)'; }
     }
-    const el = document.getElementById('qb-slot-' + id);
-    if (el) {
-        el.style.background = 'rgba(27,67,50,0.12)';
-        el.style.border = '1px solid #1B4332';
-        el.style.color = '#1B4332';
-        el.style.fontWeight = '700';
-    }
-    qbSelectedSlot = { id, start, end, price, type };
+    // Select new
+    const el = document.getElementById('qbslot-' + slotId);
+    if (el) { el.style.background='rgba(27,67,50,0.15)'; el.style.border='1.5px solid #1B4332'; el.style.fontWeight='800'; }
+    qbActivePreSlotId = slotId;
 
-    const date    = document.getElementById('qb-date').value;
-    const dateFmt = new Date(date + 'T00:00:00').toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' });
-    document.getElementById('qb-slot-text').textContent  = dateFmt + '  \u2022  ' + start.slice(0,5) + ' \u2013 ' + end.slice(0,5);
-    document.getElementById('qb-slot-price').textContent = '\u20B9' + price + '  (' + (type === 'peak' ? 'Peak' : 'Off-peak') + ')';
-    document.getElementById('qb-slot-preview').style.display = 'block';
+    // Set time inputs
+    document.getElementById('qb-start-time').value = start;
+    document.getElementById('qb-end-time').value   = end;
 
-    // Show original price label + quick amounts
+    // Set calculated price directly (already stored in slot)
+    qbCalculatedPrice = {
+        total_amount: price, duration_minutes: 0,
+        normal_minutes: 0, peak_minutes: 0,
+        normal_amount: 0, peak_amount: 0,
+        is_mixed: false, _finalTotal: price
+    };
+
+    // Show price result
+    const resultDiv = document.getElementById('qb-price-result');
+    resultDiv.style.display  = 'block';
+    resultDiv.style.background = 'rgba(27,67,50,0.06)';
+    resultDiv.style.border     = '1px solid rgba(27,67,50,0.2)';
+    resultDiv.style.color      = '#1B4332';
+    resultDiv.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:0.75rem;font-weight:600;"><i class="bi bi-clock me-1"></i>${start} – ${end}</span>
+        <span style="font-family:'Rajdhani',sans-serif;font-weight:800;font-size:1.1rem;">₹${Number(price).toLocaleString('en-IN')}</span>
+    </div>`;
+
     document.getElementById('qb-original-price-label').textContent = '₹' + price;
     document.getElementById('qb-quick-amounts').style.display = 'flex';
-
-    // Reset pricing fields
-    document.getElementById('qb-custom-price').value   = '';
-    document.getElementById('qb-discount-value').value = '';
-    document.getElementById('qb-surcharge').value      = '';
-
     qbUpdatePricingSummary();
-    qbUpdateBalance();
 }
 
-// ── Pricing Summary ───────────────────────────────
-function qbUpdatePricingSummary() {
-    if (!qbSelectedSlot) return;
-
-    const original     = parseFloat(qbSelectedSlot.price);
-    const customPrice  = parseFloat(document.getElementById('qb-custom-price').value) || 0;
-    const discType     = document.getElementById('qb-discount-type').value;
-    const discVal      = parseFloat(document.getElementById('qb-discount-value').value) || 0;
-    const surcharge    = parseFloat(document.getElementById('qb-surcharge').value) || 0;
-
-    // Update discount suffix
-    document.getElementById('qb-discount-suffix').textContent = discType === 'percent' ? '%' : '₹';
-
-    const base = customPrice > 0 ? customPrice : original;
-    let disc   = 0;
-    if (discVal > 0) {
-        disc = discType === 'percent' ? Math.round((base * discVal) / 100) : discVal;
-        disc = Math.min(disc, base);
+function qbOnCustomTimeChange() {
+    // Clear pre-slot selection when custom time is used
+    if (qbActivePreSlotId) {
+        const prev = document.getElementById('qbslot-' + qbActivePreSlotId);
+        if (prev) { prev.style.background='rgba(27,67,50,0.05)'; prev.style.border='1.5px solid rgba(27,67,50,0.2)'; prev.style.fontWeight='600'; }
+        qbActivePreSlotId = null;
     }
-    const finalTotal = base - disc + surcharge;
+    qbCalculatePrice();
+}
 
+async function qbCalculatePrice() {
+    if (!qbSelectedGround) return;
+    const startTime = document.getElementById('qb-start-time').value;
+    const endTime   = document.getElementById('qb-end-time').value;
+    const resultDiv = document.getElementById('qb-price-result');
+    if (!startTime || !endTime) { resultDiv.style.display = 'none'; qbCalculatedPrice = null; return; }
+    clearTimeout(qbPriceDebounce);
+    qbPriceDebounce = setTimeout(async () => {
+        resultDiv.style.display = 'block';
+        resultDiv.style.cssText += ';background:#f9fafb;border:1px solid #e5e7eb;color:#6b7280;border-radius:10px;padding:12px 14px;margin-bottom:16px;';
+        resultDiv.innerHTML = '<i class="bi bi-calculator me-1"></i> Calculating...';
+        try {
+            const res  = await fetch('/bookings/api/calculate-price', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin',
+                body: JSON.stringify({ ground_id: qbSelectedGround.id, start_time: startTime, end_time: endTime })
+            });
+            const data = await res.json();
+            if (data.success) {
+                qbCalculatedPrice = data.data;
+                const p   = data.data;
+                const hrs = Math.floor(p.duration_minutes / 60), mins = p.duration_minutes % 60;
+                const dur = hrs > 0 ? `${hrs}h${mins > 0 ? ` ${mins}m` : ''}` : `${mins}m`;
+                let html = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                    <span style="font-size:0.75rem;color:#374151;font-weight:600;"><i class="bi bi-clock me-1"></i>${startTime} – ${endTime} (${dur})</span>
+                    <span style="font-family:'Rajdhani',sans-serif;font-weight:800;font-size:1.1rem;color:#764ba2;">₹${p.total_amount}</span>
+                </div>`;
+                if (p.is_mixed) {
+                    html += `<div style="font-size:0.7rem;color:#6b7280;line-height:1.6;">Normal: ${p.normal_minutes}min = ₹${p.normal_amount}<br>Peak: ${p.peak_minutes}min = ₹${p.peak_amount}</div>`;
+                } else {
+                    html += `<div style="font-size:0.7rem;color:#6b7280;">${p.peak_minutes > 0 ? 'Peak' : 'Normal'} rate applied</div>`;
+                }
+                resultDiv.style.background = 'rgba(27,67,50,0.06)'; resultDiv.style.border = '1px solid rgba(27,67,50,0.2)'; resultDiv.style.color = '#764ba2';
+                resultDiv.innerHTML = html;
+                document.getElementById('qb-original-price-label').textContent = '₹' + p.total_amount;
+                document.getElementById('qb-quick-amounts').style.display = 'flex';
+                qbUpdatePricingSummary();
+            } else {
+                qbCalculatedPrice = null;
+                resultDiv.style.background = 'rgba(217,4,41,0.06)'; resultDiv.style.border = '1px solid rgba(217,4,41,0.2)'; resultDiv.style.color = '#D90429';
+                resultDiv.innerHTML = `<i class="bi bi-exclamation-circle me-1"></i>${data.message}`;
+                document.getElementById('qb-pricing-summary').style.display = 'none';
+                document.getElementById('qb-quick-amounts').style.display   = 'none';
+                document.getElementById('qb-original-price-label').textContent = '—';
+            }
+        } catch (e) {
+            qbCalculatedPrice = null;
+            resultDiv.style.background = 'rgba(217,4,41,0.06)'; resultDiv.style.border = '1px solid rgba(217,4,41,0.2)'; resultDiv.style.color = '#D90429';
+            resultDiv.innerHTML = '<i class="bi bi-wifi-off me-1"></i>Connection error';
+        }
+    }, 400);
+}
+
+function qbUpdatePricingSummary() {
+    if (!qbCalculatedPrice) return;
+    const original    = qbCalculatedPrice.total_amount;
+    const customPrice = parseFloat(document.getElementById('qb-custom-price').value) || 0;
+    const discType    = document.getElementById('qb-discount-type').value;
+    const discVal     = parseFloat(document.getElementById('qb-discount-value').value) || 0;
+    const surcharge   = parseFloat(document.getElementById('qb-surcharge').value) || 0;
+    document.getElementById('qb-discount-suffix').textContent = discType === 'percent' ? '%' : '₹';
+    const base = customPrice > 0 ? customPrice : original;
+    let disc = 0;
+    if (discVal > 0) { disc = discType === 'percent' ? Math.round((base * discVal) / 100) : discVal; disc = Math.min(disc, base); }
+    const finalTotal = base - disc + surcharge;
     const summaryDiv = document.getElementById('qb-pricing-summary');
     const rowsDiv    = document.getElementById('qb-summary-rows');
-
-    // Always show summary once slot is selected
     summaryDiv.style.display = 'block';
-
-    let rows = '';
-    rows += `<div style="display:flex;justify-content:space-between;font-size:0.78rem;color:#6B7280;margin-bottom:5px;">
-        <span>Slot Price</span><span>₹${original}</span></div>`;
-    if (customPrice > 0) {
-        rows += `<div style="display:flex;justify-content:space-between;font-size:0.78rem;color:#0066ff;margin-bottom:5px;">
-            <span>Custom Override</span><span>₹${customPrice}</span></div>`;
+    let rows = `<div style="display:flex;justify-content:space-between;font-size:0.78rem;color:#6B7280;margin-bottom:5px;"><span>Calculated Price</span><span>₹${original}</span></div>`;
+    if (qbCalculatedPrice.is_mixed) {
+        rows += `<div style="display:flex;justify-content:space-between;font-size:0.72rem;color:#9CA3AF;margin-bottom:5px;"><span>&nbsp;&nbsp;Normal (${qbCalculatedPrice.normal_minutes}min)</span><span>₹${qbCalculatedPrice.normal_amount}</span></div>`;
+        rows += `<div style="display:flex;justify-content:space-between;font-size:0.72rem;color:#9CA3AF;margin-bottom:5px;"><span>&nbsp;&nbsp;Peak (${qbCalculatedPrice.peak_minutes}min)</span><span>₹${qbCalculatedPrice.peak_amount}</span></div>`;
     }
-    if (disc > 0) {
-        rows += `<div style="display:flex;justify-content:space-between;font-size:0.78rem;color:#D90429;margin-bottom:5px;">
-            <span>Discount${discType === 'percent' ? ` (${discVal}%)` : ''}</span><span>- ₹${disc}</span></div>`;
-    }
-    if (surcharge > 0) {
-        const sNote = document.getElementById('qb-surcharge-note').value.trim();
-        rows += `<div style="display:flex;justify-content:space-between;font-size:0.78rem;color:#b45309;margin-bottom:5px;">
-            <span>Surcharge${sNote ? ` (${sNote})` : ''}</span><span>+ ₹${surcharge}</span></div>`;
-    }
+    if (customPrice > 0) rows += `<div style="display:flex;justify-content:space-between;font-size:0.78rem;color:#0066ff;margin-bottom:5px;"><span>Custom Override</span><span>₹${customPrice}</span></div>`;
+    if (disc > 0) rows += `<div style="display:flex;justify-content:space-between;font-size:0.78rem;color:#D90429;margin-bottom:5px;"><span>Discount${discType === 'percent' ? ` (${discVal}%)` : ''}</span><span>- ₹${disc}</span></div>`;
+    if (surcharge > 0) { const sNote = document.getElementById('qb-surcharge-note').value.trim(); rows += `<div style="display:flex;justify-content:space-between;font-size:0.78rem;color:#b45309;margin-bottom:5px;"><span>Surcharge${sNote ? ` (${sNote})` : ''}</span><span>+ ₹${surcharge}</span></div>`; }
     rowsDiv.innerHTML = rows;
     document.getElementById('qb-final-total').textContent = '₹' + finalTotal;
-
-    // Sync advance balance with new total
-    qbSelectedSlot._finalTotal = finalTotal;
+    qbCalculatedPrice._finalTotal = finalTotal;
     qbUpdateBalance();
 }
 
 function qbUpdateBalance() {
-    if (!qbSelectedSlot) return;
-    const total   = qbSelectedSlot._finalTotal || qbSelectedSlot.price;
+    if (!qbCalculatedPrice) return;
+    const total   = qbCalculatedPrice._finalTotal || qbCalculatedPrice.total_amount;
     const advance = parseFloat(document.getElementById('qb-advance').value) || 0;
     const balance = total - advance;
-    const el = document.getElementById('qb-balance-preview');
-    if (advance > total) {
-        el.style.color = '#D90429'; el.textContent = '\u26A0 Advance cannot exceed \u20B9' + total;
-    } else if (advance === total) {
-        el.style.color = '#2D6A4F'; el.textContent = '\u2713 Fully paid \u2014 balance \u20B90';
-    } else if (advance > 0) {
-        el.style.color = '#495057'; el.textContent = 'Balance remaining: \u20B9' + balance;
-    } else {
-        el.style.color = '#ADB5BD'; el.textContent = 'Full amount due: \u20B9' + total;
-    }
+    const el      = document.getElementById('qb-balance-preview');
+    if      (advance > total)  { el.style.color = '#D90429'; el.textContent = '\u26A0 Advance cannot exceed \u20B9' + total; }
+    else if (advance === total){ el.style.color = '#2D6A4F'; el.textContent = '\u2713 Fully paid \u2014 balance \u20B90'; }
+    else if (advance > 0)      { el.style.color = '#495057'; el.textContent = 'Balance remaining: \u20B9' + balance; }
+    else                       { el.style.color = '#ADB5BD'; el.textContent = 'Full amount due: \u20B9' + total; }
 }
-
-function qbSetAdvance(amt) {
-    document.getElementById('qb-advance').value = amt;
-    qbUpdateBalance();
-}
-function qbSetHalf() {
-    const total = qbSelectedSlot?._finalTotal || qbSelectedSlot?.price || 0;
-    document.getElementById('qb-advance').value = Math.floor(total / 2);
-    qbUpdateBalance();
-}
-function qbSetFull() {
-    const total = qbSelectedSlot?._finalTotal || qbSelectedSlot?.price || 0;
-    document.getElementById('qb-advance').value = total;
-    qbUpdateBalance();
-}
+function qbSetHalf() { const t = qbCalculatedPrice?._finalTotal || qbCalculatedPrice?.total_amount || 0; document.getElementById('qb-advance').value = Math.floor(t/2); qbUpdateBalance(); }
+function qbSetFull() { const t = qbCalculatedPrice?._finalTotal || qbCalculatedPrice?.total_amount || 0; document.getElementById('qb-advance').value = t; qbUpdateBalance(); }
 
 function qbShowMsg(msg, isError = false) {
     const el = document.getElementById('qb-msg');
     el.textContent = msg; el.style.display = 'block';
     el.style.background = isError ? 'rgba(217,4,41,0.07)' : 'rgba(27,67,50,0.07)';
-    el.style.border = isError ? '1px solid rgba(217,4,41,0.2)' : '1px solid rgba(27,67,50,0.2)';
-    el.style.color = isError ? '#D90429' : '#1B4332';
+    el.style.border     = isError ? '1px solid rgba(217,4,41,0.2)' : '1px solid rgba(27,67,50,0.2)';
+    el.style.color      = isError ? '#D90429' : '#1B4332';
     if (!isError) setTimeout(() => { el.style.display = 'none'; }, 5000);
 }
 
+let qbSelectedCustomer = null, qbSearchTimer = null;
+function qbSearchCustomers(val) {
+    clearTimeout(qbSearchTimer);
+    const results = document.getElementById('qb-search-results');
+    if (!val || val.trim().length < 1) { results.style.display = 'none'; return; }
+    qbSearchTimer = setTimeout(async () => {
+        try { const res = await fetch(`/customers/search?q=${encodeURIComponent(val.trim())}`, { credentials: 'same-origin' }); const data = await res.json(); qbRenderSearchResults(data.customers || []); }
+        catch (e) { results.style.display = 'none'; }
+    }, 280);
+}
+function qbRenderSearchResults(customers) {
+    const results = document.getElementById('qb-search-results'); results.innerHTML = '';
+    const newItem = document.createElement('div');
+    newItem.style.cssText = 'padding:10px 14px;cursor:pointer;display:flex;align-items:center;gap:10px;border-bottom:1px solid #f3f4f6;';
+    newItem.innerHTML = `<div style="width:30px;height:30px;border-radius:50%;background:#F3F4F6;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="bi bi-person-plus" style="color:#6B7280;font-size:0.85rem;"></i></div><div><div style="font-weight:600;font-size:0.82rem;color:#374151;">+ Add as New Customer</div><div style="font-size:0.68rem;color:#9CA3AF;">Fill in details manually below</div></div>`;
+    newItem.onmouseover = () => newItem.style.background = '#F9FAFB'; newItem.onmouseout = () => newItem.style.background = '';
+    newItem.onclick = () => { qbClearCustomer(); results.style.display = 'none'; document.getElementById('qb-customer-search').value = ''; };
+    results.appendChild(newItem);
+    customers.forEach(c => {
+        const item = document.createElement('div'); item.style.cssText = 'padding:10px 14px;cursor:pointer;display:flex;align-items:center;gap:10px;border-bottom:1px solid #f3f4f6;';
+        const initial = (c.name || '?').charAt(0).toUpperCase();
+        const bText   = c.total_bookings > 0 ? `${c.total_bookings} booking${c.total_bookings > 1 ? 's' : ''}` : 'New customer';
+        const pendingHtml = (c.pending_balance > 0)
+            ? `&nbsp;&middot;&nbsp; <span style="color:#dc2626;font-weight:600;">₹${Number(c.pending_balance).toLocaleString('en-IN')} due</span>`
+            : '';
+        item.innerHTML = `<div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#1B4332,#2D6A4F);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'Rajdhani',sans-serif;font-weight:700;color:#fff;font-size:0.88rem;">${initial}</div><div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:0.82rem;color:#111827;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${c.name}</div><div style="font-size:0.68rem;color:#6B7280;margin-top:1px;">\uD83D\uDCDE ${c.phone} &nbsp;&middot;&nbsp; ${bText}${pendingHtml}</div></div>`;
+        item.onmouseover = () => item.style.background = '#F0FDF4'; item.onmouseout = () => item.style.background = '';
+        item.onclick = () => qbSelectCustomer(c); results.appendChild(item);
+    });
+    if (!customers.length) { const nr = document.createElement('div'); nr.style.cssText = 'padding:10px 14px;font-size:0.8rem;color:#9CA3AF;text-align:center;'; nr.textContent = 'No matching customers found'; results.appendChild(nr); }
+    results.style.display = 'block';
+}
+function qbSelectCustomer(c) {
+    qbSelectedCustomer = c;
+    document.getElementById('qb-name').value  = c.name;
+    document.getElementById('qb-phone').value = c.phone;
+    document.getElementById('qb-email').value = c.email || '';
+    document.getElementById('qb-new-customer-fields').style.display = 'none';
+    const chip = document.getElementById('qb-selected-customer-chip'); chip.style.display = 'flex';
+    document.getElementById('qb-chip-avatar').textContent = c.name.charAt(0).toUpperCase();
+    document.getElementById('qb-chip-name').textContent   = c.name;
+    document.getElementById('qb-chip-phone').textContent  = '\uD83D\uDCDE ' + c.phone + (c.email ? '  \u00B7  ' + c.email : '');
+    document.getElementById('qb-customer-search').value   = '';
+    document.getElementById('qb-search-results').style.display = 'none';
+}
+function qbClearCustomer() {
+    qbSelectedCustomer = null;
+    ['qb-name','qb-phone','qb-email','qb-customer-search'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('qb-new-customer-fields').style.display    = 'block';
+    document.getElementById('qb-selected-customer-chip').style.display = 'none';
+    document.getElementById('qb-search-results').style.display         = 'none';
+}
+document.addEventListener('click', (e) => {
+    const sw = document.getElementById('qb-customer-search'); const r = document.getElementById('qb-search-results');
+    if (r && sw && !sw.contains(e.target) && !r.contains(e.target)) r.style.display = 'none';
+});
+
 async function qbSubmit() {
-    if (!qbSelectedGround) { qbShowMsg('Please select a ground first', true); return; }
-    if (!qbSelectedSlot)   { qbShowMsg('Please select a slot first', true); return; }
+    if (!qbSelectedGround)  { qbShowMsg('Please select a ground first', true); return; }
+    if (!qbCalculatedPrice) { qbShowMsg('Please set a valid start and end time first', true); return; }
+    const startTime    = document.getElementById('qb-start-time').value;
+    const endTime      = document.getElementById('qb-end-time').value;
+    const date         = document.getElementById('qb-date').value;
+    const name         = document.getElementById('qb-name').value.trim();
+    const phone        = document.getElementById('qb-phone').value.trim();
+    const email        = document.getElementById('qb-email').value.trim();
+    const type         = document.getElementById('qb-type').value;
+    const mode         = document.getElementById('qb-pay-mode').value;
+    const advance      = parseFloat(document.getElementById('qb-advance').value) || 0;
+    const notes        = document.getElementById('qb-notes').value.trim();
+    const customPrice  = parseFloat(document.getElementById('qb-custom-price').value) || 0;
+    const discType     = document.getElementById('qb-discount-type').value;
+    const discVal      = parseFloat(document.getElementById('qb-discount-value').value) || 0;
+    const surcharge    = parseFloat(document.getElementById('qb-surcharge').value) || 0;
+    const surchNote    = document.getElementById('qb-surcharge-note').value.trim();
+    const pricingNote  = document.getElementById('qb-pricing-note').value.trim();
+    const finalTotal   = qbCalculatedPrice._finalTotal || qbCalculatedPrice.total_amount;
 
-    const name        = document.getElementById('qb-name').value.trim();
-    const phone       = document.getElementById('qb-phone').value.trim();
-    const email       = document.getElementById('qb-email').value.trim();
-    const type        = document.getElementById('qb-type').value;
-    const mode        = document.getElementById('qb-pay-mode').value;
-    const advance     = parseFloat(document.getElementById('qb-advance').value) || 0;
-    const notes       = document.getElementById('qb-notes').value.trim();
-    const date        = document.getElementById('qb-date').value;
-    const customPrice = parseFloat(document.getElementById('qb-custom-price').value) || 0;
-    const discType    = document.getElementById('qb-discount-type').value;
-    const discVal     = parseFloat(document.getElementById('qb-discount-value').value) || 0;
-    const surcharge   = parseFloat(document.getElementById('qb-surcharge').value) || 0;
-    const surchNote   = document.getElementById('qb-surcharge-note').value.trim();
-    const pricingNote = document.getElementById('qb-pricing-note').value.trim();
-    const finalTotal  = qbSelectedSlot._finalTotal || qbSelectedSlot.price;
-
-    if (!name)  { qbShowMsg('Customer name is required', true); return; }
+    if (!name)                       { qbShowMsg('Customer name is required', true); return; }
     if (!/^[0-9]{10}$/.test(phone)) { qbShowMsg('Enter a valid 10-digit phone number', true); return; }
-    if (advance > finalTotal) { qbShowMsg('Advance cannot exceed \u20B9' + finalTotal, true); return; }
+    if (advance > finalTotal)        { qbShowMsg('Advance cannot exceed \u20B9' + finalTotal, true); return; }
 
     const btn = document.getElementById('qb-submit-btn');
     btn.disabled = true; btn.style.opacity = '0.65';
@@ -748,44 +637,137 @@ async function qbSubmit() {
     try {
         const res = await fetch('/bookings/quick', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
             body: JSON.stringify({
-                ground_id:       qbSelectedGround.id,
-                slot_id:         qbSelectedSlot.id,
-                slot_date:       date,
-                start_time:      qbSelectedSlot.start,
-                end_time:        qbSelectedSlot.end,
-                customer_name:   name,
-                customer_phone:  phone,
-                customer_email:  email || undefined,
-                booking_type:    type,
-                advance_amount:  advance,
-                payment_mode:    mode,
-                notes:           notes || undefined,
-                custom_price:    customPrice > 0 ? customPrice : undefined,
-                discount_type:   discVal > 0 ? discType : undefined,
-                discount_value:  discVal > 0 ? discVal : undefined,
+                ground_id: qbSelectedGround.id, slot_date: date,
+                start_time: startTime, end_time: endTime,
+                customer_name: name, customer_phone: phone,
+                customer_email: email || undefined, booking_type: type,
+                advance_amount: advance, payment_mode: mode,
+                notes: notes || undefined,
+                custom_price: customPrice > 0 ? customPrice : undefined,
+                discount_type: discVal > 0 ? discType : undefined,
+                discount_value: discVal > 0 ? discVal : undefined,
                 surcharge_amount: surcharge > 0 ? surcharge : undefined,
-                surcharge_note:  surchNote || undefined,
-                pricing_note:    pricingNote || undefined
+                surcharge_note: surchNote || undefined,
+                pricing_note: pricingNote || undefined,
             })
         });
         const data = await res.json();
         if (data.success) {
             qbShowMsg('\u2713 Booking confirmed! ' + data.data.booking_no);
             btn.innerHTML = '<i class="bi bi-check-circle me-2"></i>BOOKING CONFIRMED!';
-            btn.style.background = 'linear-gradient(135deg,#14532D,#2D6A4F)';
-            btn.style.opacity = '1';
-            setTimeout(() => { window.location.href = '/bookings/' + data.data.booking_id; }, 1500);
+            btn.style.background = 'linear-gradient(135deg,#14532D,#2D6A4F)'; btn.style.opacity = '1';
+            addBookingToTable(data.data); updateStatsCounters(data.data);
+            setTimeout(() => { closeQuickBook(); qbResetForm(); btn.disabled = false; btn.style.background = 'linear-gradient(135deg,#081C15,#1B4332)'; btn.innerHTML = '<i class="bi bi-lightning-charge me-2"></i>CONFIRM BOOKING'; btn.style.opacity = '1'; }, 2000);
         } else {
             qbShowMsg(data.message || 'Booking failed. Please try again.', true);
-            btn.disabled = false; btn.style.opacity = '1';
-            btn.style.background = 'linear-gradient(135deg,#081C15,#1B4332)';
+            btn.disabled = false; btn.style.opacity = '1'; btn.style.background = 'linear-gradient(135deg,#081C15,#1B4332)';
             btn.innerHTML = '<i class="bi bi-lightning-charge me-2"></i>CONFIRM BOOKING';
         }
-    } catch(e) {
+    } catch (e) {
         qbShowMsg('Connection error. Please try again.', true);
         btn.disabled = false; btn.style.opacity = '1';
         btn.innerHTML = '<i class="bi bi-lightning-charge me-2"></i>CONFIRM BOOKING';
     }
 }
+
+function qbResetForm() {
+    ['qb-name','qb-phone','qb-email','qb-notes','qb-custom-price','qb-discount-value','qb-surcharge','qb-surcharge-note','qb-pricing-note','qb-advance','qb-customer-search'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+    ['qb-price-result','qb-pricing-summary','qb-quick-amounts'].forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
+    const bp = document.getElementById('qb-balance-preview'); if (bp) bp.textContent = '';
+    qbClearCustomer(); qbCalculatedPrice = null; qbActivePreSlotId = null;
+    const sg = document.getElementById('qb-slots-grid'); if(sg) sg.innerHTML = '<div style="color:#ADB5BD;font-size:0.8rem;">Select a date...</div>';
+}
+
+function addBookingToTable(bookingData) {
+    const adv  = parseFloat(bookingData.advance_amount) || 0;
+    const tot  = parseFloat(bookingData.total_amount)   || 0;
+    let pClass = 'bk-badge--red', pText = 'Unpaid';
+    if (adv >= tot) { pClass = 'bk-badge--green'; pText = 'Paid'; } else if (adv > 0) { pClass = 'bk-badge--amber'; pText = 'Partial'; }
+    const fmtDate  = new Date(bookingData.slot_date + 'T00:00:00').toLocaleDateString('en-IN', { day:'2-digit', month:'short' });
+    const typeIcon = bookingData.booking_type === 'phone'  ? '<i class="bi bi-telephone" style="color:#6b7280;font-size:0.85rem;" title="Phone"></i>' : '<i class="bi bi-person-walking" style="color:#6b7280;font-size:0.85rem;" title="Walk-in"></i>';
+    const rowHTML = `<tr style="border-bottom:1px solid #f3f4f6;">
+        <td style="padding:10px 14px;"><span style="color:#764ba2;font-weight:700;font-size:0.78rem;font-family:'Rajdhani',sans-serif;letter-spacing:0.5px;white-space:nowrap;">${bookingData.booking_no}</span></td>
+        <td style="padding:10px 10px;"><span style="background:#F0FDF4;color:#764ba2;padding:3px 9px;border-radius:20px;font-size:0.68rem;font-weight:600;border:1px solid #BBF7D0;white-space:nowrap;display:inline-block;max-width:110px;overflow:hidden;text-overflow:ellipsis;"><i class="bi bi-geo-alt"></i> ${qbSelectedGround?.name||'—'}</span></td>
+        <td style="padding:10px 10px;"><div style="color:#111827;font-weight:600;font-size:0.8rem;white-space:nowrap;">${bookingData.customer_name}</div><div style="color:#9CA3AF;font-size:0.7rem;margin-top:1px;">${bookingData.customer_phone}</div></td>
+        <td style="padding:10px 10px;white-space:nowrap;"><div style="color:#374151;font-weight:500;font-size:0.78rem;">${fmtDate}</div><div style="color:#9CA3AF;font-size:0.7rem;margin-top:1px;">${(bookingData.start_time||'--').slice(0,5)} – ${(bookingData.end_time||'--').slice(0,5)}</div></td>
+        <td style="padding:10px 10px;white-space:nowrap;"><div style="color:#111827;font-weight:700;font-size:0.8rem;">₹${tot} <span style="font-size:0.65rem;color:#6b7280;font-weight:400;">total</span></div><div style="font-size:0.68rem;margin-top:1px;"><span style="color:#764ba2;">\u2191₹${adv}</span><span style="color:${(tot-adv)>0?'#b45309':'#764ba2'};margin-left:4px;">Bal:₹${Math.max(0,tot-adv)}</span></div></td>
+        <td style="padding:10px 10px;"><span class="bk-badge ${pClass}">${pText}</span></td>
+        <td style="padding:10px 10px;"><span class="bk-badge bk-badge--green">Confirmed</span></td>
+        <td style="padding:10px 10px;text-align:center;">${typeIcon}</td>
+        <td style="padding:10px 10px;"><div class="dropdown"><button class="bk-dots-btn" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></button><ul class="dropdown-menu dropdown-menu-end bk-action-menu"><li><a class="dropdown-item bk-action-item" href="/bookings/${bookingData.booking_id}"><i class="bi bi-eye me-2" style="color:#764ba2;"></i>View</a></li><li><hr class="dropdown-divider" style="margin:4px 0;"></li><li><button class="dropdown-item bk-action-item bk-action-item--danger" onclick="confirmCancel(${bookingData.booking_id},'${bookingData.booking_no}')"><i class="bi bi-x-circle me-2"></i>Cancel</button></li></ul></div></td>
+    </tr>`;
+    let tbody = document.querySelector('table.table tbody') || document.querySelector('table tbody');
+    if (tbody) { tbody.insertAdjacentHTML('afterbegin', rowHTML); return; }
+    const emptyDiv = document.querySelector('.text-center.py-5'); const tp = emptyDiv ? emptyDiv.parentElement : document.querySelector('.card-body');
+    if (!tp) return; if (emptyDiv) emptyDiv.remove();
+    const tw = document.createElement('div'); tw.className = 'table-responsive';
+    tw.innerHTML = `<table class="table table-hover mb-0" style="font-size:0.8rem;white-space:nowrap;"><thead><tr style="border-bottom:1px solid #e5e7eb;background:#f9fafb;"><th class="bk-th" style="padding:10px 14px;">Booking No.</th><th class="bk-th">Ground</th><th class="bk-th">Customer</th><th class="bk-th">Date & Slot</th><th class="bk-th">Amount</th><th class="bk-th">Payment</th><th class="bk-th">Status</th><th class="bk-th">Type</th><th class="bk-th">Action</th></tr></thead><tbody>${rowHTML}</tbody></table>`; tp.appendChild(tw);
+}
+
+function updateStatsCounters(bookingData) {
+    const te = document.querySelector('.bk-stat-card--total .bk-stat-card__value');    if (te) te.innerText = (parseInt(te.innerText)||0)+1;
+    const ce = document.querySelector('.bk-stat-card--confirmed .bk-stat-card__value'); if (ce) ce.innerText = (parseInt(ce.innerText)||0)+1;
+    const re = document.querySelector('.bk-stat-card--revenue .bk-stat-card__value');
+    if (re && bookingData) { const adv = parseFloat(bookingData.advance_amount)||0; const cur = parseFloat(re.innerText.replace(/[₹,\s]/g,''))||0; re.innerText = '₹'+(cur+adv).toLocaleString('en-IN'); }
+}
+
+function openEditBooking(booking) {
+    let m = document.getElementById('editBookingModal');
+    if (!m) {
+        m = document.createElement('div'); m.id = 'editBookingModal';
+        m.style.cssText = 'display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:2000;align-items:center;justify-content:center;';
+        m.innerHTML = `<div style="background:white;border-radius:16px;width:500px;max-width:90vw;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+            <div style="padding:20px 24px;border-bottom:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center;"><h3 style="margin:0;font-family:'Rajdhani',sans-serif;font-weight:700;color:#764ba2;"><i class="bi bi-pencil-square me-2"></i>Edit Booking</h3><button onclick="closeEditModal()" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:#6b7280;"><i class="bi bi-x-lg"></i></button></div>
+            <div style="padding:20px 24px;">
+                <input type="hidden" id="edit_booking_id">
+                <div class="mb-3"><label class="form-label">Customer Name *</label><input type="text" id="edit_customer_name" class="form-control" required></div>
+                <div class="mb-3"><label class="form-label">Phone *</label><input type="tel" id="edit_customer_phone" class="form-control" required maxlength="10"></div>
+                <div class="mb-3"><label class="form-label">Email</label><input type="email" id="edit_customer_email" class="form-control"></div>
+                <div class="mb-3"><label class="form-label">Booking Type</label><select id="edit_booking_type" class="form-select"><option value="online">Online</option><option value="phone">Phone</option><option value="walkin">Walk-in</option></select></div>
+                <div class="mb-3"><label class="form-label">Notes</label><textarea id="edit_notes" class="form-control" rows="3"></textarea></div>
+            </div>
+            <div style="padding:16px 24px;border-top:1px solid #e5e7eb;display:flex;justify-content:flex-end;gap:12px;"><button onclick="closeEditModal()" class="btn btn-secondary">Cancel</button><button onclick="saveEditBooking()" class="btn btn-primary" style="background:#1B4332;border:none;"><i class="bi bi-check-lg me-1"></i>Save Changes</button></div>
+        </div>`;
+        document.body.appendChild(m);
+    }
+    document.getElementById('edit_booking_id').value    = booking.id;
+    document.getElementById('edit_customer_name').value = booking.customer_name  || '';
+    document.getElementById('edit_customer_phone').value= booking.customer_phone || '';
+    document.getElementById('edit_customer_email').value= booking.customer_email || '';
+    document.getElementById('edit_booking_type').value  = booking.booking_type   || 'online';
+    document.getElementById('edit_notes').value         = booking.notes          || '';
+    m.style.display = 'flex';
+}
+function closeEditModal() { const m = document.getElementById('editBookingModal'); if (m) m.style.display = 'none'; }
+async function saveEditBooking() {
+    try {
+        const res = await fetch('/bookings/update', { method:'POST', headers:{'Content-Type':'application/json'}, credentials:'same-origin', body: JSON.stringify({ booking_id:document.getElementById('edit_booking_id').value, customer_name:document.getElementById('edit_customer_name').value, customer_phone:document.getElementById('edit_customer_phone').value, customer_email:document.getElementById('edit_customer_email').value, booking_type:document.getElementById('edit_booking_type').value, notes:document.getElementById('edit_notes').value }) });
+        const r = await res.json();
+        if (r.success) { closeEditModal(); window.location.reload(); } else alert(r.message || 'Failed to update booking');
+    } catch (e) { alert('Connection error. Please try again.'); }
+}
+async function confirmCancel(id, bookingNo) {
+    if (!confirm(`Cancel booking ${bookingNo}? This cannot be undone.`)) return;
+    try {
+        const res = await fetch('/bookings/cancel', { method:'POST', headers:{'Content-Type':'application/json'}, credentials:'same-origin', body: JSON.stringify({booking_id:id}) });
+        const d = await res.json();
+        if (d.success) window.location.reload(); else alert(d.message || 'Failed to cancel booking');
+    } catch (e) { alert('Connection error. Please try again.'); }
+}
+
+window.qbSelectGround    = qbSelectGround;
+window.qbChangeGround    = qbChangeGround;
+window.qbCalculatePrice  = qbCalculatePrice;
+window.qbSetHalf         = qbSetHalf;
+window.qbSetFull         = qbSetFull;
+window.qbSubmit          = qbSubmit;
+window.qbSearchCustomers = qbSearchCustomers;
+window.qbSelectCustomer  = qbSelectCustomer;
+window.qbClearCustomer   = qbClearCustomer;
+window.openEditBooking   = openEditBooking;
+window.closeEditModal    = closeEditModal;
+window.saveEditBooking   = saveEditBooking;
+window.confirmCancel     = confirmCancel;
 </script>

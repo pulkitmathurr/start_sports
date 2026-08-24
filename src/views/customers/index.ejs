@@ -14,139 +14,253 @@
             </div>
             <div class="cx-header__badge">
                 <i class="bi bi-person-check me-1"></i>
-                <%= pagination.totalRecords %> Customer<%= pagination.totalRecords !==1 ? 's' : '' %>
+                <span id="cx-count-label"><%= pagination.totalRecords %> Customer<%= pagination.totalRecords !== 1 ? 's' : '' %></span>
             </div>
         </div>
 
-        <!-- Search -->
-        <div class="cx-search-bar">
-            <form method="GET" action="/customers" class="d-flex gap-2 align-items-center w-100">
-                <div class="cx-search-wrap">
-                    <i class="bi bi-search"></i>
-                    <input type="text" name="search" class="cx-search-input"
-                        placeholder="Search by Customer ID or Phone number..."
+    
+        <!-- Search + Sort + Add Customer -->
+<div class="cx-search-bar">
+    <form method="GET" action="/customers" class="cx-search-form">
+        <% if (typeof sort_by !== 'undefined' && sort_by) { %>
+            <input type="hidden" name="sort_by" value="<%= sort_by %>">
+        <% } %>
+        
+        <div class="cx-search-group">
+            <div class="cx-search-wrap">
+                <i class="bi bi-search"></i>
+                <input type="text" name="search" id="cx-search-input" class="cx-search-input"
+                    placeholder="Search by name, phone, email or ID..."
                     value="<%= search || '' %>" autocomplete="off">
-                </div>
-                <button type="submit" class="cx-btn-search">
-                    <i class="bi bi-search"></i> Search
-                </button>
-                <% if (search) { %>
-                    <a href="/customers" class="cx-btn-clear">
-                        <i class="bi bi-x-lg"></i> Clear
-                    </a>
-                    <% } %>
-            </form>
+            </div>
+            <button type="submit" class="cx-btn-search">
+                <i class="bi bi-search"></i> Search
+            </button>
+            <% if (search || (typeof sort_by !== 'undefined' && sort_by)) { %>
+                <a href="/customers" class="cx-btn-clear">
+                    <i class="bi bi-x-lg"></i> Clear
+                </a>
+            <% } %>
         </div>
 
+        <!-- Sort buttons -->
+        <div class="cx-sort-group">
+            <span class="cx-sort-label">Sort by:</span>
+            <a href="/customers?<%= new URLSearchParams({...(search ? {search} : {}), sort_by:'bookings'}).toString() %>"
+               class="cx-sort-btn <%= (typeof sort_by !== 'undefined' && sort_by === 'bookings') ? 'active' : '' %>">
+                <i class="bi bi-calendar-check"></i> Top Bookings
+            </a>
+            <a href="/customers?<%= new URLSearchParams({...(search ? {search} : {}), sort_by:'revenue'}).toString() %>"
+               class="cx-sort-btn <%= (typeof sort_by !== 'undefined' && sort_by === 'revenue') ? 'active' : '' %>">
+                <i class="bi bi-currency-rupee"></i> High to Low
+            </a>
+        </div>
+
+        <!-- Add Customer Button inside form -->
+        <button type="button" onclick="openAddCustomer()" class="cx-add-customer-btn">
+            <i class="bi bi-person-plus-fill"></i> Add Customer
+        </button>
+    </form>
+</div>
+        
+
         <!-- Content -->
-        <% if (customers.length===0) { %>
+        <% if (customers.length === 0 && !search) { %>
             <div class="cx-empty">
                 <div class="cx-empty__icon"><i class="bi bi-people"></i></div>
                 <p class="cx-empty__title">No customers found</p>
                 <small class="cx-empty__sub">Customers are created automatically when a booking is made</small>
             </div>
-            <% } else { %>
-                <div class="cx-table-card">
-                    <div class="table-responsive">
-                        <table class="cx-table">
-                            <thead>
+        <% } else { %>
+            <div class="cx-table-card">
+                <div class="table-responsive">
+                    <table class="cx-table">
+                        <thead>
+                            <tr>
+                                <th>Customer ID</th>
+                                <th>Name</th>
+                                <th>Phone</th>
+                                <th>Email</th>
+                                <th class="text-center">Total Bookings</th>
+                                <th class="text-center">Total Spent</th>
+                                <th>Member Since</th>
+                                <th class="text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cx-tbody">
+                            <% customers.forEach(customer => { %>
                                 <tr>
-                                    <th>Customer ID</th>
-                                    <th>Name</th>
-                                    <th>Phone</th>
-                                    <th>Email</th>
-                                    <th class="text-center">Total Bookings</th>
-                                    <th class="text-center">Total Spent</th>
-                                    <th>Member Since</th>
-                                    <th class="text-center">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <% customers.forEach(customer=> { %>
-                                    <tr>
-                                        <td><span class="cx-cid">
-                                                <%= customer.customer_id %>
-                                            </span></td>
-                                        <td>
-                                            <div class="d-flex align-items-center gap-2">
-                                                <div class="cx-avatar">
-                                                    <%= customer.name.charAt(0).toUpperCase() %>
-                                                </div>
-                                                <span class="cx-name">
-                                                    <%= customer.name %>
-                                                </span>
-                                            </div>
-                                        </td>
-                                        <td><span class="cx-phone"><i class="bi bi-telephone-fill"></i>
-                                                <%= customer.phone %>
-                                            </span></td>
-                                        <td><span class="cx-email">
-                                                <%= customer.email || '—' %>
-                                            </span></td>
-                                        <td class="text-center"><span class="cx-booking-badge">
-                                                <%= customer.total_bookings %>
-                                            </span></td>
-                                        <td class="text-center"><span class="cx-spent">₹<%= Number(customer.total_spent
-                                                    || 0).toLocaleString('en-IN') %></span></td>
-                                        <td>
-                                            <span class="cx-date">
-                                                <i class="bi bi-calendar3 me-1"></i>
-                                                <%= new Date(customer.created_at).toLocaleDateString('en-IN', {
-                                                    day:'2-digit', month:'short', year:'numeric' }) %>
-                                            </span>
-                                        </td>
-                                        <td class="text-center">
+                                    <td><span class="cx-cid"><%= customer.customer_id %></span></td>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="cx-avatar"><%= customer.name.charAt(0).toUpperCase() %></div>
+                                            <span class="cx-name"><%= customer.name %></span>
+                                        </div>
+                                    </td>
+                                    <td><span class="cx-phone"><i class="bi bi-telephone-fill"></i> <%= customer.phone %></span></td>
+                                    <td><span class="cx-email"><%= customer.email || '—' %></span></td>
+                                    <td class="text-center"><span class="cx-booking-badge"><%= customer.total_bookings %></span></td>
+                                    <td class="text-center"><span class="cx-spent">₹<%= Number(customer.total_spent || 0).toLocaleString('en-IN') %></span></td>
+                                    <td>
+                                        <span class="cx-date">
+                                            <i class="bi bi-calendar3 me-1"></i>
+                                            <%= new Date(customer.created_at).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' }) %>
+                                        </span>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="d-flex align-items-center justify-content-center gap-2">
                                             <a href="/customers/<%= customer.customer_id %>" class="cx-btn-view">
-                                                <i class="bi bi-eye"></i> View Profile
+                                                <i class="bi bi-eye"></i>
                                             </a>
-                                        </td>
-                                    </tr>
-                                    <% }) %>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <% if (pagination.totalPages> 1) { %>
-                        <div class="cx-pager">
-                            <span class="cx-pager__info">
-                                Showing <%= ((pagination.currentPage - 1) * pagination.limit) + 1 %>–<%=
-                                        Math.min(pagination.currentPage * pagination.limit, pagination.totalRecords) %>
-                                        of <strong>
-                                            <%= pagination.totalRecords %>
-                                        </strong> customers
-                            </span>
-                            <nav>
-                                <ul class="pagination cx-pagination mb-0">
-                                    <% if (pagination.currentPage> 1) { %>
-                                        <li class="page-item">
-                                            <a class="page-link"
-                                                href="/customers?page=<%= pagination.currentPage - 1 %><%= search ? '&search=' + search : '' %>"><i
-                                                    class="bi bi-chevron-left"></i></a>
-                                        </li>
-                                        <% } %>
-                                            <% for (let i=1; i <=pagination.totalPages; i++) { %>
-                                                <li
-                                                    class="page-item <%= i === pagination.currentPage ? 'active' : '' %>">
-                                                    <a class="page-link"
-                                                        href="/customers?page=<%= i %><%= search ? '&search=' + search : '' %>">
-                                                        <%= i %>
-                                                    </a>
-                                                </li>
-                                                <% } %>
-                                                    <% if (pagination.currentPage < pagination.totalPages) { %>
-                                                        <li class="page-item">
-                                                            <a class="page-link"
-                                                                href="/customers?page=<%= pagination.currentPage + 1 %><%= search ? '&search=' + search : '' %>"><i
-                                                                    class="bi bi-chevron-right"></i></a>
-                                                        </li>
-                                                        <% } %>
-                                </ul>
-                            </nav>
-                        </div>
-                        <% } %>
+                                            <button onclick="openEditCustomer('<%= customer.customer_id %>','<%= customer.name.replace(/'/g, String.fromCharCode(39)) %>','<%= customer.phone %>','<%= customer.email || '' %>','<%= (customer.address || '').replace(/'/g, String.fromCharCode(39)) %>')" class="cx-btn-edit" title="Edit Customer">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <% if (customer.phone) { %>
+                                            <a href="https://wa.me/<%= customer.phone.replace(/\D/g,'') %>" target="_blank" class="cx-btn-whatsapp" title="WhatsApp <%= customer.name %>">
+                                                <i class="bi bi-whatsapp"></i>
+                                            </a>
+                                            <% } %>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
                 </div>
+
+                <!-- No results message — shown by JS when search returns empty -->
+                <div id="cx-no-results" style="display:none; text-align:center; padding:3rem 1rem;">
+                    <i class="bi bi-search" style="font-size:2rem; color:#ADB5BD;"></i>
+                    <p style="margin:.75rem 0 .25rem; font-weight:600; color:#374151;">No customers match "<span id="cx-no-results-term"></span>"</p>
+                    <small style="color:#9CA3AF;">Try a different name, phone, email or ID</small>
+                </div>
+
+                <% if (pagination.totalPages > 1) { %>
+                    <div class="cx-pager" id="cx-pager">
+                        <span class="cx-pager__info">
+                            Showing <%= ((pagination.currentPage - 1) * pagination.limit) + 1 %>–<%= Math.min(pagination.currentPage * pagination.limit, pagination.totalRecords) %>
+                            of <strong><%= pagination.totalRecords %></strong> customers
+                        </span>
+                        <nav>
+                            <ul class="pagination cx-pagination mb-0">
+                                <% if (pagination.currentPage > 1) { %>
+                                    <li class="page-item">
+                                        <a class="page-link" href="/customers?page=<%= pagination.currentPage - 1 %><%= search ? '&search=' + encodeURIComponent(search) : '' %><%= (typeof sort_by !== 'undefined' && sort_by) ? '&sort_by=' + sort_by : '' %>">
+                                            <i class="bi bi-chevron-left"></i>
+                                        </a>
+                                    </li>
+                                <% } %>
+                                <% for (let i = 1; i <= pagination.totalPages; i++) { %>
+                                    <li class="page-item <%= i === pagination.currentPage ? 'active' : '' %>">
+                                        <a class="page-link" href="/customers?page=<%= i %><%= search ? '&search=' + encodeURIComponent(search) : '' %><%= (typeof sort_by !== 'undefined' && sort_by) ? '&sort_by=' + sort_by : '' %>">
+                                            <%= i %>
+                                        </a>
+                                    </li>
+                                <% } %>
+                                <% if (pagination.currentPage < pagination.totalPages) { %>
+                                    <li class="page-item">
+                                        <a class="page-link" href="/customers?page=<%= pagination.currentPage + 1 %><%= search ? '&search=' + encodeURIComponent(search) : '' %><%= (typeof sort_by !== 'undefined' && sort_by) ? '&sort_by=' + sort_by : '' %>">
+                                            <i class="bi bi-chevron-right"></i>
+                                        </a>
+                                    </li>
+                                <% } %>
+                            </ul>
+                        </nav>
+                    </div>
                 <% } %>
+            </div>
+        <% } %>
 
     </div>
 
-    <%- include('../partials/footer') %>
+<style>
+.cx-btn-edit {
+    display:inline-flex; align-items:center; justify-content:center;
+    width:32px; height:32px; border-radius:8px;
+    background:#EFF6FF; color:#2563EB; border:1px solid #BFDBFE;
+    font-size:0.8rem; cursor:pointer; transition:all 0.2s;
+    text-decoration:none;
+}
+.cx-btn-edit:hover { background:#2563EB; color:#fff; border-color:#2563EB; }
+</style>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const input      = document.getElementById('cx-search-input');
+    const tbody      = document.getElementById('cx-tbody');
+    const noResults  = document.getElementById('cx-no-results');
+    const noTerm     = document.getElementById('cx-no-results-term');
+    const countLabel = document.getElementById('cx-count-label');
+    const pager      = document.getElementById('cx-pager');
+
+    if (!input || !tbody) return;
+
+    function debounce(fn, ms) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; }
+
+    function fmtDate(d) {
+        return new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
+
+    function renderRows(customers) {
+        tbody.innerHTML = customers.map(c => `
+            <tr>
+                <td><span class="cx-cid">${c.customer_id}</span></td>
+                <td>
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="cx-avatar">${c.name.charAt(0).toUpperCase()}</div>
+                        <span class="cx-name">${c.name}</span>
+                    </div>
+                </td>
+                <td><span class="cx-phone"><i class="bi bi-telephone-fill"></i> ${c.phone}</span></td>
+                <td><span class="cx-email">${c.email || '—'}</span></td>
+                <td class="text-center"><span class="cx-booking-badge">${c.total_bookings}</span></td>
+                <td class="text-center"><span class="cx-spent">₹${Number(c.total_spent || 0).toLocaleString('en-IN')}</span></td>
+                <td><span class="cx-date"><i class="bi bi-calendar3 me-1"></i>${fmtDate(c.created_at)}</span></td>
+                <td class="text-center">
+                    <div class="d-flex align-items-center justify-content-center gap-2">
+                        <a href="/customers/${c.customer_id}" class="cx-btn-view"><i class="bi bi-eye"></i> View Profile</a>
+                        <button onclick="openEditCustomer('${c.customer_id}','${(c.name||'').replace(/'/g,'\\'+'\\'')}','${c.phone}','${c.email||''}','${(c.address||'').replace(/'/g,'\\'+'\\'')}') " class="cx-btn-edit" title="Edit Customer"><i class="bi bi-pencil"></i></button>
+                        ${c.phone ? `<a href="https://wa.me/${c.phone.replace(/\D/g,'')}" target="_blank" class="cx-btn-whatsapp" title="WhatsApp ${c.name}"><i class="bi bi-whatsapp"></i></a>` : ''}
+                    </div>
+                </td>
+            </tr>`).join('');
+    }
+
+    const doSearch = debounce(async (q) => {
+        try {
+            const params = new URLSearchParams({ search: q, limit: 200 });
+            const res  = await fetch('/customers?' + params, { headers: { 'Accept': 'application/json' } });
+            const data = await res.json();
+
+            renderRows(data.customers);
+
+            const total = data.pagination.totalRecords;
+            if (countLabel) countLabel.textContent = total + ' Customer' + (total !== 1 ? 's' : '');
+
+            // hide pagination while live searching
+            if (pager) pager.style.display = 'none';
+
+            if (!data.customers.length) {
+                noResults.style.display = 'block';
+                if (noTerm) noTerm.textContent = q;
+            } else {
+                noResults.style.display = 'none';
+            }
+        } catch (e) {
+            console.error('Search error:', e);
+        }
+    }, 350);
+
+    input.addEventListener('input', () => {
+        const q = input.value.trim();
+        if (!q) {
+            window.location.href = '/customers';
+            return;
+        }
+        doSearch(q);
+    });
+});
+</script>
+
+<%- include('../partials/addCustomer.ejs') %>
+<%- include('../partials/editCustomer.ejs') %>
+<%- include('../partials/footer') %>
